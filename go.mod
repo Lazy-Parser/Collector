@@ -1,4 +1,5 @@
-module collector
+module github.com/Lazy-Parser/Collector
+
 
 go 1.24.0
 
