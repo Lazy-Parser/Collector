@@ -73,3 +73,9 @@ message PushDataV3ApiWrapper {
   optional int64 sendTime = 6;
 
 }
+
+ // protoc \
+  // --proto_path=proto \
+  // --go_out=gen \
+  // --go_opt=paths=source_relative \
+  // proto/*.proto
