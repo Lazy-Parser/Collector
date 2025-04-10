@@ -4,25 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
+	// "io"
 	"log"
 	"os"
 
+	a "github.com/Lazy-Parser/Collector/internal/aggregator"
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 )
 
 type TickerMessage struct {
-	Symbol  string          `json:"symbol"`
-	Data    json.RawMessage `json:"data"` // <-- временно как "сырая" часть
-	Channel string          `json:"channel"`
-	Ts      int64           `json:"ts"`
+	Symbol  string     `json:"symbol"`
+	Data    TickerData `json:"data"` // <-- временно как "сырая" часть
+	Channel string     `json:"channel"`
+	Ts      int64      `json:"ts"`
 }
 
 type TickerData struct {
 	Symbol                  string    `json:"symbol"`
 	LastPrice               float64   `json:"lastPrice"`
 	RiseFallRate            float64   `json:"riseFallRate"`
-	FairPrice               float64   `json:"fairPrice"`
+	FairPrice               float32   `json:"fairPrice"`
 	IndexPrice              float64   `json:"indexPrice"`
 	Volume24                int64     `json:"volume24"`
 	Amount24                float64   `json:"amount24"`
@@ -31,8 +34,8 @@ type TickerData struct {
 	Lower24Price            float64   `json:"lower24Price"`
 	High24Price             float64   `json:"high24Price"`
 	Timestamp               int64     `json:"timestamp"`
-	Bid1                    float64   `json:"bid1"`
-	Ask1                    float64   `json:"ask1"`
+	Bid1                    float32   `json:"bid1"`
+	Ask1                    float32   `json:"ask1"`
 	HoldVol                 int64     `json:"holdVol"`
 	RiseFallValue           float64   `json:"riseFallValue"`
 	FundingRate             float64   `json:"fundingRate"`
@@ -41,13 +44,18 @@ type TickerData struct {
 	RiseFallRatesOfTimezone []float64 `json:"riseFallRatesOfTimezone"`
 }
 
-func Run(ctx context.Context) error {
+type Tickers struct {
+	Data []TickerData `json:data`
+}
 
+func Run(ctx context.Context) error {
 	// get ws string from dotenv
 	mexWS, err := getDotenv()
 	if err != nil {
 		return fmt.Errorf("dotenv: %w", err)
 	}
+
+	a.InitJoiner()
 
 	// connect to ws
 	conn, err := connect(mexWS)
@@ -82,10 +90,9 @@ func connect(mexcWS string) (*websocket.Conn, error) {
 
 func subscribeToFutures(ctx context.Context, conn *websocket.Conn) {
 	subscribe := map[string]interface{}{
-		"method": "sub.depth",
+		"method": "sub.ticker",
 		"param": map[string]interface{}{
-			"symbol": "BTC_USDT",
-			"sdfsdf": "sdfsdf",
+			"symbol": "IP_USDT",
 		},
 	}
 
@@ -107,18 +114,41 @@ func subscribeToFutures(ctx context.Context, conn *websocket.Conn) {
 				continue
 			}
 
-			// var data TickerData;
-			// if err := json.Unmarshal([]byte(msg.Data), &data); err != nil {
-			// 	log.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err);
-			// 	continue;
+			fmt.Println(string(msg))
+
+			var data TickerMessage
+			if err := json.Unmarshal([]byte(msg), &data); err != nil {
+				log.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
+				continue
+			}
+
+			fmt.Println(data.Data.FairPrice)
+			// for _, ticker := range data.Data {
+			// payload := m.MexcInfo{
+			// 	MexcLink: "https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels",
+			// 	Price:    float32(data.Data.FairPrice),
 			// }
+			// a.GetJoiner().UpdateMexc(
+			// 	pairToDex(data.Symbol),
+			// 	&payload,
+			// )
+		}
 
-			// fmt.Printf("Symbol: %s | Fair Price: %f | ASK1: %f | BID1: %f \n", data.Symbol, data.FairPrice, data.Ask1, data.Bid1);
+		fmt.Println("\n")
+	}
+}
 
-			fmt.Println(string(msg));
-			fmt.Println("\n")
+// "BTC_USDT" -> "BTC/USDT"
+func pairToDex(pair string) string {
+	rs := []rune(pair)
+
+	for i := range rs {
+		if rs[i] == '_' {
+			rs[i] = '/'
 		}
 	}
+
+	return string(rs)
 }
 
 func unsubscribe(conn *websocket.Conn) {
