@@ -1,12 +1,23 @@
 package main
 
 import (
-	"log"
 	"context"
-	"github.com/Lazy-Parser/Collector/internal"
+	"log"
+	"time"
+	// "github.com/Lazy-Parser/Collector/internal"
+	// "internal/futures"
+
+	"github.com/Lazy-Parser/Collector/internal/futures"
 )
 
 func main() {
+	ctx, ctxClose := context.WithTimeout(context.Background(), time.Second * 30);
+	defer ctxClose();
+
 	log.Println("🚀 Starting Collector...")
-	collector.Run(context.Background());
+	futures.Run(ctx);
+
+
+
+	// collector.Run(context.Background());
 }
