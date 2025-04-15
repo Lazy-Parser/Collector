@@ -11,6 +11,7 @@
 package aggregator
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"sync"
@@ -78,10 +79,14 @@ func (j *Joiner) Update(data AggregatorStruct) {
 			Symbol:       data.Symbol,
 			SpotPrice:    spot.Price,
 			FuturesPrice: futures.Price,
+			Amount24:     futures.Amount24,
 			Timestamp:    max(futures.Timestamp, spot.Timestamp).UnixMilli(),
 		}
 
-		p.GetPublisher().Publish("mexc.spread", *payload)
+		err := p.GetPublisher().Publish("mexc.spread", *payload)
+		if err != nil {
+			fmt.Errorf("Send message erorr: %w", err)
+		}
 
 		// log.Printf("🔁 %s: FUTURES %s | SPOT %s",
 		// 	data.Symbol, futures.Price, spot.Price)

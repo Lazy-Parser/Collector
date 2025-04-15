@@ -13,10 +13,11 @@ import (
 )
 
 type Message struct {
-	Symbol       string `json:"symbol"`
-	SpotPrice    string `json:"spot_price"`
-	FuturesPrice string `json:"futures_price"`
-	Timestamp    int64  `json:"timestamp"`
+	Symbol       string  `json:"symbol"`
+	SpotPrice    string  `json:"spot_price"`
+	FuturesPrice string  `json:"futures_price"`
+	Timestamp    int64   `json:"timestamp"`
+	Amount24     float64 `json:"amount24"`
 }
 
 var (

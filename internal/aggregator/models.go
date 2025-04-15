@@ -10,6 +10,7 @@ type AggregatorStruct struct {
 	Type      string    // "SPOT", "FUTURES", "DEX"
 	Symbol    string    // например: "BTC/USDT"
 	Price     string    // цена как строка
+	Amount24  float64   // обьем за 24 часа
 	Timestamp time.Time // время обновления
 }
 

@@ -152,7 +152,6 @@ type Tickers struct {
 
 // "FUTURES" or "SPOT"
 
-
 //{
 //     "method": "SUBSCRIPTION",
 //     "params": [
