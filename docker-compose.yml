@@ -17,33 +17,21 @@ services:
   #     interval: 10s
   #     retries: 5
 
-  # nats:
-  #   image: nats:alpine3.19
-  #   ports:
-  #     - "4222:4222"
-  #     - "8222:8222"
-  #   command: ["-js", "-m", "8222"]
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "curl -f http://localhost:8222/healthz || (echo 'NATS healthcheck failed'; curl -s http://localhost:8222/healthz)"]
-  #     interval: 10s
-  #     retries: 5
-
-  # nats-setup:
-  #   image: natsio/nats-box:latest
-  #   depends_on:
-  #     nats:
-  #       condition: service_healthy
-  #   command: ["sh", "-c", "until nats -s nats://nats:4222 stream create AGENTS --subjects 'AGENTS.*' --ack --storage memory --retention limits --max-msgs=-1 --max-bytes=-1 --max-age=72h --max-msg-size=-1 --dupe-window=30s --defaults; do echo 'Waiting for NATS JetStream to be ready...'; sleep 2; done"]
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "nats -s nats://nats:4222 stream info AGENTS || exit 1"]
-  #     interval: 10s
-  #     retries: 5
+  nats:
+    image: nats:alpine3.19
+    container_name: nats-server
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    restart: unless-stopped
+    command: ["-js", "-m", "8222"]
 
   app:
     build: .
-    # environment:
+    container_name: collector
+    environment:
     #   DATABASE_URL: postgresql://postgres:root@postgres:5432/Agents?sslmode=disable
-    #   NATS_URL: nats://nats:4222
+      NATS_URL: nats://nats:4222
     # depends_on:
       # postgres:
       #   condition: service_healthy
