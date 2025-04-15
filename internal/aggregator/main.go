@@ -14,6 +14,9 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
+
+	p "github.com/Lazy-Parser/Collector/internal/publisher"
 )
 
 var (
@@ -22,13 +25,18 @@ var (
 	bus    chan AggregatorStruct
 )
 
-// InitJoiner initializes the singleton Joiner and its data structures.
+// InitJoiner initializes the singleton Joiner and NATS connection structures.
 func InitJoiner() {
 	once.Do(func() {
 		joiner = &Joiner{
 			cache: make(map[string]map[string]AggregatorStruct),
 		}
-		bus = make(chan AggregatorStruct, 5000) // буферизированный канал
+		bus = make(chan AggregatorStruct, 5000)
+
+		// init nats connect to publish joiners
+		p.InitPublisher()
+		// defer p.GetPublisher().Close()
+
 		go joiner.run()
 	})
 }
@@ -61,19 +69,36 @@ func (j *Joiner) Update(data AggregatorStruct) {
 	}
 	j.cache[data.Symbol][data.Type] = data
 
-	// Пример: логика сравнения цен с разных бирж
 	futures := j.cache[data.Symbol]["FUTURES"]
 	spot := j.cache[data.Symbol]["SPOT"]
 
-	// Если все три есть, покажем расхождение
+	// send via nats
 	if futures.Price != "" && spot.Price != "" {
+		payload := &p.Message{
+			Symbol:       data.Symbol,
+			SpotPrice:    spot.Price,
+			FuturesPrice: futures.Price,
+			Timestamp:    max(futures.Timestamp, spot.Timestamp).UnixMilli(),
+		}
+
+		p.GetPublisher().Publish("mexc.spread", *payload)
+
 		log.Printf("🔁 %s: FUTURES %s | SPOT %s",
 			data.Symbol, futures.Price, spot.Price)
 	}
 }
 
-// converts symbol string with underscores or without 
-// a separator to the "BTC/USDT" format by replacing "_" with "/" or 
+// return the latest time
+func max(t1 time.Time, t2 time.Time) time.Time {
+	if t1.Compare(t2) == -1 { // t1 < t2
+		return t2
+	}
+
+	return t1
+}
+
+// converts symbol string with underscores or without
+// a separator to the "BTC/USDT" format by replacing "_" with "/" or
 // appending "/" before "USDT" if no separators are found.
 func NormalizeSymbol(symbol string) string {
 	newString := strings.ReplaceAll(symbol, "_", "/")
@@ -84,4 +109,3 @@ func NormalizeSymbol(symbol string) string {
 
 	return newString
 }
-

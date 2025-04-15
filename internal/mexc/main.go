@@ -127,6 +127,7 @@ func parseFutures(msg []byte) {
 	var data m.Tickers
 	if err := json.Unmarshal([]byte(msg), &data); err != nil {
 		log.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
+		fmt.Println(string(msg))
 		return
 	}
 
@@ -142,13 +143,13 @@ func parseFutures(msg []byte) {
 	}
 }
 
-
 // parseSpot takes a JSON message (in bytes) and parses it into a slice of SpotMiniTickers.
 // It then creates an AggregatorStruct for each ticker and pushes it to the Joiner.
 func parseSpot(msg []byte) {
 	var data SpotMiniTickersResponse
 	if err := json.Unmarshal([]byte(msg), &data); err != nil {
 		log.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
+		fmt.Println(string(msg))
 		return
 	}
 
@@ -163,7 +164,6 @@ func parseSpot(msg []byte) {
 		a.GetJoiner().Push(payload)
 	}
 }
-
 
 func unsubscribe(conn *websocket.Conn, conf MexcConf) {
 	log.Println("Exiting...")
