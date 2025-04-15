@@ -83,8 +83,8 @@ func (j *Joiner) Update(data AggregatorStruct) {
 
 		p.GetPublisher().Publish("mexc.spread", *payload)
 
-		log.Printf("🔁 %s: FUTURES %s | SPOT %s",
-			data.Symbol, futures.Price, spot.Price)
+		// log.Printf("🔁 %s: FUTURES %s | SPOT %s",
+		// 	data.Symbol, futures.Price, spot.Price)
 	}
 }
 

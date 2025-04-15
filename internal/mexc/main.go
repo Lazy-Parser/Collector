@@ -12,6 +12,7 @@ package mexc
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -23,6 +24,11 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 )
+
+var (
+	pingTimeout = flag.Duration("pingTimeout", 20 * time.Second, "Repeat PING signal every 20 seconds")
+)
+
 
 func Run(ctx context.Context) error {
 	mexcFutures, mexcSpot, err := getDotenv()
@@ -76,6 +82,9 @@ func runWS(ctx context.Context, conf MexcConf) error {
 		return err
 	}
 
+	// ping every 20 seconds
+	go ping(conf.Type, conn)
+
 	subscribe(ctx, conn, conf)
 
 	return nil
@@ -126,7 +135,7 @@ func subscribe(ctx context.Context, conn *websocket.Conn, conf MexcConf) {
 func parseFutures(msg []byte) {
 	var data m.Tickers
 	if err := json.Unmarshal([]byte(msg), &data); err != nil {
-		log.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
+		// log.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
 		fmt.Println(string(msg))
 		return
 	}
@@ -148,7 +157,7 @@ func parseFutures(msg []byte) {
 func parseSpot(msg []byte) {
 	var data SpotMiniTickersResponse
 	if err := json.Unmarshal([]byte(msg), &data); err != nil {
-		log.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
+		// log.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
 		fmt.Println(string(msg))
 		return
 	}
@@ -169,6 +178,30 @@ func unsubscribe(conn *websocket.Conn, conf MexcConf) {
 	log.Println("Exiting...")
 	conn.WriteJSON(conf.Unsubscribe)
 	conn.Close()
+}
+
+func ping(tp ConfType, conn *websocket.Conn) {
+	ticker := time.NewTicker(*pingTimeout)
+	defer ticker.Stop()
+
+	var payload map[string]interface{}
+	if tp == Futures {
+		payload = map[string]interface{}{"method": "ping"}
+	} else {
+		payload = map[string]interface{}{"method": "PING"}
+	}
+
+	for {
+		select {
+		case <-ticker.C:
+			err := conn.WriteJSON(payload)
+			if err != nil {
+				fmt.Errorf("send ping: %w", err)
+			} else {
+				log.Println("Ping %s", tp)
+			}
+		}
+	}
 }
 
 func getDotenv() (string, string, error) {
