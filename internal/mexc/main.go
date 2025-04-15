@@ -1,3 +1,12 @@
+// Package mexc provides a WebSocket client for consuming real-time
+// market data from the MEXC exchange (Spot and Futures).
+//
+// It handles connection management, subscription, message reading,
+// and parsing of MEXC-specific payloads.
+//
+// Parsed data is converted into unified PriceFeed structs and pushed
+// into the aggregator for further processing.
+
 package mexc
 
 import (
@@ -60,6 +69,7 @@ func Run(ctx context.Context) error {
 	return nil
 }
 
+// runWS establishes a WebSocket connection and subscribes to MEXC data.
 func runWS(ctx context.Context, conf MexcConf) error {
 	conn, err := connect(conf.URL, conf.Type)
 	if err != nil {
@@ -71,6 +81,7 @@ func runWS(ctx context.Context, conf MexcConf) error {
 	return nil
 }
 
+// connect to Mexc WebSocket and returns an established connection.
 func connect(mexcWS string, tp ConfType) (*websocket.Conn, error) {
 	conn, _, err := websocket.DefaultDialer.Dial(mexcWS, nil)
 	if err != nil {
@@ -81,6 +92,11 @@ func connect(mexcWS string, tp ConfType) (*websocket.Conn, error) {
 	return conn, nil
 }
 
+// Subscribe to Mexc WebSocket and parse incoming messages.
+//
+// The function writes a subscription message to the websocket connection and then
+// listens for incoming messages. When a message is received, it is parsed using
+// the ParseFunc provided in the MexcConf struct.
 func subscribe(ctx context.Context, conn *websocket.Conn, conf MexcConf) {
 	if err := conn.WriteJSON(conf.Subscribe); err != nil {
 		log.Fatal("❌ Subscription failed:", err)
@@ -105,6 +121,8 @@ func subscribe(ctx context.Context, conn *websocket.Conn, conf MexcConf) {
 	}
 }
 
+// parseFutures takes a JSON message (in bytes) and parses it into a slice of m.TickerData.
+// It then creates an AggregatorStruct for each ticker and pushes it to the Joiner.
 func parseFutures(msg []byte) {
 	var data m.Tickers
 	if err := json.Unmarshal([]byte(msg), &data); err != nil {
@@ -124,6 +142,9 @@ func parseFutures(msg []byte) {
 	}
 }
 
+
+// parseSpot takes a JSON message (in bytes) and parses it into a slice of SpotMiniTickers.
+// It then creates an AggregatorStruct for each ticker and pushes it to the Joiner.
 func parseSpot(msg []byte) {
 	var data SpotMiniTickersResponse
 	if err := json.Unmarshal([]byte(msg), &data); err != nil {
@@ -142,6 +163,7 @@ func parseSpot(msg []byte) {
 		a.GetJoiner().Push(payload)
 	}
 }
+
 
 func unsubscribe(conn *websocket.Conn, conf MexcConf) {
 	log.Println("Exiting...")
