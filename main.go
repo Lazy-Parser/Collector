@@ -9,7 +9,7 @@ import (
 	// "internal/futures"
 
 	
-	"github.com/Lazy-Parser/Collector/internal/futures"
+	"github.com/Lazy-Parser/Collector/internal/mexc"
 	// "github.com/Lazy-Parser/Collector/internal/dex"
 )
 
@@ -19,7 +19,7 @@ func main() {
 
 	
 	log.Println("🚀 Starting Collector...")
-	futures.Run(context.Background())
+	mexc.Run(context.Background())
 
 	// collector.Run(context.Background());
 }
