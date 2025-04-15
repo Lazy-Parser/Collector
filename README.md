@@ -32,3 +32,4 @@
 - [x] MEXC Spot & Futures support
 - [x] NATS publisher
 - [ ] DexScreener integration
+- [ ] Tests
