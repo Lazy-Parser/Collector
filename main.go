@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/Lazy-Parser/Collector/internal/mexc"
 )
 
 func main() {
-	log.Println("🚀 Starting Collector...")
+	fmt.Println("🚀 Starting Collector...")
 	mexc.Run(context.Background())
 }

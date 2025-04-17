@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -103,10 +102,10 @@ func GetInfo(url string, coin string, res chan m.DexInfoResponse) error {
 func delayHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		log.Printf("➡️ %s %s", r.Method, r.URL.Path)
+		fmt.Printf("➡️ %s %s", r.Method, r.URL.Path)
 
 		next.ServeHTTP(w, r)
 
-		log.Printf("✅ Обработано за %v\n", time.Since(start))
+		fmt.Printf("✅ Обработано за %v\n", time.Since(start))
 	})
 }

@@ -11,7 +11,8 @@
 package aggregator
 
 import (
-	"log"
+	"fmt"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -47,7 +48,7 @@ func GetJoiner() *Joiner {
 
 // run listens to the bus channel for incoming AggregatorStruct data.
 func (j *Joiner) run() {
-	log.Println("🧠 Aggregator started...")
+	fmt.Println("🧠 Aggregator started...")
 
 	for data := range bus {
 		j.Update(data)
@@ -67,24 +68,54 @@ func (j *Joiner) Update(data AggregatorStruct) {
 	if _, ok := j.cache[data.Symbol]; !ok {
 		j.cache[data.Symbol] = make(map[string]AggregatorStruct)
 	}
+	//		"MEXC"
 	j.cache[data.Symbol][data.Type] = data
 
-	futures := j.cache[data.Symbol]["FUTURES"]
-	spot := j.cache[data.Symbol]["SPOT"]
+	futures := j.cache[data.Symbol]["FUTURES"].Futures
+	spot := j.cache[data.Symbol]["SPOT"].Spot
 
 	// send via nats
-	if futures.Price != "" && spot.Price != "" {
+	if futures.LastPrice != 0 && spot.Price != 0 {
 		payload := &p.Message{
-			Symbol:       data.Symbol,
-			SpotPrice:    spot.Price,
-			FuturesPrice: futures.Price,
-			Timestamp:    max(futures.Timestamp, spot.Timestamp).UnixMilli(),
+			Symbol:    data.Symbol,
+			Timestamp: data.Timestamp.UnixMilli(),
+			Spot:      spot,
+			Futures:   futures,
 		}
 
-		p.GetPublisher().Publish("mexc.spread", *payload)
+		err := p.GetPublisher().Publish("mexc.spread", *payload)
+		if err != nil {
+			fmt.Errorf("Send message erorr: %w", err)
+		}
 
-		// log.Printf("🔁 %s: FUTURES %s | SPOT %s",
+		// fmt.Printf("🔁 %s: FUTURES %s | SPOT %s",
 		// 	data.Symbol, futures.Price, spot.Price)
+	}
+}
+
+func Print(obj interface{}, indent string) {
+	val := reflect.ValueOf(obj)
+	typ := reflect.TypeOf(obj)
+
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+		typ = typ.Elem()
+	}
+
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		fieldType := typ.Field(i)
+
+		if !field.CanInterface() {
+			continue
+		}
+
+		if field.Kind() == reflect.Struct {
+			fmt.Printf("%s%s:\n", indent, fieldType.Name)
+			print(field.Interface(), indent+"  ")
+		} else {
+			fmt.Printf("%s%s: %v\n", indent, fieldType.Name, field.Interface())
+		}
 	}
 }
 

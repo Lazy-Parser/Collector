@@ -1,6 +1,8 @@
 package models
 
 import (
+	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -110,53 +112,91 @@ type DexInfo struct {
 
 // ----- MEXC -------
 // futures
-type TickerMessage struct {
-	Symbol  string     `json:"symbol"`
-	Data    TickerData `json:"data"`
-	Channel string     `json:"channel"`
-	Ts      int64      `json:"ts"`
-}
+// type TickerMessage struct {
+// 	Symbol  string     `json:"symbol"`
+// 	Data    TickerData `json:"data"`
+// 	Channel string     `json:"channel"`
+// 	Ts      int64      `json:"ts"`
+// }
 
-type TickerData struct {
-	Symbol                  string    `json:"symbol"`
-	LastPrice               float64   `json:"lastPrice"`
-	RiseFallRate            float64   `json:"riseFallRate"`
-	FairPrice               float32   `json:"fairPrice"`
-	IndexPrice              float64   `json:"indexPrice"`
-	Volume24                int64     `json:"volume24"`
-	Amount24                float64   `json:"amount24"`
-	MaxBidPrice             float64   `json:"maxBidPrice"`
-	MinAskPrice             float64   `json:"minAskPrice"`
-	Lower24Price            float64   `json:"lower24Price"`
-	High24Price             float64   `json:"high24Price"`
-	Timestamp               int64     `json:"timestamp"`
-	Bid1                    float32   `json:"bid1"`
-	Ask1                    float32   `json:"ask1"`
-	HoldVol                 int64     `json:"holdVol"`
-	RiseFallValue           float64   `json:"riseFallValue"`
-	FundingRate             float64   `json:"fundingRate"`
-	Zone                    string    `json:"zone"`
-	RiseFallRates           []float64 `json:"riseFallRates"`
-	RiseFallRatesOfTimezone []float64 `json:"riseFallRatesOfTimezone"`
+type FuturesData struct {
+	Symbol       string  `json:"symbol"`
+	LastPrice    float64 `json:"lastPrice"`
+	RiseFallRate float64 `json:"riseFallRate"`
+	FairPrice    float64 `json:"fairPrice"`
+	IndexPrice   float64 `json:"indexPrice"`
+	Volume24     float64 `json:"volume24"`
+	Amount24     float64 `json:"amount24"`
+	MaxBidPrice  float64 `json:"maxBidPrice"`
+	MinAskPrice  float64 `json:"minAskPrice"`
+	Lower24Price float64 `json:"lower24Price"`
+	High24Price  float64 `json:"high24Price"`
+	Timestamp    int64   `json:"timestamp"`
 }
 
 type Tickers struct {
-	Data []TickerData `json:data`
+	Data []FuturesData `json:data`
 }
 
-// futures
+// contains only `string` fields. Do not use it for publishing. Instead, use SpotData struct for it
+type SpotDataTicker struct {
+	Symbol     string `json:"s"`      // Trading pair
+	Price      string `json:"p"`      // Last price
+	Change     string `json:"r"`      // 24h change %
+	TrueChange string `json:"tr"`     // True 24h change %
+	High       string `json:"h"`      // 24h high
+	Low        string `json:"l"`      // 24h low
+	VolumeUSDT string `json:"v"`      // Quote volume
+	VolumeBase string `json:"q"`      // Base volume
+	LastRT     string `json:"lastRT"` // Possibly latency (always -1?)
+	MT         string `json:"MT"`     // Market type ("0")
+	NV         string `json:"NV"`     // Possibly placeholder ("--")
+}
 
-// spot
+type SpotMiniTickersResponse struct {
+	Data    []SpotDataTicker `json:"d"`
+	Channel string           `json:"c"` // "spot@public.miniTickers.v3.api@UTC+8"
+	Ts      int64            `json:"t"` // Global timestamp
+}
 
-// spot
+type SpotData struct {
+	Symbol     string  `json:"s"` // Kept as string
+	Price      float64 `json:"p"`
+	Change     float64 `json:"r"`
+	TrueChange float64 `json:"tr"`
+	High       float64 `json:"h"`
+	Low        float64 `json:"l"`
+	VolumeUSDT float64 `json:"v"`
+	VolumeBase float64 `json:"q"`
+	LastRT     float64 `json:"lastRT"`
+	MT         float64 `json:"MT"`
+	NV         string  `json:"NV"`
+}
 
-// "FUTURES" or "SPOT"
+// move this func to somewhere
+func TickerToSpotData(src SpotDataTicker) SpotData {
+	var result SpotData
 
+	srcVal := reflect.ValueOf(src)
+	dstVal := reflect.ValueOf(&result).Elem()
 
-//{
-//     "method": "SUBSCRIPTION",
-//     "params": [
-//         "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8"
-//     ]
-// }
-// ----- MEXC -------
+	for i := 0; i < srcVal.NumField(); i++ {
+		srcField := srcVal.Field(i)
+		dstField := dstVal.Field(i)
+
+		if dstField.Kind() == reflect.String {
+			dstField.SetString(srcField.String())
+			continue
+		}
+
+		// try to convert string to float64
+		valStr := srcField.String()
+		num, err := strconv.ParseFloat(valStr, 64)
+		if err != nil {
+			num = 0
+		}
+		dstField.SetFloat(num)
+	}
+
+	return result
+}
