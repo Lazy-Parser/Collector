@@ -34,6 +34,7 @@ func Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("Error getting data from env: %w", err)
 	}
+	fmt.Println("Loaded dotenvs successful")
 
 	// TODO: add PING
 	futuresConf := MexcConf{
