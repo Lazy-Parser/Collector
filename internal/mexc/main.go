@@ -91,7 +91,9 @@ func runWS(ctx context.Context, conf MexcConf) error {
 
 // connect to Mexc WebSocket and returns an established connection.
 func connect(mexcWS string, tp ConfType) (*websocket.Conn, error) {
+	fmt.Println("Try to connect...")
 	conn, _, err := websocket.DefaultDialer.Dial(mexcWS, nil)
+	fmt.Println("Connected")
 	if err != nil {
 		return nil, fmt.Errorf("connect to Mexc: %w", err)
 	}
