@@ -32,7 +32,7 @@ var (
 func Run(ctx context.Context) error {
 	mexcFutures, mexcSpot, err := getDotenv()
 	if err != nil {
-		return nil
+		return fmt.Errorf("Error getting data from env: %w", err)
 	}
 
 	// TODO: add PING

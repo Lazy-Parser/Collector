@@ -10,6 +10,4 @@ import (
 func main() {
 	fmt.Println("🚀 Starting Collector...")
 	mexc.Run(context.Background())
-
-	select {}
 }
