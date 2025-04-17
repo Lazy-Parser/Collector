@@ -12,7 +12,6 @@ package aggregator
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 	"sync"
@@ -49,7 +48,7 @@ func GetJoiner() *Joiner {
 
 // run listens to the bus channel for incoming AggregatorStruct data.
 func (j *Joiner) run() {
-	log.Println("🧠 Aggregator started...")
+	fmt.Println("🧠 Aggregator started...")
 
 	for data := range bus {
 		j.Update(data)
@@ -89,7 +88,7 @@ func (j *Joiner) Update(data AggregatorStruct) {
 			fmt.Errorf("Send message erorr: %w", err)
 		}
 
-		// log.Printf("🔁 %s: FUTURES %s | SPOT %s",
+		// fmt.Printf("🔁 %s: FUTURES %s | SPOT %s",
 		// 	data.Symbol, futures.Price, spot.Price)
 	}
 }

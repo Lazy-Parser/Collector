@@ -4,7 +4,6 @@ package publisher
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"sync"
 
@@ -48,7 +47,7 @@ func InitPublisher() {
 		if err != nil {
 			fmt.Errorf("connect to NATS: %w", err)
 		}
-		log.Println("Connected to NATS ✅")
+		fmt.Println("Connected to NATS ✅")
 
 		pub = &Publisher{conn}
 	})
@@ -57,7 +56,7 @@ func InitPublisher() {
 // return nats connection
 func GetPublisher() *Publisher {
 	if pub == nil {
-		log.Fatalln("Publisher is nil. Call InitPublisher first!")
+		fmt.Errorf("Publisher is nil. Call InitPublisher first!")
 	}
 
 	return pub
@@ -75,7 +74,7 @@ func (p *Publisher) Publish(subject string, data Message) error {
 
 func (p *Publisher) Close() {
 	p.nc.Close()
-	log.Println("🛑 NATS connection closed")
+	fmt.Println("🛑 NATS connection closed")
 }
 
 func getDotenv() (string, error) {

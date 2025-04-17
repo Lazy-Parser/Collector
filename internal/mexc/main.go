@@ -14,7 +14,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -96,7 +95,7 @@ func connect(mexcWS string, tp ConfType) (*websocket.Conn, error) {
 	if err != nil {
 		return nil, fmt.Errorf("connect to Mexc: %w", err)
 	}
-	log.Printf("Connected %s to Mexc ✅ \n", tp)
+	fmt.Printf("Connected %s to Mexc ✅ \n", tp)
 
 	return conn, nil
 }
@@ -108,10 +107,10 @@ func connect(mexcWS string, tp ConfType) (*websocket.Conn, error) {
 // the ParseFunc provided in the MexcConf struct.
 func subscribe(ctx context.Context, conn *websocket.Conn, conf MexcConf) {
 	if err := conn.WriteJSON(conf.Subscribe); err != nil {
-		log.Fatal("❌ Subscription failed:", err)
+		fmt.Errorf("❌ Subscription failed:", err)
 	}
 
-	log.Printf("📡 Subscribed to %s ticker \n", conf.Type)
+	fmt.Printf("📡 Subscribed to %s ticker \n", conf.Type)
 
 	for {
 		select {
@@ -136,7 +135,7 @@ func subscribe(ctx context.Context, conn *websocket.Conn, conf MexcConf) {
 func parseFutures(msg []byte) {
 	var data m.Tickers
 	if err := json.Unmarshal([]byte(msg), &data); err != nil {
-		log.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
+		fmt.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
 		fmt.Println(string(msg))
 		return
 	}
@@ -159,7 +158,7 @@ func parseFutures(msg []byte) {
 func parseSpot(msg []byte) {
 	var data m.SpotMiniTickersResponse
 	if err := json.Unmarshal([]byte(msg), &data); err != nil {
-		// log.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
+		// fmt.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
 		fmt.Println(string(msg))
 		return
 	}
@@ -177,7 +176,7 @@ func parseSpot(msg []byte) {
 }
 
 func unsubscribe(conn *websocket.Conn, conf MexcConf) {
-	log.Println("Exiting...")
+	fmt.Println("Exiting...")
 	conn.WriteJSON(conf.Unsubscribe)
 	conn.Close()
 }
@@ -200,7 +199,7 @@ func ping(tp ConfType, conn *websocket.Conn) {
 			if err != nil {
 				fmt.Errorf("send ping: %w", err)
 			} else {
-				log.Printf("Ping %s \n", tp)
+				fmt.Printf("Ping %s \n", tp)
 			}
 		}
 	}
