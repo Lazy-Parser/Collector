@@ -1,7 +1,7 @@
 // spot@public.miniTicker.v3.api
 
 syntax = "proto3";
-option go_package = "github.com/Lazy-Parser/Collector/gen/ticker";
+option go_package = "Collector/gen/ticker";
 
 option java_package = "com.mxc.push.common.protobuf";
 option optimize_for = SPEED;

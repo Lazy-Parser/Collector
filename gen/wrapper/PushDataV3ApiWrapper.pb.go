@@ -7,9 +7,9 @@
 package wrapper
 
 import (
-	deals "github.com/Lazy-Parser/Collector/gen/deals"
-	ticker "github.com/Lazy-Parser/Collector/gen/ticker"
-	tickers "github.com/Lazy-Parser/Collector/gen/tickers"
+	deals "Collector/gen/deals"
+	ticker "Collector/gen/ticker"
+	tickers "Collector/gen/tickers"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -196,7 +196,7 @@ const file_PushDataV3ApiWrapper_proto_rawDesc = "" +
 	"\t_symbolIdB\r\n" +
 	"\v_createTimeB\v\n" +
 	"\t_sendTimeBk\n" +
-	"\x1ccom.mxc.push.common.protobufB\x19PushDataV3ApiWrapperProtoH\x01P\x01Z,github.com/Lazy-Parser/Collector/gen/wrapperb\x06proto3"
+	"\x1ccom.mxc.push.common.protobufB\x19PushDataV3ApiWrapperProtoH\x01P\x01Z,Collector/gen/wrapperb\x06proto3"
 
 var (
 	file_PushDataV3ApiWrapper_proto_rawDescOnce sync.Once

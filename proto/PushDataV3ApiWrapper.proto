@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "github.com/Lazy-Parser/Collector/gen/wrapper";
+option go_package = "Collector/gen/wrapper";
 
 // import "PublicIncreaseDepthsV3Api.proto";
 // import "PublicLimitDepthsV3Api.proto";

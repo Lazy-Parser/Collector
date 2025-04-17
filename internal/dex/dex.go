@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	m "github.com/Lazy-Parser/Collector/internal/models" // models
+	m "Collector/internal/models" // models
 )
 
 // идея для декса

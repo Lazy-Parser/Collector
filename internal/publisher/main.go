@@ -7,7 +7,8 @@ import (
 	"os"
 	"sync"
 
-	m "github.com/Lazy-Parser/Collector/internal/models"
+	m "Collector/internal/models"
+
 	"github.com/joho/godotenv"
 	"github.com/nats-io/nats.go"
 )

@@ -17,10 +17,10 @@ import (
 	"os"
 	"time"
 
-	a "github.com/Lazy-Parser/Collector/internal/aggregator"
-	m "github.com/Lazy-Parser/Collector/internal/models"
+	a "Collector/internal/aggregator"
+	m "Collector/internal/models"
 
-	// p "github.com/Lazy-Parser/Collector/internal/publisher"
+	// p "Collector/internal/publisher"
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 )

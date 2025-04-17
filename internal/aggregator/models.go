@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	m "github.com/Lazy-Parser/Collector/internal/models"
+	m "Collector/internal/models"
 )
 
 type AggregatorStruct struct {

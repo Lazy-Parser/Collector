@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Lazy-Parser/Collector/internal/mexc"
+	"Collector/internal/mexc"
 )
 
 func main() {

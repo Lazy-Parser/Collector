@@ -17,7 +17,7 @@ import (
 	"sync"
 	"time"
 
-	p "github.com/Lazy-Parser/Collector/internal/publisher"
+	p "Collector/internal/publisher"
 )
 
 var (

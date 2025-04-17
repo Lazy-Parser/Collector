@@ -1,7 +1,7 @@
 // spot@public.miniTickers.v3.api
 
 syntax = "proto3";
-option go_package = "github.com/Lazy-Parser/Collector/gen/tickers";
+option go_package = "Collector/gen/tickers";
 
 import  "PublicMiniTickerV3Api.proto";
 

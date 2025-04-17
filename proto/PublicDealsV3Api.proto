@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-option go_package = "github.com/Lazy-Parser/Collector/gen/deals";
+option go_package = "Collector/gen/deals";
 option java_package = "com.mxc.push.common.protobuf";
 option optimize_for = SPEED;
 option java_multiple_files = true;
