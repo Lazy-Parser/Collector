@@ -16,18 +16,18 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"reflect"
-	"strconv"
 	"time"
 
 	a "github.com/Lazy-Parser/Collector/internal/aggregator"
 	m "github.com/Lazy-Parser/Collector/internal/models"
+
+	// p "github.com/Lazy-Parser/Collector/internal/publisher"
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 )
 
 var (
-	pingTimeout = flag.Duration("pingTimeout", 20*time.Second, "Repeat PING signal every 20 seconds")
+	pingTimeout = flag.Duration("pingTimeout", 10*time.Second, "Repeat PING signal every 20 seconds")
 )
 
 func Run(ctx context.Context) error {
@@ -121,7 +121,8 @@ func subscribe(ctx context.Context, conn *websocket.Conn, conf MexcConf) {
 		default:
 			_, msg, err := conn.ReadMessage()
 			if err != nil {
-				log.Fatalf("Error Reading message: %w \n", err)
+				fmt.Errorf("Error Reading message: %w \n", err)
+				fmt.Println(string(msg))
 				continue
 			}
 
@@ -145,58 +146,34 @@ func parseFutures(msg []byte) {
 			Exchange:  "MEXC",
 			Type:      "FUTURES",
 			Symbol:    a.NormalizeSymbol(ticker.Symbol),
-			Price:     strconv.FormatFloat(float64(ticker.FairPrice), 'f', -1, 32),
-			Amount24:  ticker.Amount24,
+			Futures:   ticker,
 			Timestamp: time.Now(),
 		}
+
 		a.GetJoiner().Push(payload)
-	}
-}
-
-func print(s interface{}) {
-	val := reflect.ValueOf(s)
-	typ := reflect.TypeOf(s)
-
-	// Если передан указатель — разворачиваем
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-		typ = typ.Elem()
-	}
-
-	if val.Kind() != reflect.Struct {
-		fmt.Println("Not a struct")
-		return
-	}
-
-	fmt.Println("🔍 Struct fields:")
-	for i := 0; i < val.NumField(); i++ {
-		field := typ.Field(i)
-		value := val.Field(i)
-		fmt.Printf(" - %s: %v\n", field.Name, value.Interface())
 	}
 }
 
 // parseSpot takes a JSON message (in bytes) and parses it into a slice of SpotMiniTickers.
 // It then creates an AggregatorStruct for each ticker and pushes it to the Joiner.
 func parseSpot(msg []byte) {
-	var data SpotMiniTickersResponse
+	var data m.SpotMiniTickersResponse
 	if err := json.Unmarshal([]byte(msg), &data); err != nil {
 		// log.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
 		fmt.Println(string(msg))
 		return
 	}
 
-	// for _, ticker := range data.Data {
-	// 	payload := a.AggregatorStruct{
-	// 		Exchange: "MEXC",
-	// 		Type:     "SPOT",
-	// 		Symbol:   a.NormalizeSymbol(ticker.Symbol),
-	// 		// Volume:	   ticker.VolumeUSDT,
-	// 		Price:     ticker.Price,
-	// 		Timestamp: time.Now(),
-	// 	}
-	// 	a.GetJoiner().Push(payload)
-	// }
+	for _, ticker := range data.Data {
+		payload := a.AggregatorStruct{
+			Exchange:  "MEXC",
+			Type:      "SPOT",
+			Symbol:    a.NormalizeSymbol(ticker.Symbol),
+			Spot:      m.TickerToSpotData(ticker), // convert string fields to float64
+			Timestamp: time.Now(),
+		}
+		a.GetJoiner().Push(payload)
+	}
 }
 
 func unsubscribe(conn *websocket.Conn, conf MexcConf) {
@@ -223,7 +200,7 @@ func ping(tp ConfType, conn *websocket.Conn) {
 			if err != nil {
 				fmt.Errorf("send ping: %w", err)
 			} else {
-				log.Println("Ping %s", tp)
+				log.Printf("Ping %s \n", tp)
 			}
 		}
 	}
