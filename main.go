@@ -9,5 +9,5 @@ import (
 
 func main() {
 	fmt.Println("🚀 Starting Collector...")
-	mexc.Run(context.Background())
+	go mexc.Run(context.Background())
 }
