@@ -31,10 +31,22 @@ var (
 
 func Run(ctx context.Context) error {
 	fmt.Println("Loaded dotenvs successful")
-	mexcFutures, mexcSpot, err := getDotenv()
-	if err != nil {
-		return fmt.Errorf("Error getting data from env: %w", err)
+	// mexcFutures, mexcSpot, err := getDotenv()
+	// if err != nil {
+	// 	return fmt.Errorf("Error getting data from env: %w", err)
+	// }
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("sdsdfsdfsdfsdf")
 	}
+
+	mexcFutures := os.Getenv("MEXC_FUTURES_WS")
+	mexcSpot := os.Getenv("MEXC_SPOT_WS")
+
+	fmt.Println("mexcFutures")
+	fmt.Println(mexcFutures)
+	fmt.Println("mexcSpot")
+	fmt.Println(mexcSpot)
+	fmt.Println("Loaded dotenvs successful sdsdfsdfsdfsdf")
 
 	// TODO: add PING
 	futuresConf := MexcConf{
@@ -209,7 +221,7 @@ func ping(tp ConfType, conn *websocket.Conn) {
 }
 
 func getDotenv() (string, string, error) {
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("../"); err != nil {
 		return "", "", err
 	}
 
