@@ -19,8 +19,8 @@ import (
 
 	a "Collector/internal/aggregator"
 	m "Collector/internal/models"
+	u "Collector/internal/utils"
 
-	// p "Collector/internal/publisher"
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 )
@@ -30,23 +30,12 @@ var (
 )
 
 func Run(ctx context.Context) error {
-	fmt.Println("Loaded dotenvs successful")
-	// mexcFutures, mexcSpot, err := getDotenv()
-	// if err != nil {
-	// 	return fmt.Errorf("Error getting data from env: %w", err)
-	// }
-	if err := godotenv.Load(); err != nil {
-		fmt.Println("sdsdfsdfsdfsdf")
+	dotenv, err := u.GetDotenv("MEXC_FUTURES_WS", "MEXC_SPOT_WS")
+	if err != nil {
+		return fmt.Errorf("get dotenv vars: %w", err)
 	}
-
-	mexcFutures := os.Getenv("MEXC_FUTURES_WS")
-	mexcSpot := os.Getenv("MEXC_SPOT_WS")
-
-	fmt.Println("mexcFutures")
-	fmt.Println(mexcFutures)
-	fmt.Println("mexcSpot")
-	fmt.Println(mexcSpot)
-	fmt.Println("Loaded dotenvs successful sdsdfsdfsdfsdf")
+	mexcFutures := dotenv[0]
+	mexcSpot := dotenv[1]
 
 	// TODO: add PING
 	futuresConf := MexcConf{

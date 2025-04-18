@@ -4,12 +4,11 @@ package publisher
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"sync"
 
 	m "Collector/internal/models"
+	"Collector/internal/utils"
 
-	"github.com/joho/godotenv"
 	"github.com/nats-io/nats.go"
 )
 
@@ -19,18 +18,6 @@ type Message struct {
 	Spot      m.SpotData    `json:"spot"`
 	Timestamp int64         `json:"timestamp"`
 }
-
-// type FuturesData struct {
-// 	LastPrice    float64 `json:"price"`
-// 	FairPrice    float64 `json:"fair_price"`
-// 	IndexPrice   float64 `json:"index_price"`
-// 	Amount24     float64 `json:"amount24"`
-// 	FundingRate  float64 `json:"funding_rate"`
-// 	RiseFallRate float64 `json:"rise_fall_rate"`
-// 	Bid1         float64 `json:"bid1"`
-// 	Ask1         float64 `json:"ask1"`
-// }
-
 var (
 	once sync.Once
 	pub  *Publisher
@@ -39,12 +26,12 @@ var (
 // Create connection to the NATS. Singleton
 func InitPublisher() {
 	once.Do(func() {
-		natsURL, err := getDotenv()
+		dotenv, err := utils.GetDotenv("NATS_URL")
 		if err != nil {
 			fmt.Errorf("load NATS URL from env: %w", err)
 		}
 
-		conn, err := nats.Connect(natsURL)
+		conn, err := nats.Connect(dotenv[0])
 		if err != nil {
 			fmt.Errorf("connect to NATS: %w", err)
 		}
@@ -76,13 +63,4 @@ func (p *Publisher) Publish(subject string, data Message) error {
 func (p *Publisher) Close() {
 	p.nc.Close()
 	fmt.Println("🛑 NATS connection closed")
-}
-
-func getDotenv() (string, error) {
-	if err := godotenv.Load(); err != nil {
-		return "", fmt.Errorf("error trying to get .env var: %w", err)
-	}
-
-	natsURL := os.Getenv("NATS_URL")
-	return natsURL, nil
 }
