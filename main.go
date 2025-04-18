@@ -13,7 +13,7 @@ import (
 func main() {
 	fmt.Println("🚀 Starting Collector...")
 	if err := godotenv.Load(); err != nil {
-		return "", "", err
+		fmt.Println("sdsdfsdfsdfsdf")
 	}
 
 	mexcFutures := os.Getenv("MEXC_FUTURES_WS")
