@@ -30,11 +30,11 @@ var (
 )
 
 func Run(ctx context.Context) error {
+	fmt.Println("Loaded dotenvs successful")
 	mexcFutures, mexcSpot, err := getDotenv()
 	if err != nil {
 		return fmt.Errorf("Error getting data from env: %w", err)
 	}
-	fmt.Println("Loaded dotenvs successful")
 
 	// TODO: add PING
 	futuresConf := MexcConf{
