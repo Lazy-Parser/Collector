@@ -4,11 +4,11 @@ package publisher
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"sync"
 
 	m "Collector/internal/models"
-	"Collector/internal/utils"
-
+	
 	"github.com/nats-io/nats.go"
 )
 
@@ -26,12 +26,9 @@ var (
 // Create connection to the NATS. Singleton
 func InitPublisher() {
 	once.Do(func() {
-		dotenv, err := utils.GetDotenv("NATS_URL")
-		if err != nil {
-			fmt.Errorf("load NATS URL from env: %w", err)
-		}
+		natsUrl := os.Getenv("NATS_URL")
 
-		conn, err := nats.Connect(dotenv[0])
+		conn, err := nats.Connect(natsUrl)
 		if err != nil {
 			fmt.Errorf("connect to NATS: %w", err)
 		}
