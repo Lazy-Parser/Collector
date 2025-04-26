@@ -7,17 +7,18 @@ import (
 	"os"
 	"sync"
 
-	m "Collector/internal/models"
-	
+	"github.com/Lazy-Parser/Collector/internal/domain"
+
 	"github.com/nats-io/nats.go"
 )
 
 type Message struct {
-	Symbol    string        `json:"symbol"`
-	Futures   m.FuturesData `json:"futures"`
-	Spot      m.SpotData    `json:"spot"`
-	Timestamp int64         `json:"timestamp"`
+	Symbol    string             `json:"symbol"`
+	Futures   domain.FuturesData `json:"futures"`
+	Spot      domain.SpotData    `json:"spot"`
+	Timestamp int64              `json:"timestamp"`
 }
+
 var (
 	once sync.Once
 	pub  *Publisher

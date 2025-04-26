@@ -13,26 +13,26 @@ package aggregator
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"sync"
 	"time"
 
-	p "Collector/internal/publisher"
+	p "github.com/Lazy-Parser/Collector/internal/impl/publisher"
+	d "github.com/Lazy-Parser/Collector/internal/domain"
 )
 
 var (
 	once   sync.Once
 	joiner *Joiner
-	bus    chan AggregatorStruct
+	bus    chan d.AggregatorPayload
 )
 
 // InitJoiner initializes the singleton Joiner and NATS connection structures.
 func InitJoiner() {
 	once.Do(func() {
 		joiner = &Joiner{
-			cache: make(map[string]map[string]AggregatorStruct),
+			cache: make(map[string]map[string]d.AggregatorPayload),
 		}
-		bus = make(chan AggregatorStruct, 5000)
+		bus = make(chan d.AggregatorPayload, 5000)
 
 		// init nats connect to publish joiners
 		p.InitPublisher()
@@ -55,42 +55,42 @@ func (j *Joiner) run() {
 	}
 }
 
-// add data from param to the bus. Data will be added to cache
-func (j *Joiner) Push(data AggregatorStruct) {
+// add data from param to the bus. Data will be added to cache . OLD: AggregatorStruct
+func (j *Joiner) Push(data d.AggregatorPayload) {
 	bus <- data
 }
 
 // Update cache and aggregate all data
-func (j *Joiner) Update(data AggregatorStruct) {
+func (j *Joiner) Update(data d.AggregatorPayload) {
 	j.mu.Lock()
-	defer j.mu.Unlock()
+	// defer j.mu.Unlock()
 
-	if _, ok := j.cache[data.Symbol]; !ok {
-		j.cache[data.Symbol] = make(map[string]AggregatorStruct)
-	}
-	//		"MEXC"
-	j.cache[data.Symbol][data.Type] = data
+	// if _, ok := j.cache[data.Symbol]; !ok {
+	// 	j.cache[data.Symbol] = make(map[string]d.AggregatorPayload)
+	// }
+	// //		"MEXC"
+	// j.cache[data.Symbol][data.Type] = data
 
-	futures := j.cache[data.Symbol]["FUTURES"].Futures
-	spot := j.cache[data.Symbol]["SPOT"].Spot
+	// futures := j.cache[data.Symbol]["FUTURES"].Futures
+	// spot := j.cache[data.Symbol]["SPOT"].Spot
 
-	// send via nats
-	if futures.LastPrice != 0 && spot.Price != 0 {
-		payload := &p.Message{
-			Symbol:    data.Symbol,
-			Timestamp: data.Timestamp.UnixMilli(),
-			Spot:      spot,
-			Futures:   futures,
-		}
+	// // send via nats
+	// if futures.LastPrice != 0 && spot.Price != 0 {
+	// 	payload := &p.Message{
+	// 		Symbol:    data.Symbol,
+	// 		Timestamp: data.Timestamp.UnixMilli(),
+	// 		Spot:      spot,
+	// 		Futures:   futures,
+	// 	}
 
-		err := p.GetPublisher().Publish("mexc.spread", *payload)
-		if err != nil {
-			fmt.Errorf("Send message erorr: %w", err)
-		}
+	// 	err := p.GetPublisher().Publish("mexc.spread", *payload)
+	// 	if err != nil {
+	// 		fmt.Errorf("Send message erorr: %w", err)
+	// 	}
 
 		// fmt.Printf("🔁 %s: FUTURES %s | SPOT %s",
 		// 	data.Symbol, futures.Price, spot.Price)
-	}
+	// }
 }
 
 func Print(obj interface{}, indent string) {
@@ -126,17 +126,4 @@ func max(t1 time.Time, t2 time.Time) time.Time {
 	}
 
 	return t1
-}
-
-// converts symbol string with underscores or without
-// a separator to the "BTC/USDT" format by replacing "_" with "/" or
-// appending "/" before "USDT" if no separators are found.
-func NormalizeSymbol(symbol string) string {
-	newString := strings.ReplaceAll(symbol, "_", "/")
-
-	if newString == symbol {
-		newString = strings.ReplaceAll(symbol, "USDT", "/USDT")
-	}
-
-	return newString
 }
