@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"log"
 
 	"github.com/Lazy-Parser/Collector/internal/domain"
@@ -44,7 +45,7 @@ func (m *CollectorManager) Run(joiner *aggregator.Joiner) {
 			}
 
 			// start execution of current collector
-			collector.Run(joiner.Push)
+			collector.Run(context.Background(), joiner.Push, joiner.SetState)
 		}()
 	}
 }

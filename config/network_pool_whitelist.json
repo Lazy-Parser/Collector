@@ -1,0 +1,14 @@
+[
+    {
+        "network": "solana",
+        "pools": [ "orca", "jupiter", "radium" ]
+    },
+    {
+        "network": "bnb",
+        "pools": []
+    },
+    {
+        "network": "base",
+        "pools": []
+    }
+]

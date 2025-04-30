@@ -16,14 +16,16 @@ import (
 	"sync"
 	"time"
 
-	p "github.com/Lazy-Parser/Collector/internal/impl/publisher"
 	d "github.com/Lazy-Parser/Collector/internal/domain"
+	p "github.com/Lazy-Parser/Collector/internal/impl/publisher"
 )
 
 var (
-	once   sync.Once
-	joiner *Joiner
-	bus    chan d.AggregatorPayload
+	once        sync.Once
+	joiner      *Joiner
+	bus         chan d.AggregatorPayload
+	stream      chan d.AggregatorPayload
+	isStreaming chan bool // when some collector stop working, set to false
 )
 
 // InitJoiner initializes the singleton Joiner and NATS connection structures.
@@ -33,6 +35,9 @@ func InitJoiner() {
 			cache: make(map[string]map[string]d.AggregatorPayload),
 		}
 		bus = make(chan d.AggregatorPayload, 5000)
+		stream = make(chan d.AggregatorPayload, 5000)
+		isStreaming = make(chan bool, 1)
+		isStreaming <- true // by default true
 
 		// init nats connect to publish joiners
 		p.InitPublisher()
@@ -58,6 +63,21 @@ func (j *Joiner) run() {
 // add data from param to the bus. Data will be added to cache . OLD: AggregatorStruct
 func (j *Joiner) Push(data d.AggregatorPayload) {
 	bus <- data
+	stream <- data
+}
+
+// set flag if work or not
+func (j *Joiner) SetState(value bool) {
+	isStreaming <- value
+}
+
+// return all data, that collectors are send to aggregator. It usefull for a not main logic (generator)
+func (j *Joiner) Stream() <-chan d.AggregatorPayload {
+	return stream
+}
+
+func (j *Joiner) ListenState() <-chan bool {
+	return isStreaming
 }
 
 // Update cache and aggregate all data
@@ -88,8 +108,8 @@ func (j *Joiner) Update(data d.AggregatorPayload) {
 	// 		fmt.Errorf("Send message erorr: %w", err)
 	// 	}
 
-		// fmt.Printf("🔁 %s: FUTURES %s | SPOT %s",
-		// 	data.Symbol, futures.Price, spot.Price)
+	// fmt.Printf("🔁 %s: FUTURES %s | SPOT %s",
+	// 	data.Symbol, futures.Price, spot.Price)
 	// }
 }
 

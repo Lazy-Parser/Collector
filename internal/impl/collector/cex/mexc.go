@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
 	"github.com/Lazy-Parser/Collector/internal/domain"
 	"github.com/Lazy-Parser/Collector/internal/utils"
 	"github.com/gorilla/websocket"
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -26,7 +28,11 @@ func (m *MexcSource) Name() string {
 }
 
 func (m *MexcSource) Connect() error {
+	godotenv.Load(".env")
 	mexcFutures := os.Getenv("MEXC_FUTURES_WS")
+	if len(mexcFutures) == 0 {
+		log.Panic("Faild to load MEXC_FUTURES_WS from dotenv")
+	}
 
 	conn, _, err := websocket.DefaultDialer.Dial(mexcFutures, nil)
 	if err != nil {
@@ -48,16 +54,14 @@ func (m *MexcSource) Subscribe() error {
 	return m.conn.WriteJSON(payload)
 }
 
-func (m *MexcSource) Run(push func(domain.AggregatorPayload)) {
-	ctx, ctxCancel := context.WithCancel(context.Background())
-	defer ctxCancel()
-
+func (m *MexcSource) Run(ctx context.Context, push func(domain.AggregatorPayload), setState func(bool)) {
 	go m.ping(ctx)
 
 	for {
 		select {
 		case <-ctx.Done():
 			m.stop()
+			setState(false)
 			return
 		default:
 			_, msg, err := m.conn.ReadMessage()
