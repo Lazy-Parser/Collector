@@ -10,192 +10,166 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
+	"sync/atomic"
 
-	"github.com/Lazy-Parser/Collector/internal/domain"
-	"github.com/Lazy-Parser/Collector/internal/impl/aggregator"
 	"github.com/Lazy-Parser/Collector/internal/utils"
+	"github.com/sourcegraph/conc/pool"
 	"golang.org/x/time/rate"
 )
 
-// TODO: добавтиь WaitGroup что бы код не завершался
 var (
-	fetchPairUrl = "https://api.dexscreener.com/latest/dex/search"
+	dexEnpoint = "https://api.dexscreener.com/token-pairs/v1/" // {chainId}/{tokenAddress}
+	minVolume  = 100000.0                                      // minimum volume for pair - 100k$
 )
 
-// generate JSON file of all pairs from provided DataSource, also add info like pairAddress, pull name, networm name from dex api or coinGeko api
-func Run(collector domain.DataSource) {
-	log.Println("Setup generation...")
-	ctx, ctxCancel := context.WithTimeout(context.Background(), time.Second*10)
+func Run() {
+	ctx, ctxCancel := context.WithCancel(context.Background())
 	ctxLimitter := context.Background()
 	defer ctxCancel()
 
-	// load whitelist json
-	whitelist, err := loadWhitelistFile()
+	var (
+		limiter = rate.NewLimiter(rate.Limit(4), 4)
+		mu      sync.Mutex
+		store   []PairNormalized
+		counter int32
+	)
+
+	// load all tokens from mexc
+	wl, err := loadWhitelistFile()
 	if err != nil {
-		log.Panicf("Loading whitelist file failed: %v", err)
+		log.Panicf("Failed to load whitelist! %v", err)
 	}
 
-	var wg sync.WaitGroup
-
-	// create joiner, because collector can put data only in aggregator
-	aggregator.InitJoiner()
-	joiner := aggregator.GetJoiner()
-
-	// try to start collector. For example it will be mexc, then extract all data, and via DexcScreener api collect all data
-	if err := collector.Connect(); err != nil {
-		log.Panicf("Connect to %s collector. %v", collector.Name(), err)
+	err = MexcInit()
+	if err != nil {
+		log.Panicf("Mexc init: %v", err)
 	}
-	if err := collector.Subscribe(); err != nil {
-		log.Panicf("Subscribe to %s collectors events. %v", collector.Name(), err)
-	}
+	MexcCompare(&wl)
+	tokens := MexcGetTokens()
 
-	go collector.Run(ctx, joiner.Push, joiner.SetState)
-	log.Println("Start analyzing")
+	// find pairAddress and pool name from dexscreener
+	// start worker pool
+	pool := pool.New().WithMaxGoroutines(4)
 
-	// get data
-	// IMPORTANT! 'payload.Data' in aggregator is stored as interface{}. So we do not know what type excectly we get.
-	// I will get data from MEXC, so i will cast to Mexc
-	limitter := rate.NewLimiter(290, 290) // max - 300, but i use a little less
-	var toSave []PairNormalized
-	pairChan := make(chan *PairNormalized, 1000)
-	counter := 1
+	// иногда количество network в asset больше 1, нужно удалять ненужные в файле mexc.go
+	for _, token := range tokens {
+		select {
+		case <-ctx.Done():
+			log.Println("Stopping loading...")
+			return
 
-	// Консумер
-	go func() {
-		for pair := range pairChan {
-			toSave = append(toSave, *pair)
+		default:
+			pool.Go(func() {
+				if err := limiter.Wait(ctxLimitter); err != nil {
+					return
+				}
+
+				pairs, err := fetchPair(token.NetworkList[0].Network, token.NetworkList[0].Contract)
+				if err != nil || len(*pairs) == 0 {
+					fmt.Errorf("Fetch DexScreener: %v", err)
+					return
+				}
+
+				selectedPair := validatePairs(*pairs)
+				// if selectedPair if empry, then all provided pairs were bad, then do not save it
+				if selectedPair.Volume.H24 == 0 {
+					return
+				}
+
+				normalizedPair := normalizePair(selectedPair, token.Coin)
+				idx := atomic.AddInt32(&counter, 1)
+				printReceivedToken(idx, normalizedPair)
+
+				// save pair
+				mu.Lock()
+				store = append(store, *normalizedPair)
+				mu.Unlock()
+			})
 		}
-	}()
+	}
 
-	wg.Add(1)
-	go func(ctx context.Context) {
-		defer wg.Done()
-
-		// listen state, stop this goroutine when state is false (it means that collector stops)
-		go func() {
-			for {
-				switch {
-				case (!<-joiner.ListenState()):
-					wg.Done()
-					return
-				}
-			}
-		}()
-
-		for payload := range joiner.Stream() {
-			symbols := payload.Symbol
-
-			// i will try to get all info about pair from dexscreener api. It has limit 300 requests per second. So i use limitter
-			wg.Add(1) // ДО запуска запроса
-			go func(symbols string) {
-				defer wg.Done()
-
-				// fetch info
-				if err := limitter.Wait(ctxLimitter); err != nil {
-					log.Printf("Limiter error: %v", err)
-					return
-				}
-
-				res, err := fetchPair(symbols)
-				if err != nil {
-					fmt.Errorf("fetching symbol from dexscreener api, %v", err)
-					return
-				}
-
-				// find one pair from all copies from dexscreener resp
-				pair := getOriginalPair(res, &whitelist)
-
-				counter++
-				printReceivedToken(counter, symbols)
-
-				pairChan <- normalizePair(pair, symbols)
-			}(symbols)
-		}
-	}(ctx)
-
-	log.Println("Waiting for all requests...")
-	wg.Wait()
-
-	log.Println("Saving collected pairs...")
-	savePairs(&toSave)
+	pool.Wait()
+	savePairs(&store)
 }
 
-func fetchPair(symbols string) (*DexScreenerResponse, error) {
-	var res DexScreenerResponse
-	url := fetchPairUrl + "?q=" + symbols
+// methods
+func fetchPair(network, tokenAddress string) (*DexScreenerResponse, error) {
+	var res DexScreenerResponse = []Pair{}
+
+	if len(network) == 0 {
+		return &res, fmt.Errorf("Network not provied")
+	}
+
+	url := dexEnpoint + network + "/" + tokenAddress
+
 	resp, err := http.Get(url)
 	if err != nil {
-		return &res, fmt.Errorf("failed to fetch data from DexScreener API for '%s' pair", symbols)
+		return &res, fmt.Errorf("failed to fetch data from DexScreener API for '%s', '%s' pair. %v", network, tokenAddress, err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &res, fmt.Errorf("failed to read body from DexScreener API for '%s' pair", symbols)
+		return &res, fmt.Errorf("failed to read body from DexScreener API for '%s', '%s' pair %v", network, tokenAddress, err)
 	}
 
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		return &res, fmt.Errorf("failed to parse body from DexScreener API for '%s' pair", symbols)
+		return &res, fmt.Errorf("failed to parse body from DexScreener API for '%s', '%s' pair. %v", network, tokenAddress, err)
 	}
 
 	return &res, nil
 }
 
-// return pair with the biggest liquidity / volume
-func getOriginalPair(data *DexScreenerResponse, wl *[]Whitelist) *Pair {
-	if len(data.Pairs) == 0 {
-		return &Pair{}
-	}
+func validatePairs(pairs DexScreenerResponse) *Pair {
+	bestToken := &Pair{Volume: Volume{H24: 0}} // create empty result
+	var curQuoteSymbol string
+	var curVolume24 float64
 
-	maxPair := &Pair{Volume: Volume{H24: 0}}
-	for _, pair := range data.Pairs {
-		// do not add pair with volume < 1M
-		if pair.Volume.H24 < 1000000 {
+	for _, pair := range pairs {
+		curQuoteSymbol = pair.QuoteToken.Symbol
+		curVolume24 = pair.Volume.H24
+
+		// filter by quote token. Only SOL, USDC, USDT allowed
+		if curQuoteSymbol != "SOL" &&
+			curQuoteSymbol != "USDC" &&
+			curQuoteSymbol != "USDT" &&
+			curQuoteSymbol != "WBNB" {
 			continue
 		}
 
-		if !checkPair(wl, pair.ChainID, pair.DexID) { // check if current pair located in our set of pools
+		// filter by volume
+		if curVolume24 < minVolume {
 			continue
 		}
 
-		if pair.Volume.H24 > maxPair.Volume.H24 { //&& pair.Volume.H24 > maxPair.Volume.H24 {
-			maxPair = &pair
+		// TODO: maybe add filter by liquidity
+		// filter by liquidity
+		// if pair.Liquidity.USD < 10000 {
+		// 	continue
+		// }
+
+		// TODO: add filter by allowed pools!!!!! VERY IMPORTANT
+
+		// select pair with the biggest volume
+		if curVolume24 > bestToken.Volume.H24 {
+			bestToken = &pair
 		}
 	}
 
-	utils.ClearConsole()
-	log.Printf("Selected: %s, %s", maxPair.ChainID, maxPair.DexID)
-
-	return maxPair
+	return bestToken
 }
 
-func checkPair(wl *[]Whitelist, network string, pool string) bool {
-	for i := 0; i < len(*wl); i++ {
-		if (*wl)[0].Network == network {
-			if len((*wl)[i].Pools) == 0 {
-				return true
-			}
-			for j := 0; j < len((*wl)[i].Pools); j++ {
-				if (*wl)[i].Pools[j] == pool {
-					return true
-				}
-			}
-		}
-	}
-
-	return false
-}
-
-func normalizePair(pair *Pair, symbols string) *PairNormalized {
+func normalizePair(pair *Pair, symbol string) *PairNormalized {
 	normalized := &PairNormalized{
-		Pair:              symbols,
+		BaseToken:         symbol,
+		QuoteToken:        pair.QuoteToken.Symbol,
 		PairAddress:       pair.PairAddress,
 		BaseTokenAddress:  pair.BaseToken.Address,
 		QuoteTokenAddress: pair.QuoteToken.Address,
 		Network:           pair.ChainID,
-		Pull:              pair.DexID,
+		Pool:              pair.DexID,
+		Labels:            pair.Labels,
 		URL:               pair.URL,
 	}
 
@@ -243,6 +217,8 @@ func loadWhitelistFile() ([]Whitelist, error) {
 	return res, nil
 }
 
-func printReceivedToken(counter int, token string) {
-	log.Printf("%d) Token %s received", counter, token)
+func printReceivedToken(counter int32, pair *PairNormalized) {
+	fmt.Printf("%d) Token %s/%s | %s\n", counter, pair.BaseToken, pair.QuoteToken, pair.Network)
+	fmt.Println(pair.URL)
+	fmt.Println()
 }

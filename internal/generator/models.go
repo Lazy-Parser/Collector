@@ -1,29 +1,25 @@
 package generator
 
-type DexScreenerResponse struct {
-	SchemaVersion string `json:"schemaVersion"`
-	Pairs         []Pair `json:"pairs"`
-}
+type DexScreenerResponse []Pair
 
 type Pair struct {
-	ChainID       string      `json:"chainId"`
-	DexID         string      `json:"dexId"`
-	URL           string      `json:"url"`
-	PairAddress   string      `json:"pairAddress"`
-	Labels        []string    `json:"labels"`
-	BaseToken     Token       `json:"baseToken"`
-	QuoteToken    Token       `json:"quoteToken"`
-	PriceNative   string      `json:"priceNative"`
-	PriceUSD      string      `json:"priceUsd"`
-	Txns          Txns        `json:"txns"`
-	Volume        Volume      `json:"volume"`
-	PriceChange   PriceChange `json:"priceChange"`
-	Liquidity     Liquidity   `json:"liquidity"`
-	FDV           float64     `json:"fdv"`
-	MarketCap     float64     `json:"marketCap"`
-	PairCreatedAt int64       `json:"pairCreatedAt"`
-	Info          Info        `json:"info"`
-	Boosts        Boosts      `json:"boosts"`
+	ChainID     string      `json:"chainId"`
+	DexID       string      `json:"dexId"`
+	URL         string      `json:"url"`
+	PairAddress string      `json:"pairAddress"`
+	Labels      []string    `json:"labels"`
+	BaseToken   Token       `json:"baseToken"`
+	QuoteToken  Token       `json:"quoteToken"`
+	PriceNative string      `json:"priceNative"`
+	PriceUSD    string      `json:"priceUsd"`
+	Txns        Txns        `json:"txns"`
+	Volume      Volume      `json:"volume"`
+	PriceChange PriceChange `json:"priceChange"`
+	Liquidity   Liquidity   `json:"liquidity"`
+	FDV         float64     `json:"fdv"`
+	MarketCap   float64     `json:"marketCap"`
+	PairCreated int64       `json:"pairCreatedAt"`
+	Info        Info        `json:"info"`
 }
 
 type Token struct {
@@ -32,7 +28,14 @@ type Token struct {
 	Symbol  string `json:"symbol"`
 }
 
-type Txns map[string]struct {
+type Txns struct {
+	M5  TxnCount `json:"m5"`
+	H1  TxnCount `json:"h1"`
+	H6  TxnCount `json:"h6"`
+	H24 TxnCount `json:"h24"`
+}
+
+type TxnCount struct {
 	Buys  int `json:"buys"`
 	Sells int `json:"sells"`
 }
@@ -44,7 +47,11 @@ type Volume struct {
 	M5  float64 `json:"m5"`
 }
 
-type PriceChange map[string]float64
+type PriceChange struct {
+	H1  float64 `json:"h1,omitempty"`
+	H6  float64 `json:"h6,omitempty"`
+	H24 float64 `json:"h24"`
+}
 
 type Liquidity struct {
 	USD   float64 `json:"usd"`
@@ -53,37 +60,71 @@ type Liquidity struct {
 }
 
 type Info struct {
-	ImageURL string    `json:"imageUrl"`
-	Websites []Website `json:"websites"`
-	Socials  []Social  `json:"socials"`
+	ImageURL  string        `json:"imageUrl"`
+	Header    string        `json:"header"`
+	OpenGraph string        `json:"openGraph"`
+	Websites  []LabeledLink `json:"websites"`
+	Socials   []SocialLink  `json:"socials"`
 }
 
-type Website struct {
-	URL string `json:"url"`
+type LabeledLink struct {
+	Label string `json:"label"`
+	URL   string `json:"url"`
 }
 
-type Social struct {
-	Platform string `json:"platform"`
-	Handle   string `json:"handle"`
+type SocialLink struct {
+	Type string `json:"type"`
+	URL  string `json:"url"`
 }
-
-type Boosts struct {
-	Active int `json:"active"`
-}
-
 
 // -------
 type PairNormalized struct {
-	Pair              string `json:"pair"`
-	PairAddress       string `json:"pairAddress"`
-	BaseTokenAddress  string `json:"baseToken"`
-	QuoteTokenAddress string `json:"quoteToken"`
-	Network           string `json:"network"`
-	Pull              string `json:"pull"`
-	URL               string `json:"url"`
+	BaseToken         string   `json:"baseToken"`
+	QuoteToken        string   `json:"quoteToken"`
+	PairAddress       string   `json:"pairAddress"`
+	BaseTokenAddress  string   `json:"baseTokenAddress"`
+	QuoteTokenAddress string   `json:"quoteTokenAddress"`
+	Network           string   `json:"network"`
+	Pool              string   `json:"pool"`
+	Labels            []string `json:"labels"` // pool version. For exmaple: pancakeswap v2 / v3
+	URL               string   `json:"url"`
 }
 
 type Whitelist struct {
-	Network string `json:"network"`
-	Pools []string `json:"pools"`
+	Network      string   `json:"network"`      // solana
+	NetworkShort string   `json:"networkShort"` // SOL
+	Pools        []string `json:"pools"`        // radium
+}
+
+// ---------- mexc ----------
+// get data from mexc
+type Network struct {
+	NetworkShort  string `json:"network"` // "SOL"
+	Network       string // "solana"
+	Contract      string `json:"contract"` // 0x…
+	DepositEnable bool   `json:"depositEnable"`
+}
+type Asset struct {
+	Coin        string    `json:"coin"`        // "ETH"
+	NetworkList []Network `json:"networkList"` // all chains
+}
+
+// transforrm to custom type
+// type TokenInfo struct {
+// 	Coin    string
+// 	Network TokenInfoNetwork
+// }
+// type TokenInfoNetwork struct {
+// 	Network      string `json:"network"` // e.g. "BEP20(BSC)"
+// 	NetworkShort string `json:"networkShort"`
+// 	Contract     string `json:"contract"` // 0x…
+// }
+
+// https://contract.mexc.com/api/v1/contract/detail - all futures pairs
+type Contracts struct {
+	Data []ContractDetail `json:"data"`
+}
+type ContractDetail struct {
+	BaseCoin string `json:"baseCoin"`
+	Symbol   string `json:"symbol"` // "BTC_USDT"
 }

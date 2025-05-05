@@ -55,8 +55,9 @@ func runMain(*cli.Context) error {
 }
 
 func genPairs(ctx *cli.Context) error {
-	
-	generator.Run(&mexc.MexcSource{})
+
+	// generator.Run(&mexc.MexcSource{})
+	generator.Run()
 
 	return nil
 }

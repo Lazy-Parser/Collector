@@ -25,7 +25,6 @@ var (
 	joiner      *Joiner
 	bus         chan d.AggregatorPayload
 	stream      chan d.AggregatorPayload
-	isStreaming chan bool // when some collector stop working, set to false
 )
 
 // InitJoiner initializes the singleton Joiner and NATS connection structures.
@@ -36,8 +35,6 @@ func InitJoiner() {
 		}
 		bus = make(chan d.AggregatorPayload, 5000)
 		stream = make(chan d.AggregatorPayload, 5000)
-		isStreaming = make(chan bool, 1)
-		isStreaming <- true // by default true
 
 		// init nats connect to publish joiners
 		p.InitPublisher()
@@ -66,18 +63,9 @@ func (j *Joiner) Push(data d.AggregatorPayload) {
 	stream <- data
 }
 
-// set flag if work or not
-func (j *Joiner) SetState(value bool) {
-	isStreaming <- value
-}
-
 // return all data, that collectors are send to aggregator. It usefull for a not main logic (generator)
 func (j *Joiner) Stream() <-chan d.AggregatorPayload {
 	return stream
-}
-
-func (j *Joiner) ListenState() <-chan bool {
-	return isStreaming
 }
 
 // Update cache and aggregate all data

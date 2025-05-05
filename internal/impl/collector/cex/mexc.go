@@ -17,6 +17,7 @@ import (
 
 var (
 	pingTimeout = flag.Duration("pingTimeout", time.Second*10, "How long should this service wait to ping MEXC")
+	state       chan bool // true - working / false - not working / stop / error
 )
 
 type MexcSource struct {
@@ -51,17 +52,24 @@ func (m *MexcSource) Subscribe() error {
 		"param":  map[string]interface{}{},
 	}
 
-	return m.conn.WriteJSON(payload)
+	state = make(chan bool, 1)
+	err := m.conn.WriteJSON(payload)
+	if err != nil {
+		state <- false
+		return err
+	}
+
+	state <- true
+	return nil
 }
 
-func (m *MexcSource) Run(ctx context.Context, push func(domain.AggregatorPayload), setState func(bool)) {
+func (m *MexcSource) Run(ctx context.Context, push func(domain.AggregatorPayload)) {
 	go m.ping(ctx)
 
 	for {
 		select {
 		case <-ctx.Done():
 			m.stop()
-			setState(false)
 			return
 		default:
 			_, msg, err := m.conn.ReadMessage()
@@ -130,11 +138,20 @@ func (m *MexcSource) ping(ctx context.Context) {
 
 func (m *MexcSource) stop() {
 	payload := map[string]interface{}{
-		"method": "sub.tickers",
+		"method": "unsub.tickers",
 		"param":  map[string]interface{}{},
 	}
 
+	state <- false
 	fmt.Println("Stopping Mexc...")
 	m.conn.WriteJSON(payload)
 	m.conn.Close()
+}
+
+func (m *MexcSource) ListenState() <-chan bool {
+	return state
+}
+
+func (m *MexcSource) SetState(value bool) {
+	state <- value
 }

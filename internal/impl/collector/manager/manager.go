@@ -45,7 +45,7 @@ func (m *CollectorManager) Run(joiner *aggregator.Joiner) {
 			}
 
 			// start execution of current collector
-			collector.Run(context.Background(), joiner.Push, joiner.SetState)
+			collector.Run(context.Background(), joiner.Push)
 		}()
 	}
 }
