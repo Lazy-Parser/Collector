@@ -31,9 +31,12 @@ require (
 	github.com/ethereum/go-verkle v0.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/holiman/uint256 v1.3.2 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/mattn/go-sqlite3 v1.14.28 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/nats-io/nkeys v0.4.9 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
@@ -48,8 +51,11 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/net v0.36.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/term v0.29.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
+	gorm.io/driver/sqlite v1.5.7 // indirect
+	gorm.io/gorm v1.26.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )

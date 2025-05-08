@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"os"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -33,4 +33,11 @@ func GetWorkDirPath() (string, error) {
 	}
 
 	return workDirPath, nil
+}
+func CheckErrorDatabase(err error) error {
+	if err != nil {
+		return fmt.Errorf("database error: %v", err)
+	}
+
+	return nil
 }

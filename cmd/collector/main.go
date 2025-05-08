@@ -1,17 +1,24 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
+	// "context"
+	// "encoding/json"
+	// "fmt"
+	// "fmt"
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 
-	"github.com/Lazy-Parser/Collector/internal/domain"
-	"github.com/Lazy-Parser/Collector/internal/generator"
-	p "github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v2"
-	"github.com/ethereum/go-ethereum/common"
+	// "path/filepath"
+
+	db "github.com/Lazy-Parser/Collector/internal/database"
+	manager_dex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
+
+	// "github.com/Lazy-Parser/Collector/internal/domain"
+
+	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v2"
+
+	// "github.com/ethereum/go-ethereum/common"
 
 	// "github.com/ethereum/go-ethereum/common"
 	cli "github.com/urfave/cli/v2"
@@ -56,16 +63,39 @@ func runMain(*cli.Context) error {
 	// manager.NewCollector(&mexc.MexcSource{})
 
 	// go manager.Run(joiner)
-	// go managerDex.Run()...
 
+	db.NewConnection()
+	managerDex := manager_dex.New()
+	collectorDex := pancakeswap_v2.PancakeswapV2{}
+
+	managerDex.Push(collectorDex)
 
 	return nil
 }
 
 func genPairs(ctx *cli.Context) error {
 
-	// generator.Run(&mexc.MexcSource{})
-	generator.Run()
+	db.NewConnection()
+	// db.GetDB().ClearTokens()
+	// db.GetDB().ClearPairs()
+	// generator.Run()
+
+	// try to log all tokens from db
+	var res []db.Pair
+	res, err := db.GetDB().GetAllPairs()
+	if err != nil {
+		return err
+	}
+
+	for idx, pair := range res {
+		fmt.Printf(
+			"%d) %s/%s. Network: %s | Pool: %s\n",
+			idx, pair.BaseToken.Name, pair.QuoteToken.Name,
+			pair.Network, pair.Pool,
+		)
+	}
+
+	// pair.BaseToken.Name, pair.QuoteToken.Name не отображаеться, починить
 
 	return nil
 }

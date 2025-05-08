@@ -32,27 +32,27 @@ type PairMeta struct {
 }
 
 type PancakeswapV2 struct {
-	logs         chan types.Log
-	toListen     *[]d.Pair
-	abi          abi.ABI // listen price
-	client       *ethclient.Client
-	sub          ethereum.Subscription
-	meta         map[common.Address]PairMeta
+	logs     chan types.Log
+	toListen *[]d.Pair
+	abi      abi.ABI // listen price
+	client   *ethclient.Client
+	sub      ethereum.Subscription
+	meta     map[common.Address]PairMeta
 }
 
 var (
 	wd, _         = os.Getwd()
 	erc20AbiPath  = filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap_v2", "erc20-decimals.json")
 	multicallPath = filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap_v2", "multicall.json")
-	mcAddress = common.HexToAddress("0xcA11bde05977b3631167028862bE2a173976CA11")
+	mcAddress     = common.HexToAddress("0xcA11bde05977b3631167028862bE2a173976CA11")
 )
 
-func (p *PancakeswapV2) Name() string {
+func (p PancakeswapV2) Name() string {
 	return "PancakeswapV2"
 }
 
 // toListen - all pairs, that this pool will listen
-func (p *PancakeswapV2) Init(toListen *[]d.Pair) error {
+func (p PancakeswapV2) Init(toListen *[]d.Pair) error {
 	if len(*toListen) == 0 {
 		return fmt.Errorf("[PANCAKESWAP][V2][Init] Failed to init '%s', provided 'toListen' array is empty!", p.Name())
 	}
@@ -75,7 +75,7 @@ func (p *PancakeswapV2) Init(toListen *[]d.Pair) error {
 	return nil
 }
 
-func (p *PancakeswapV2) Connect() error {
+func (p PancakeswapV2) Connect() error {
 	client, err := ethclient.Dial("wss://bsc-mainnet.core.chainstack.com/4984a03359f19068c2334839ea14acd0")
 	if err != nil {
 		return fmt.Errorf("[PANCAKESWAP][V2][Connect] Failed to connect '%s', %v", p.Name(), err)
@@ -86,7 +86,7 @@ func (p *PancakeswapV2) Connect() error {
 	return nil
 }
 
-func (p *PancakeswapV2) Subscribe() error {
+func (p PancakeswapV2) Subscribe() error {
 	var poolAddresses []common.Address
 	for _, pair := range *p.toListen {
 		address := common.HexToAddress(pair.PairAddress)
@@ -115,7 +115,7 @@ func (p *PancakeswapV2) Subscribe() error {
 	return nil
 }
 
-func (p *PancakeswapV2) Run(ctx context.Context, consumerCh chan d.PancakeswapV2Responce) {
+func (p PancakeswapV2) Run(ctx context.Context, consumerCh chan d.PancakeswapV2Responce) {
 	for {
 		select {
 		case err := <-p.sub.Err():
@@ -216,17 +216,17 @@ func handleSwap(pairABI abi.ABI, vLog types.Log) (d.PancakeswapV2Responce, error
 	return resp, nil
 }
 
-func (p *PancakeswapV2) FetchDecimals(ctx context.Context) (map[common.Address]uint8, error) {
+func (p PancakeswapV2) FetchDecimals(ctx context.Context) (map[common.Address]uint8, error) {
 	if len(*p.toListen) == 0 {
 		return nil, errors.New("empty token list")
 	}
 
 	// ------------------------------------------------  уникальный список
 	set := map[common.Address]struct{}{}
-	for _, t := range *p.toListen {
-		set[common.HexToAddress(t.BaseTokenAddress)] = struct{}{}
-		set[common.HexToAddress(t.QuoteTokenAddress)] = struct{}{}
-	}
+	// for _, t := range *p.toListen {
+	// 	// set[common.HexToAddress(t.BaseTokenAddress)] = struct{}{}
+	// 	// set[common.HexToAddress(t.QuoteTokenAddress)] = struct{}{}
+	// }
 	list := make([]common.Address, 0, len(set))
 	for a := range set {
 		list = append(list, a)
@@ -236,16 +236,24 @@ func (p *PancakeswapV2) FetchDecimals(ctx context.Context) (map[common.Address]u
 	// load ABIs
 
 	erc20Bytes, err := os.ReadFile(erc20AbiPath)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	multicallBytes, err := os.ReadFile(multicallPath)
-	if err != nil { return nil, err }
-	
+	if err != nil {
+		return nil, err
+	}
+
 	erc, err := abi.JSON(strings.NewReader(string(erc20Bytes)))
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	mc, err := abi.JSON(strings.NewReader(string(multicallBytes)))
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	decSig, _ := erc.Pack("decimals") // 0x313ce567
 
@@ -278,7 +286,7 @@ func (p *PancakeswapV2) FetchDecimals(ctx context.Context) (map[common.Address]u
 	if err := mc.UnpackIntoInterface(&returns, "tryAggregate", raw); err != nil {
 		return nil, err
 	}
-	
+
 	out := make(map[common.Address]uint8, len(list))
 	for i, r := range returns {
 		if r.Success && len(r.ReturnData) >= 32 {
@@ -287,6 +295,6 @@ func (p *PancakeswapV2) FetchDecimals(ctx context.Context) (map[common.Address]u
 			out[list[i]] = 0 // не удалось — caller решает, что делать (обычно 18)
 		}
 	}
-	
+
 	return out, nil
 }

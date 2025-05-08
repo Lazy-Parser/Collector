@@ -2,7 +2,7 @@ package manager_dex
 
 import (
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"os"
 	"path/filepath"
 
@@ -19,8 +19,8 @@ func New() *ManagerDex {
 	}
 }
 
-func (m *ManagerDex) Push(collector *d.DataSourceDex) {
-	m.list = append(m.list, *collector)
+func (m *ManagerDex) Push(collector d.DataSourceDex) {
+	m.list = append(m.list, collector)
 }
 
 // do not start in new goroutine! Method run make every provided collector run in seperate goroutine
@@ -35,7 +35,7 @@ func (m *ManagerDex) Run() error {
 	for _, pair := range *pairs {
 		if pair.Pool == "pancakeswap" && len(pair.Labels) != 0 && pair.Labels[0] == "v2" {
 			filteredPairs = append(filteredPairs, pair)
-			fmt.Printf("Pair to listen: %s/%s, pair: %s\n", pair.BaseToken, pair.QuoteToken, pair.PairAddress)
+			// fmt.Printf("Pair to listen: %s/%s, pair: %s\n", pair.BaseToken, pair.QuoteToken, pair.PairAddress)
 		}
 	}
 

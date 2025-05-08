@@ -53,17 +53,18 @@ type SpotData struct {
 
 // custom type, that combine DS (DexScreenr) responce and others. For global usage
 type Pair struct {
-	BaseToken          string   `json:"baseToken"`
-	BaseTokenAddress   string   `json:"baseTokenAddress"`
-	BaseTokenDecimals  int      `json:"baseTokenDecimals"`
-	QuoteToken         string   `json:"quoteToken"`
-	QuoteTokenAddress  string   `json:"quoteTokenAddress"`
-	QuoteTokenDecimals int      `json:"quoteTokenDecimals"`
-	PairAddress        string   `json:"pairAddress"`
-	Network            string   `json:"network"`
-	Pool               string   `json:"pool"`
-	Labels             []string `json:"labels"` // pool version. For exmaple: pancakeswap v2 / v3
-	URL                string   `json:"url"`
+	Base        Token
+	Quote       Token
+	PairAddress string   `json:"pairAddress"`
+	Network     string   `json:"network"`
+	Pool        string   `json:"pool"`
+	Labels      []string `json:"labels"` // pool version. For exmaple: pancakeswap v2 / v3
+	URL         string   `json:"url"`
+}
+type Token struct {
+	Name     string `json:"token"`
+	Address  string `json:"tokenAddress"`
+	Decimals int    `json:"tokenDecimals"`
 }
 
 type PancakeswapV2Responce struct {
