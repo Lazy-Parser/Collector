@@ -1,8 +1,9 @@
 package generator
 
-type DexScreenerResponse []Pair
+type DexScreenerResponse []PairDS
 
-type Pair struct {
+// responce from DexScreener
+type PairDS struct {
 	ChainID     string      `json:"chainId"`
 	DexID       string      `json:"dexId"`
 	URL         string      `json:"url"`
@@ -75,19 +76,6 @@ type LabeledLink struct {
 type SocialLink struct {
 	Type string `json:"type"`
 	URL  string `json:"url"`
-}
-
-// -------
-type PairNormalized struct {
-	BaseToken         string   `json:"baseToken"`
-	QuoteToken        string   `json:"quoteToken"`
-	PairAddress       string   `json:"pairAddress"`
-	BaseTokenAddress  string   `json:"baseTokenAddress"`
-	QuoteTokenAddress string   `json:"quoteTokenAddress"`
-	Network           string   `json:"network"`
-	Pool              string   `json:"pool"`
-	Labels            []string `json:"labels"` // pool version. For exmaple: pancakeswap v2 / v3
-	URL               string   `json:"url"`
 }
 
 type Whitelist struct {

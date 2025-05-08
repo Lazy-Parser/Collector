@@ -1,13 +1,19 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
+	"github.com/Lazy-Parser/Collector/internal/domain"
 	"github.com/Lazy-Parser/Collector/internal/generator"
-	"github.com/Lazy-Parser/Collector/internal/impl/aggregator"
-	mexc "github.com/Lazy-Parser/Collector/internal/impl/collector/cex"
-	m "github.com/Lazy-Parser/Collector/internal/impl/collector/manager"
+	p "github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v2"
+	"github.com/ethereum/go-ethereum/common"
+
+	// "github.com/ethereum/go-ethereum/common"
 	cli "github.com/urfave/cli/v2"
 )
 
@@ -43,13 +49,15 @@ func main() {
 }
 
 func runMain(*cli.Context) error {
-	aggregator.InitJoiner()
-	joiner := aggregator.GetJoiner()
+	// aggregator.InitJoiner()
+	// joiner := aggregator.GetJoiner()
 
-	manager := m.CreateManager()
-	manager.NewCollector(&mexc.MexcSource{})
+	// manager := m.CreateManager()
+	// manager.NewCollector(&mexc.MexcSource{})
 
-	go manager.Run(joiner)
+	// go manager.Run(joiner)
+	// go managerDex.Run()...
+
 
 	return nil
 }

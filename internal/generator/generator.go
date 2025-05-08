@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 
 	"github.com/Lazy-Parser/Collector/internal/utils"
+	d "github.com/Lazy-Parser/Collector/internal/domain"
 	"github.com/sourcegraph/conc/pool"
 	"golang.org/x/time/rate"
 )
@@ -30,7 +31,7 @@ func Run() {
 	var (
 		limiter = rate.NewLimiter(rate.Limit(4), 4)
 		mu      sync.Mutex
-		store   []PairNormalized
+		store   []d.Pair
 		counter int32
 	)
 
@@ -94,7 +95,7 @@ func Run() {
 
 // methods
 func fetchPair(network, tokenAddress string) (*DexScreenerResponse, error) {
-	var res DexScreenerResponse = []Pair{}
+	var res DexScreenerResponse = []PairDS{}
 
 	if len(network) == 0 {
 		return &res, fmt.Errorf("Network not provied")
@@ -121,8 +122,8 @@ func fetchPair(network, tokenAddress string) (*DexScreenerResponse, error) {
 	return &res, nil
 }
 
-func validatePairs(pairs DexScreenerResponse) *Pair {
-	bestToken := &Pair{Volume: Volume{H24: 0}} // create empty result
+func validatePairs(pairs DexScreenerResponse) *PairDS {
+	bestToken := &PairDS{Volume: Volume{H24: 0}} // create empty result
 	var curQuoteSymbol string
 	var curVolume24 float64
 
@@ -160,8 +161,8 @@ func validatePairs(pairs DexScreenerResponse) *Pair {
 	return bestToken
 }
 
-func normalizePair(pair *Pair, symbol string) *PairNormalized {
-	normalized := &PairNormalized{
+func normalizePair(pair *PairDS, symbol string) *d.Pair {
+	normalized := &d.Pair{
 		BaseToken:         symbol,
 		QuoteToken:        pair.QuoteToken.Symbol,
 		PairAddress:       pair.PairAddress,
@@ -176,7 +177,7 @@ func normalizePair(pair *Pair, symbol string) *PairNormalized {
 	return normalized
 }
 
-func savePairs(pairs *[]PairNormalized) {
+func savePairs(pairs *[]d.Pair) {
 
 	payload, err := json.MarshalIndent(pairs, "", "  ")
 	if err != nil {
@@ -217,7 +218,7 @@ func loadWhitelistFile() ([]Whitelist, error) {
 	return res, nil
 }
 
-func printReceivedToken(counter int32, pair *PairNormalized) {
+func printReceivedToken(counter int32, pair *d.Pair) {
 	fmt.Printf("%d) Token %s/%s | %s\n", counter, pair.BaseToken, pair.QuoteToken, pair.Network)
 	fmt.Println(pair.URL)
 	fmt.Println()

@@ -2,6 +2,8 @@ package domain
 
 import (
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // Payload for Joiner. When some message parsed, we pass AggregatorPayload to Push method, and Joiner will process this payload and publish needed data.
@@ -33,7 +35,6 @@ type FuturesData struct {
 
 type Tickers struct {
 	Data []FuturesData `json:data`
-
 }
 
 type SpotData struct {
@@ -48,4 +49,32 @@ type SpotData struct {
 	LastRT     float64 `json:"lastRT"`
 	MT         float64 `json:"MT"`
 	NV         string  `json:"NV"`
+}
+
+// custom type, that combine DS (DexScreenr) responce and others. For global usage
+type Pair struct {
+	BaseToken          string   `json:"baseToken"`
+	BaseTokenAddress   string   `json:"baseTokenAddress"`
+	BaseTokenDecimals  int      `json:"baseTokenDecimals"`
+	QuoteToken         string   `json:"quoteToken"`
+	QuoteTokenAddress  string   `json:"quoteTokenAddress"`
+	QuoteTokenDecimals int      `json:"quoteTokenDecimals"`
+	PairAddress        string   `json:"pairAddress"`
+	Network            string   `json:"network"`
+	Pool               string   `json:"pool"`
+	Labels             []string `json:"labels"` // pool version. For exmaple: pancakeswap v2 / v3
+	URL                string   `json:"url"`
+}
+
+type PancakeswapV2Responce struct {
+	Timestamp string
+	Price     float64
+	Hex       string
+	Type      string // "BUY" / "SELL"
+}
+
+type TokenMeta struct {
+	Symbol   string
+	Address  common.Address
+	Decimals uint8
 }
