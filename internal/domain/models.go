@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -68,8 +69,9 @@ type Token struct {
 }
 
 type PancakeswapV2Responce struct {
+	Pool      string
 	Timestamp string
-	Price     float64
+	Price     *big.Float
 	Hex       string
 	Type      string // "BUY" / "SELL"
 }
@@ -78,4 +80,10 @@ type TokenMeta struct {
 	Symbol   string
 	Address  common.Address
 	Decimals uint8
+}
+
+type Whitelist struct {
+	Network      string   `json:"network"`      // solana
+	NetworkShort string   `json:"networkShort"` // SOL
+	Pools        []string `json:"pools"`        // radium
 }

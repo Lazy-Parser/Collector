@@ -25,7 +25,14 @@ func NewConnection() error {
 		return err
 	}
 
-	database = &Database{DB: db, IsInitied: true}
+	tokenService := &TokenService{db: db}
+	pairService := &PairService{db: db}
+	database = &Database{
+		DB:           db,
+		IsInitied:    true,
+		TokenService: tokenService,
+		PairService:  pairService,
+	}
 
 	return nil
 }
@@ -34,39 +41,125 @@ func GetDB() *Database {
 	return database
 }
 
-// -------
-func (db *Database) SaveToken(token *Token) error {
-	res := db.DB.Create(token)
-	return res.Error
-}
-
-func (db *Database) SavePair(token *Pair) error {
-	res := db.DB.Create(token)
-	return res.Error
-}
-
-// ---------
-func (db *Database) GetAllTokens() ([]Token, error) {
-	var tokens []Token
-	res := db.DB.Find(&tokens)
-	return tokens, res.Error
-}
-
-func (db *Database) GetAllPairs() ([]Pair, error) {
+// GLOBAL 
+func (db *Database) GloabalQuery(pair *Pair, token *Token) ([]Pair, error) {
 	var pairs []Pair
-	res := db.DB.Find(&pairs)
+
+	queryBuilder := db.DB.Preload("BaseToken").Preload("QuoteToken").Table("pairs").
+	Joins("JOIN tokens AS base_token ON base_token.id = pairs.base_token_id").
+	Joins("JOIN tokens AS quote_token ON quote_token.id = pairs.quote_token_id")
+
+	if pair.Network != "" { queryBuilder = queryBuilder.Where("pairs.network = ?", pair.Network) }
+	if pair.Pool != "" { queryBuilder = queryBuilder.Where("pairs.pool = ?", pair.Pool) }
+	if pair.Label != "" { queryBuilder = queryBuilder.Where("pairs.label = ?", pair.Label) }
+	if pair.PairAddress != "" { queryBuilder = queryBuilder.Where("pairs.pair_address = ?", pair.PairAddress) }
+
+	if token.Address != "" {
+		queryBuilder = queryBuilder.Where("base_token.address = ? OR quote_token.address = ?", token.Address, token.Address)
+	}
+	if token.Name != "" {
+		queryBuilder = queryBuilder.Where("base_token.name = ? OR quote_token.name = ?", token.Name, token.Name)
+	}
+	if token.Decimals != 0 {
+		queryBuilder = queryBuilder.Where("base_token.decimals = ? OR quote_token.decimals = ?", token.Decimals, token.Decimals)
+	}
+
+	res := queryBuilder.Find(&pairs)
 	return pairs, res.Error
 }
 
-// ---------
-func (db *Database) ClearTokens() error {
-	// var token Token
-	res := db.DB.Exec("DELETE FROM `tokens`")
+// TOKEN
+func (db *TokenService) SaveToken(token *Token) error {
+	res := db.db.Create(token)
 	return res.Error
 }
 
-func (db *Database) ClearPairs() error {
+func (db *TokenService) SaveOrFind(token *Token) (Token, error) {
+	var t Token
+	res := db.db.FirstOrCreate(&t, token)
+	return t, res.Error
+}
+
+func (db *TokenService) GetAllTokens() ([]Token, error) {
+	var tokens []Token
+	res := db.db.Find(&tokens)
+	return tokens, res.Error
+}
+
+func (db *TokenService) ClearTokens() error {
 	// var token Token
-	res := db.DB.Exec("DELETE FROM `pairs`")
+	res := db.db.Exec("DELETE FROM `tokens`")
+	return res.Error
+}
+
+// return only ONE found token
+func (db *TokenService) FindTokenByQuery(query *Token) ([]Token, error) {
+	var token []Token
+	res := db.db.Find(&token, query)
+	return token, res.Error
+}
+
+// return array of found tokens
+func (db *TokenService) FindTokensByQuery(query *Token) ([]Token, error) {
+	var tokens []Token
+	res := db.db.First(&tokens, query)
+	return tokens, res.Error
+}
+
+// update token decimals by address
+func (db *TokenService) UpdateDecimals(query *Token, decimals uint8) error {
+	res := db.db.Model(&Token{}).Where("tokens.address = ?", query.Address).Update("decimals", int(decimals))
+	return res.Error
+}
+
+// PAIR
+func (db *PairService) SavePair(pair *Pair) error {
+	res := db.db.Create(pair)
+	return res.Error
+}
+
+func (db *PairService) SaveOrFind(pair *Pair) (Pair, error) {
+	var p Pair
+	res := db.db.FirstOrCreate(&p, pair)
+	return p, res.Error
+}
+
+func (db *PairService) GetAllPairs() ([]Pair, error) {
+	var pairs []Pair
+	res := db.db.Preload("BaseToken").
+		Preload("QuoteToken").
+		Find(&pairs)
+
+	return pairs, res.Error
+}
+
+func (db *PairService) GetAllPairsByQuery(query PairQuery) ([]Pair, error) {
+	var pairs []Pair
+
+	queryBuilder := db.db.Preload("BaseToken").Preload("QuoteToken")
+
+	if query.Network != "" {
+		queryBuilder = queryBuilder.Where("pairs.network = ?", query.Network)
+	}
+
+	if query.Pool != "" {
+		queryBuilder = queryBuilder.Where("pairs.pool = ?", query.Pool)
+	}
+
+	if query.Label != "" {
+		queryBuilder = queryBuilder.Where("pairs.label = ?", query.Label)
+	}
+
+	if query.PairAddress != "" {
+		queryBuilder = queryBuilder.Where("pairs.pair_address = ?", query.PairAddress)
+	}
+
+	res := queryBuilder.Find(&pairs)
+	return pairs, res.Error
+}
+
+func (db *PairService) ClearPairs() error {
+	// var token Token
+	res := db.db.Exec("DELETE FROM `pairs`")
 	return res.Error
 }

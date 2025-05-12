@@ -1,10 +1,14 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
+
+	d "github.com/Lazy-Parser/Collector/internal/domain"
 )
 
 // converts symbol string with underscores or without
@@ -40,4 +44,25 @@ func CheckErrorDatabase(err error) error {
 	}
 
 	return nil
+}
+
+func LoadWhitelistFile() ([]d.Whitelist, error) {
+	workDir, err := GetWorkDirPath()
+	if err != nil {
+		return []d.Whitelist{}, err
+	}
+
+	path := filepath.Join(workDir, "config", "network_pool_whitelist.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return []d.Whitelist{}, fmt.Errorf("loading 'config/network_pool_whitelist.json' file: %v", err)
+	}
+
+	var res []d.Whitelist
+	err = json.Unmarshal(data, &res)
+	if err != nil {
+		return []d.Whitelist{}, fmt.Errorf("unmarshal data from 'config/network_pool_whitelist.json' file: %v", err)
+	}
+
+	return res, nil
 }

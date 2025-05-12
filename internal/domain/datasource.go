@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 
+	db "github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -20,7 +21,7 @@ type DataSource interface {
 // DEX (Pool liquidity)
 type DataSourceDex interface {
 	Name() string // pancakeswap, ...
-	Init(toListen *[]Pair) error
+	Init(toListen *[]db.Pair) error
 	Connect() error // // pass list of pairs...
 	Subscribe() error
 	Run(ctx context.Context, consumerCh chan PancakeswapV2Responce) // some data

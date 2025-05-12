@@ -1,30 +1,25 @@
 package main
 
 import (
-	// "context"
-	// "encoding/json"
-	// "fmt"
-	// "fmt"
+	"context"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
-	// "path/filepath"
-
+	"github.com/Lazy-Parser/Collector/internal/dashboard"
 	db "github.com/Lazy-Parser/Collector/internal/database"
-	manager_dex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
+	"github.com/Lazy-Parser/Collector/internal/generator"
 
-	// "github.com/Lazy-Parser/Collector/internal/domain"
-
+	// "github.com/Lazy-Parser/Collector/internal/impl/aggregator"
 	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v2"
-
-	// "github.com/ethereum/go-ethereum/common"
-
-	// "github.com/ethereum/go-ethereum/common"
+	manager_dex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
 	cli "github.com/urfave/cli/v2"
 )
 
 func main() {
+	db.NewConnection()
+
 	app := &cli.App{
 		Name:  "collector",
 		Usage: "Service, that collects pairs prices and publish to NATS",
@@ -47,6 +42,31 @@ func main() {
 				},
 				Action: genPairs,
 			},
+			{
+				Name:  "db",
+				Usage: "Show table of all data in database. You can ask to show pairs or tokens. By default - pairs",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:     "spairs",
+						Aliases:  []string{"sp"},
+						Usage:    "Show table of all pairs in database. By default",
+						Required: false,
+					},
+					&cli.BoolFlag{
+						Name:     "stokens",
+						Aliases:  []string{"st"},
+						Usage:    "Show table of all tokens in database",
+						Required: false,
+					},
+					&cli.BoolFlag{
+						Name:     "clearAll",
+						Aliases:  []string{"c"},
+						Usage:    "Clear all (tokens and pairs) in database",
+						Required: false,
+					},
+				},
+				Action: showTable,
+			},
 		},
 	}
 
@@ -56,46 +76,110 @@ func main() {
 }
 
 func runMain(*cli.Context) error {
+	// init all vars
+	ctx, ctxCancel := context.WithTimeout(context.Background(), time.Minute*3) // stop after 3 minutes
+	defer ctxCancel()
+	managerDex := manager_dex.New()
+	collectorDex := pancakeswap_v2.PancakeswapV2{}
+	err := managerDex.Push(&collectorDex)
+	if err != nil {
+		return fmt.Errorf("managerDex push error: %v", err)
+	}
+
+	// select pairs, that we need to update
+	// pairs, err := db.GetDB().GloabalQuery(&db.Pair{Pool: "pancakeswap"}, &db.Token{Decimals: -1})
+	// if err != nil {
+	// 	return fmt.Errorf("fetching pairs from db: %v", err)
+	// }
+
+	// if len(pairs) != 0 { // if some tokens do not have decimals
+	// 	res, err := managerDex.FetchDecimals(collectorDex.Name(), &pairs)
+	// 	if err != nil {
+	// 		return fmt.Errorf("managerDex errror: %v", err)
+	// 	}
+
+	// 	fmt.Printf("Fetched decimals: %d\n", len(res))
+	// 	fmt.Println("Updating database...")
+	// 	// update database
+	// 	for address, decimal := range res {
+	// 		db.GetDB().TokenService.UpdateDecimals(&db.Token{Address: address.String()}, decimal)
+	// 	}
+
+	// 	// show updates
+	// 	tokens, _ := db.GetDB().TokenService.GetAllTokens()
+	// 	dashboard.ShowTokens(tokens)
+	// }
+
+	// start to listen pairs
+
+	// listen selected pairs
 	// aggregator.InitJoiner()
 	// joiner := aggregator.GetJoiner()
 
-	// manager := m.CreateManager()
-	// manager.NewCollector(&mexc.MexcSource{})
+	go managerDex.Run(ctx)
 
-	// go manager.Run(joiner)
-
-	db.NewConnection()
-	managerDex := manager_dex.New()
-	collectorDex := pancakeswap_v2.PancakeswapV2{}
-
-	managerDex.Push(collectorDex)
+	<-ctx.Done()
 
 	return nil
 }
 
 func genPairs(ctx *cli.Context) error {
-
-	db.NewConnection()
-	// db.GetDB().ClearTokens()
-	// db.GetDB().ClearPairs()
-	// generator.Run()
+	generator.Run()
 
 	// try to log all tokens from db
-	var res []db.Pair
-	res, err := db.GetDB().GetAllPairs()
+	fmt.Println("Genetated tokens:")
+	pairs, err := db.GetDB().PairService.GetAllPairs()
 	if err != nil {
 		return err
 	}
+	dashboard.ShowPairs(pairs)
 
-	for idx, pair := range res {
-		fmt.Printf(
-			"%d) %s/%s. Network: %s | Pool: %s\n",
-			idx, pair.BaseToken.Name, pair.QuoteToken.Name,
-			pair.Network, pair.Pool,
-		)
+	return nil
+}
+
+func showTable(ctx *cli.Context) error {
+	var flag string
+	if ctx.Args().Len() == 0 {
+		flag = "spairs"
+	}
+	if ctx.Bool("spairs") {
+		flag = "spairs"
+	}
+	if ctx.Bool("stokens") {
+		flag = "stokens"
+	}
+	if ctx.Bool("clearAll") {
+		flag = "clearAll"
 	}
 
-	// pair.BaseToken.Name, pair.QuoteToken.Name не отображаеться, починить
+	if flag == "spairs" {
+		// fetch pairs
+		res, err := db.GetDB().PairService.GetAllPairs()
+		if err != nil {
+			return err
+		}
+
+		dashboard.ShowPairs(res)
+	} else if flag == "stokens" {
+		// fetch tokens
+		res, err := db.GetDB().TokenService.GetAllTokens()
+		if err != nil {
+			return err
+		}
+
+		dashboard.ShowTokens(res)
+	} else if flag == "clearAll" {
+		err := db.GetDB().TokenService.ClearTokens()
+		if err != nil {
+			return err
+		}
+
+		err = db.GetDB().PairService.ClearPairs()
+		if err != nil {
+			return err
+		}
+
+	}
 
 	return nil
 }

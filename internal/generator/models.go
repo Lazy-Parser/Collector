@@ -78,12 +78,6 @@ type SocialLink struct {
 	URL  string `json:"url"`
 }
 
-type Whitelist struct {
-	Network      string   `json:"network"`      // solana
-	NetworkShort string   `json:"networkShort"` // SOL
-	Pools        []string `json:"pools"`        // radium
-}
-
 // ---------- mexc ----------
 // get data from mexc
 type Network struct {

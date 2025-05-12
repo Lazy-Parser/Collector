@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	d "github.com/Lazy-Parser/Collector/internal/domain"
 	"github.com/joho/godotenv"
 )
 
@@ -53,7 +54,7 @@ func MexcInit() error {
 }
 
 // compare tokens from mexc and return only tokens from futures with addressed. Also filter tokens based on whitelist
-func MexcCompare(wl *[]Whitelist) {
+func MexcCompare(wl *[]d.Whitelist) {
 	for _, asset := range assets {
 		if asset.containsContract() && asset.containsWhitelist(wl) {
 			store = append(store, asset)
@@ -80,7 +81,7 @@ func (a *Asset) containsContract() bool {
 	return false
 }
 
-func (a *Asset) containsWhitelist(wl *[]Whitelist) bool {
+func (a *Asset) containsWhitelist(wl *[]d.Whitelist) bool {
 	for _, allowed := range *wl {
 		for idx, n := range a.NetworkList {
 			if allowed.NetworkShort == n.NetworkShort {

@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/Lazy-Parser/Collector/internal/domain"
-
 	"github.com/nats-io/nats.go"
 )
 

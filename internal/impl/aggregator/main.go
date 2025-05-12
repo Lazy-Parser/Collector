@@ -84,17 +84,17 @@ func (j *Joiner) Update(data d.AggregatorPayload) {
 
 	// // send via nats
 	// if futures.LastPrice != 0 && spot.Price != 0 {
-	// 	payload := &p.Message{
-	// 		Symbol:    data.Symbol,
-	// 		Timestamp: data.Timestamp.UnixMilli(),
-	// 		Spot:      spot,
-	// 		Futures:   futures,
-	// 	}
+		// payload := &p.Message{
+		// 	Symbol:    data.Symbol,
+		// 	Timestamp: data.Timestamp.UnixMilli(),
+		// 	Spot:      d.SpotData{},
+		// 	Futures:   d.FuturesData{},
+		// }
 
-	// 	err := p.GetPublisher().Publish("mexc.spread", *payload)
-	// 	if err != nil {
-	// 		fmt.Errorf("Send message erorr: %w", err)
-	// 	}
+		// err := p.GetPublisher().Publish("mexc.spread", *payload)
+		// if err != nil {
+		// 	fmt.Errorf("Send message erorr: %w", err)
+		// }
 
 	// fmt.Printf("🔁 %s: FUTURES %s | SPOT %s",
 	// 	data.Symbol, futures.Price, spot.Price)

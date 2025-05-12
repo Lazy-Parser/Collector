@@ -5,5 +5,5 @@ import (
 )
 
 type ManagerDex struct {
-	list []d.DataSourceDex
+	list []*d.DataSourceDex
 }

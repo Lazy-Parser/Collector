@@ -10,9 +10,9 @@
         "pools": []
     },
     {
-        "network": "base",
-        "networkShort": "BASE",
-        "pools": [ "pancakeswap", "uniswap" ]
+        "network": "TON",
+        "networkShort": "TON",
+        "pools": []
     },
     {
         "network": "ethereum",

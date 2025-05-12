@@ -2,57 +2,73 @@ package dashboard
 
 import (
 	"fmt"
-	"time"
+	"os"
+	"strconv"
 
-	"github.com/gosuri/uilive"
 	"github.com/jedib0t/go-pretty/v6/table"
-	d "github.com/Lazy-Parser/Collector/internal/domain"
+
+	database "github.com/Lazy-Parser/Collector/internal/database"
 )
 
-// Run starts a live table that refreshes every `interval`.
-func Run(ch <-chan d.PancakeswapV2Responce, interval time.Duration) {
-	// --- live writer that rewinds cursor on every Flush()
-	writer := uilive.New()
-	writer.Start()
-	defer writer.Stop()
-
+func ShowPairs(pairs []database.Pair) {
 	// --- go-pretty table set-up (duplicate to writer)
 	tw := table.NewWriter()
-	tw.SetOutputMirror(writer)
-	tw.AppendHeader(table.Row{"CONTRACT", "PRICE (WBNB)", "LAST SEEN"})
+	tw.SetOutputMirror(os.Stdout)
+	tw.AppendHeader(table.Row{"ID", "PAIR", "Base ID", "Quote ID", "PAIR CONTRACT", "NETWORK", "POOL"})
 	tw.SetStyle(table.StyleColoredBlackOnGreenWhite)
 
-	// ----------------------------------------------------------------------
-	// cache   → latest data for each pair
-	// order   → slice preserving first-seen order
-	// ----------------------------------------------------------------------
-	type row struct{ price float64; ts string }
-	cache := map[string]row{}
-	order := make([]string, 0, 32) // insertion order
-
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case p := <-ch:
-			if _, ok := cache[p.Hex]; !ok {
-				order = append(order, p.Hex) // remember first appearance
-			}
-			cache[p.Hex] = row{price: p.Price, ts: p.Timestamp}
-
-		case <-ticker.C:
-			tw.ResetRows()
-			for _, key := range order { // stable order!
-				r := cache[key]
-				tw.AppendRow(table.Row{
-					key,
-					fmt.Sprintf("%.8f", r.price),
-					r.ts,
-				})
-			}
-			tw.Render()
-			writer.Flush()
+	var rows []table.Row
+	for _, pair := range pairs {
+		row := table.Row{
+			pair.ID,
+			pair.BaseToken.Name + "/" + pair.QuoteToken.Name,
+			pair.BaseTokenID,
+			pair.QuoteTokenID,
+			pair.PairAddress,
+			pair.Network,
+			pair.Pool,
 		}
+		rows = append(rows, row)
 	}
+
+	tw.AppendRows(rows)
+	tw.AppendSeparator()
+	tw.AppendFooter(table.Row{"", "", "", "", "", "Total", len(pairs)})
+
+	fmt.Println("PAIRS")
+	tw.Render()
+}
+
+func ShowTokens(tokens []database.Token) {
+	// --- go-pretty table set-up (duplicate to writer)
+	tw := table.NewWriter()
+	tw.SetOutputMirror(os.Stdout)
+	tw.AppendHeader(table.Row{"ID", "NAME", "ADDRESS", "DECIMALS"})
+	tw.SetStyle(table.StyleColoredBlackOnGreenWhite)
+
+	var rows []table.Row
+	for _, token := range tokens {
+		row := table.Row{
+			token.ID,
+			token.Name,
+			token.Address,
+			showDecimals(token.Decimals),
+		}
+		rows = append(rows, row)
+	}
+
+	tw.AppendRows(rows)
+	tw.AppendSeparator()
+	tw.AppendFooter(table.Row{"", "", "Total", len(tokens)})
+
+	fmt.Println("TOKENS")
+	tw.Render()
+}
+
+func showDecimals(d int) string {
+	if d == -1 {
+		return "NULL"
+	}
+
+	return strconv.Itoa(d)
 }

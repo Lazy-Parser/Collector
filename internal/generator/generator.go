@@ -7,8 +7,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 	"sync"
 
 	// "sync/atomic"
@@ -41,7 +39,7 @@ func Run() {
 	)
 
 	// load all tokens from mexc
-	wl, err := loadWhitelistFile()
+	wl, err := utils.LoadWhitelistFile()
 	if err != nil {
 		log.Panicf("Failed to load whitelist! %v", err)
 	}
@@ -217,16 +215,16 @@ func savePairs(pairs *[]d.Pair) error {
 	}
 
 	for _, p := range *pairs {
-		// save base token
-		baseToken := database.Token{Name: p.Base.Name, Address: p.Base.Address, Decimals: -1}
-		err := db.SaveToken(&baseToken)
+		// save base token. Check if exists, if yes - set found token as new (baseToken)
+		payload := database.Token{Name: p.Base.Name, Address: p.Base.Address, Decimals: -1}
+		baseToken, err := database.GetDB().TokenService.SaveOrFind(&payload)
 		if err != nil {
 			return fmt.Errorf("database error: %v", err)
 		}
 
-		// save quote token
-		quoteToken := database.Token{Name: p.Quote.Name, Address: p.Quote.Address, Decimals: -1}
-		err = db.SaveToken(&quoteToken)
+		// save quote token. Check if exists, if yes - set found token as new (quoteToken)
+		payload = database.Token{Name: p.Quote.Name, Address: p.Quote.Address, Decimals: -1}
+		quoteToken, err := database.GetDB().TokenService.SaveOrFind(&payload)
 		if err != nil {
 			return fmt.Errorf("database error: %v", err)
 		}
@@ -238,9 +236,9 @@ func savePairs(pairs *[]d.Pair) error {
 			Network:      p.Network,
 			Pool:         p.Pool,
 			URL:          p.URL,
-			// Label:        p.Labels[0], // TODO: надо как то решить проблему - ошибка
+			Label:        getLabel(p.Labels),
 		}
-		err = db.SavePair(&pair)
+		err = db.PairService.SavePair(&pair)
 		if err != nil {
 			return fmt.Errorf("database error: %v", err)
 		}
@@ -265,26 +263,15 @@ func savePairs(pairs *[]d.Pair) error {
 	// }
 }
 
-func loadWhitelistFile() ([]Whitelist, error) {
-	workDir, err := utils.GetWorkDirPath()
-	if err != nil {
-		return []Whitelist{}, err
+func getLabel(arr []string) string {
+	if len(arr) == 0 {
+		return ""
 	}
 
-	path := filepath.Join(workDir, "config", "network_pool_whitelist.json")
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return []Whitelist{}, fmt.Errorf("loading 'config/network_pool_whitelist.json' file: %v", err)
-	}
-
-	var res []Whitelist
-	err = json.Unmarshal(data, &res)
-	if err != nil {
-		return []Whitelist{}, fmt.Errorf("unmarshal data from 'config/network_pool_whitelist.json' file: %v", err)
-	}
-
-	return res, nil
+	return arr[0]
 }
+
+
 
 func printReceivedToken(counter int32, pair d.Pair) {
 	fmt.Println("dfdfsgdfsgsdfgsdfgsdfgsdfg")
