@@ -55,9 +55,13 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 		if pair.Pool == "pancakeswap" && pair.Label == "v3" {
 			pancakeswapV3Pairs = append(pancakeswapV3Pairs, pair)
 			fmt.Printf("%s/%s\n", pair.BaseToken.Name, pair.QuoteToken.Name)
-
 		}
-		// if pair.BaseToken.Name == "BR" {
+
+		if len(pancakeswapV3Pairs) == 10 {
+			break
+		}
+
+		// if pair.PairAddress == "0xC242E7C7d4bC5E920ab2199C407298514b16c92F" {
 		// 	pancakeswapV3Pairs = append(pancakeswapV3Pairs, pair)
 		// 	fmt.Printf("%s/%s\n", pair.BaseToken.Name, pair.QuoteToken.Name)
 		// }
@@ -103,20 +107,19 @@ func startCollector(
 	fmt.Println("Starting collector....")
 	err := (*collector).Init(&toListen)
 	if err != nil {
-		fmt.Errorf("failed to init '%s' collector. %v", (*collector).Name(), err)
+		log.Fatalf("failed to init '%s' collector. %v", (*collector).Name(), err)
 	}
 	fmt.Println("Inited!")
 
 	err = (*collector).Connect()
 	if err != nil {
-		fmt.Println("Error")
-		fmt.Errorf("failed to connect '%s' collector. %v", (*collector).Name(), err)
+		log.Fatalf("failed to connect '%s' collector. %v", (*collector).Name(), err)
 	}
 	fmt.Println("Connected!")
 
 	err = (*collector).Subscribe()
 	if err != nil {
-		fmt.Errorf("failed to subscribe '%s' collector. %v", (*collector).Name(), err)
+		log.Fatalf("failed to subscribe '%s' collector. %v", (*collector).Name(), err)
 	}
 	fmt.Println("Subscribed!")
 

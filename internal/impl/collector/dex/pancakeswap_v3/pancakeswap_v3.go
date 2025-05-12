@@ -50,7 +50,7 @@ func (p *PancakeswapV3) Init(toListen *[]database.Pair) error {
 
 	// load ABI
 	wd, _ := os.Getwd()
-	abiJson, err := os.ReadFile(filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap_v2", "abi", "PancakeswapV3-swap.json"))
+	abiJson, err := os.ReadFile(filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap_v3", "abi", "PancakeswapV3-swap.json"))
 	if err != nil {
 		return fmt.Errorf("[PANCAKESWAP][V2][Init] Failed to init '%s', cannot load ABI file!", p.Name())
 	}
@@ -66,7 +66,7 @@ func (p *PancakeswapV3) Init(toListen *[]database.Pair) error {
 }
 
 func (p *PancakeswapV3) Connect() error {
-	client, err := ethclient.Dial("wss://bsc-rpc.publicnode.com")
+	client, err := ethclient.Dial("wss://bsc-mainnet.core.chainstack.com/d467926f7a436f3d20ad07c7c65dab08")
 	if err != nil {
 		return fmt.Errorf("[PANCAKESWAP][V2][Connect] Failed to connect '%s', %v", p.Name(), err)
 	}
@@ -78,10 +78,10 @@ func (p *PancakeswapV3) Connect() error {
 
 func (p *PancakeswapV3) Subscribe() error {
 	var poolAddresses []common.Address
-	for _, pair := range *p.toListen {
-		address := common.HexToAddress(pair.PairAddress)
-		poolAddresses = append(poolAddresses, address)
-	}
+	address := common.HexToAddress("0x85101e650a2800c366cdc0b9a69a0a2bd38a0242")
+	poolAddresses = append(poolAddresses, address)
+	// for _, pair := range *p.toListen { // 0x85101e650a2800c366cdc0b9a69a0a2bd38a0242
+	// }
 
 	// Хэш события Swap
 	swapSig := []byte("Swap(address,address,int256,int256,uint160,uint128,int24)")
@@ -124,6 +124,7 @@ func (p *PancakeswapV3) Run(ctx context.Context, consumerCh chan d.PancakeswapV2
 				log.Fatal("[HandleSwap] error handleSwap: %v", err)
 			}
 
+			fmt.Println("SOME DATA")
 			consumerCh <- res
 		}
 	}
@@ -146,8 +147,11 @@ func handleSwap(
 		Tick         *big.Int `abi:"tick"`
 	}
 	if err := pairABI.UnpackIntoInterface(&ev, "Swap", vLog.Data); err != nil {
+		fmt.Println("Failed to parse logs")
 		return resp, fmt.Errorf("[V3][handleSwap]: decode: %w", err)
 	}
+
+	fmt.Printf("%s, %s, %s", ev.Amount0, ev.Amount1, ev.Liquidity)
 
 	fmt.Printf("\n")
 	resp = d.PancakeswapV2Responce{
