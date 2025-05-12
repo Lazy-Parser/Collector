@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
 
 	"math/big"
 	"os"
@@ -23,23 +22,12 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-type PairMeta struct {
-	Name         string         // e.g. "WBNB/BUSD"
-	Addr         common.Address // pair contract
-	BaseAddr     common.Address // token we quote against (WBNB)
-	QuoteAddr    common.Address // token whose price we output (BUSD)
-	BaseIsToken0 bool
-	DecBase      uint8 // filled automatically
-	DecQuote     uint8 // filled automatically
-}
-
-type PancakeswapV2 struct {
+type PancakeswapV3 struct {
 	logs     chan types.Log
 	toListen *[]database.Pair
 	abi      abi.ABI // listen price
 	client   *ethclient.Client
 	sub      ethereum.Subscription
-	meta     map[common.Address]PairMeta
 }
 
 var (
@@ -49,12 +37,12 @@ var (
 	mcAddress     = common.HexToAddress("0xcA11bde05977b3631167028862bE2a173976CA11")
 )
 
-func (p *PancakeswapV2) Name() string {
-	return "PancakeswapV2"
+func (p *PancakeswapV3) Name() string {
+	return "PancakeswapV3"
 }
 
 // toListen - all pairs, that this pool will listen
-func (p *PancakeswapV2) Init(toListen *[]database.Pair) error {
+func (p *PancakeswapV3) Init(toListen *[]database.Pair) error {
 	if len(*toListen) == 0 {
 		return fmt.Errorf("[PANCAKESWAP][V2][Init] Failed to init '%s', provided 'toListen' array is empty!", p.Name())
 	}
@@ -62,7 +50,7 @@ func (p *PancakeswapV2) Init(toListen *[]database.Pair) error {
 
 	// load ABI
 	wd, _ := os.Getwd()
-	abiJson, err := os.ReadFile(filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap_v2", "abi", "uniswapV2-swap.json"))
+	abiJson, err := os.ReadFile(filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap_v2", "abi", "PancakeswapV3-swap.json"))
 	if err != nil {
 		return fmt.Errorf("[PANCAKESWAP][V2][Init] Failed to init '%s', cannot load ABI file!", p.Name())
 	}
@@ -77,8 +65,8 @@ func (p *PancakeswapV2) Init(toListen *[]database.Pair) error {
 	return nil
 }
 
-func (p *PancakeswapV2) Connect() error {
-	client, err := ethclient.Dial("wss://bsc-mainnet.core.chainstack.com/4984a03359f19068c2334839ea14acd0")
+func (p *PancakeswapV3) Connect() error {
+	client, err := ethclient.Dial("wss://bsc-rpc.publicnode.com")
 	if err != nil {
 		return fmt.Errorf("[PANCAKESWAP][V2][Connect] Failed to connect '%s', %v", p.Name(), err)
 	}
@@ -88,7 +76,7 @@ func (p *PancakeswapV2) Connect() error {
 	return nil
 }
 
-func (p *PancakeswapV2) Subscribe() error {
+func (p *PancakeswapV3) Subscribe() error {
 	var poolAddresses []common.Address
 	for _, pair := range *p.toListen {
 		address := common.HexToAddress(pair.PairAddress)
@@ -96,7 +84,7 @@ func (p *PancakeswapV2) Subscribe() error {
 	}
 
 	// Хэш события Swap
-	swapSig := []byte("Swap(address,uint256,uint256,uint256,uint256,address)")
+	swapSig := []byte("Swap(address,address,int256,int256,uint160,uint128,int24)")
 	swapTopic := crypto.Keccak256Hash(swapSig)
 
 	// Фильтр на событие Swap
@@ -117,7 +105,7 @@ func (p *PancakeswapV2) Subscribe() error {
 	return nil
 }
 
-func (p *PancakeswapV2) Run(ctx context.Context, consumerCh chan d.PancakeswapV2Responce) {
+func (p *PancakeswapV3) Run(ctx context.Context, consumerCh chan d.PancakeswapV2Responce) {
 	for {
 		select {
 		case err := <-p.sub.Err():
@@ -127,28 +115,10 @@ func (p *PancakeswapV2) Run(ctx context.Context, consumerCh chan d.PancakeswapV2
 		case vLog := <-p.logs:
 			fmt.Println("Swap событие получено!")
 
-			// Декодируем данные события
-			eventData := make(map[string]interface{})
-			err := p.abi.UnpackIntoMap(eventData, "Swap", vLog.Data)
-			if err != nil {
-				log.Fatal("[PANCAKESWAP][V2][Run]: swap message decoding error: %v", err)
-			}
-
-			// извлекаем и обрабатываем даныне
-			curPair := findPair(p.toListen, vLog.Address.String())
-			token0, _ := sortTokens(
-				common.HexToAddress(curPair.BaseToken.Address),
-				common.HexToAddress(curPair.QuoteToken.Address),
-			)
-			isBaseToken0 := isBaseToken(token0, common.HexToAddress(curPair.BaseToken.Address))
-
 			res, err := handleSwap(
 				p.abi,
 				vLog,
 				p.Name(),
-				curPair.BaseToken.Decimals,
-				curPair.QuoteToken.Decimals,
-				isBaseToken0,
 			)
 			if err != nil {
 				log.Fatal("[HandleSwap] error handleSwap: %v", err)
@@ -163,91 +133,33 @@ func handleSwap(
 	pairABI abi.ABI,
 	vLog types.Log,
 	poolName string,
-	token0Decimals int,
-	token1Decimals int,
-	isBaseToken0 bool,
 ) (d.PancakeswapV2Responce, error) {
 	// Placeholder for the result we will build.
 	var resp d.PancakeswapV2Responce
 
 	// ------------------------------------------------------------------ decode
-	// Swap(uint256 amount0In, uint256 amount1In,
-	//      uint256 amount0Out, uint256 amount1Out)
 	var ev struct {
-		Amount0In, Amount1In   *big.Int
-		Amount0Out, Amount1Out *big.Int
+		Amount0      *big.Int `abi:"amount0"`
+		Amount1      *big.Int `abi:"amount1"`
+		SqrtPriceX96 *big.Int `abi:"sqrtPriceX96"`
+		Liquidity    *big.Int `abi:"liquidity"`
+		Tick         *big.Int `abi:"tick"`
 	}
 	if err := pairABI.UnpackIntoInterface(&ev, "Swap", vLog.Data); err != nil {
-		return resp, fmt.Errorf("[V2][handleSwap]: decode: %w", err)
+		return resp, fmt.Errorf("[V3][handleSwap]: decode: %w", err)
 	}
 
-	// 2. Validate swap amounts
-	if (ev.Amount0In.Sign() > 0 && ev.Amount1In.Sign() > 0) ||
-		(ev.Amount0Out.Sign() > 0 && ev.Amount1Out.Sign() > 0) {
-		return resp, fmt.Errorf("[V2][handleSwap] invalid swap amounts")
-	}
-
-	// 3. Calculate decimal adjustment factors
-	decimals0 := new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(token0Decimals)), nil))
-	decimals1 := new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(token1Decimals)), nil))
-
-	// 4. Determine swap direction and calculate price
-	var price *big.Float
-	var amount1, amount0 *big.Float
-	switch {
-	// Case 1: Token0 -> Token1 (sell Token0, buy Token1) - Sell
-	case ev.Amount0In.Sign() > 0 && ev.Amount1Out.Sign() > 0:
-		amount0 = new(big.Float).SetInt(ev.Amount0In)
-		amount1 = new(big.Float).SetInt(ev.Amount1Out)
-
-	// Case 2: Token1 -> Token0 (sell Token1, buy Token0) - Buy
-	case ev.Amount1In.Sign() > 0 && ev.Amount0Out.Sign() > 0:
-		amount1 = new(big.Float).SetInt(ev.Amount1In)
-		amount0 = new(big.Float).SetInt(ev.Amount0Out)
-
-	default:
-		return resp, fmt.Errorf("[V2][handleSwap] invalid swap direction")
-	}
-
-	// calculate price
-	if isBaseToken0 {
-		price = new(big.Float).Quo(
-			new(big.Float).Mul(amount0, decimals0),
-			new(big.Float).Mul(amount1, decimals1),
-		)
-	} else {
-		price = new(big.Float).Quo(
-			new(big.Float).Mul(amount1, decimals0),
-			new(big.Float).Mul(amount0, decimals1),
-		)
-	}
-
-	// 5. Verify price sanity
-	if price.Sign() <= 0 {
-		return resp, fmt.Errorf("[V2][handleSwap] invalid price calculation")
-	}
-
-	// ------------------------------------------------------------------ response
-	fmt.Println("METADATA:")
-	fmt.Printf(
-		"amount0in: %s, amount1In: %s\n amount0out: %s, amount1out: %s, isBaseToken0: %s\n",
-		ev.Amount0In.String(), ev.Amount1In.String(), ev.Amount0Out, ev.Amount1Out, strconv.FormatBool(isBaseToken0),
-	)
-	fmt.Printf(
-		"token0Decimal: %s, token1Decimal: %s\n",
-		strconv.FormatInt(int64(token0Decimals), 10), strconv.FormatInt(int64(token1Decimals), 10),
-	)
 	fmt.Printf("\n")
 	resp = d.PancakeswapV2Responce{
 		Pool:      poolName,
 		Timestamp: time.Now().Local().String(), // use Unix ms for easier math
-		Price:     price,
+		Price:     new(big.Float),
 		Hex:       vLog.Address.String(),
 	}
 	return resp, nil
 }
 
-func (p *PancakeswapV2) FetchDecimals(ctx context.Context) (map[common.Address]uint8, error) {
+func (p *PancakeswapV3) FetchDecimals(ctx context.Context) (map[common.Address]uint8, error) {
 	if len(*p.toListen) == 0 {
 		return nil, errors.New("empty token list")
 	}
@@ -338,29 +250,14 @@ func (p *PancakeswapV2) FetchDecimals(ctx context.Context) (map[common.Address]u
 	return out, nil
 }
 
-func findPair(pairs *[]database.Pair, pairAddress string) *database.Pair {
-	var res *database.Pair
+// func findPair(pairs *[]database.Pair, pairAddress string) *database.Pair {
+// 	var res *database.Pair
 
-	for _, pair := range *pairs {
-		if pair.PairAddress == pairAddress {
-			res = &pair
-		}
-	}
+// 	for _, pair := range *pairs {
+// 		if pair.PairAddress == pairAddress {
+// 			res = &pair
+// 		}
+// 	}
 
-	return res
-}
-
-// Правильная сортировка токенов как в контрактах Uniswap/PancakeSwap
-func sortTokens(tokenA, tokenB common.Address) (token0, token1 common.Address) {
-	a := new(big.Int).SetBytes(tokenA.Bytes())
-	b := new(big.Int).SetBytes(tokenB.Bytes())
-
-	if a.Cmp(b) > 0 {
-		return tokenA, tokenB
-	}
-	return tokenB, tokenA
-}
-
-func isBaseToken(token, baseToken common.Address) bool {
-	return strings.EqualFold(token.Hex(), baseToken.Hex())
-}
+// 	return res
+// }

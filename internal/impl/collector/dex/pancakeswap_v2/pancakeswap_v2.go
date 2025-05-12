@@ -23,23 +23,12 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-type PairMeta struct {
-	Name         string         // e.g. "WBNB/BUSD"
-	Addr         common.Address // pair contract
-	BaseAddr     common.Address // token we quote against (WBNB)
-	QuoteAddr    common.Address // token whose price we output (BUSD)
-	BaseIsToken0 bool
-	DecBase      uint8 // filled automatically
-	DecQuote     uint8 // filled automatically
-}
-
 type PancakeswapV2 struct {
 	logs     chan types.Log
 	toListen *[]database.Pair
 	abi      abi.ABI // listen price
 	client   *ethclient.Client
 	sub      ethereum.Subscription
-	meta     map[common.Address]PairMeta
 }
 
 var (
@@ -62,7 +51,7 @@ func (p *PancakeswapV2) Init(toListen *[]database.Pair) error {
 
 	// load ABI
 	wd, _ := os.Getwd()
-	abiJson, err := os.ReadFile(filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap_v2", "abi", "uniswapV2-swap.json"))
+	abiJson, err := os.ReadFile(filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap_v2", "abi", "pancakeswapV2-swap.json"))
 	if err != nil {
 		return fmt.Errorf("[PANCAKESWAP][V2][Init] Failed to init '%s', cannot load ABI file!", p.Name())
 	}
@@ -126,13 +115,6 @@ func (p *PancakeswapV2) Run(ctx context.Context, consumerCh chan d.PancakeswapV2
 			log.Fatal("[PANCAKESWAP][V2][Run]: Subscribtion error: %v", err)
 		case vLog := <-p.logs:
 			fmt.Println("Swap событие получено!")
-
-			// Декодируем данные события
-			eventData := make(map[string]interface{})
-			err := p.abi.UnpackIntoMap(eventData, "Swap", vLog.Data)
-			if err != nil {
-				log.Fatal("[PANCAKESWAP][V2][Run]: swap message decoding error: %v", err)
-			}
 
 			// извлекаем и обрабатываем даныне
 			curPair := findPair(p.toListen, vLog.Address.String())

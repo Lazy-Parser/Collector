@@ -12,7 +12,8 @@ import (
 	"github.com/Lazy-Parser/Collector/internal/generator"
 
 	// "github.com/Lazy-Parser/Collector/internal/impl/aggregator"
-	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v2"
+	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v3"
+	// "github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v2"
 	manager_dex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
 	cli "github.com/urfave/cli/v2"
 )
@@ -80,7 +81,7 @@ func runMain(*cli.Context) error {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), time.Minute*3) // stop after 3 minutes
 	defer ctxCancel()
 	managerDex := manager_dex.New()
-	collectorDex := pancakeswap_v2.PancakeswapV2{}
+	collectorDex := pancakeswap_v3.PancakeswapV3{} //pancakeswap_v2.PancakeswapV2{} 
 	err := managerDex.Push(&collectorDex)
 	if err != nil {
 		return fmt.Errorf("managerDex push error: %v", err)
