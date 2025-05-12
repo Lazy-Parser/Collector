@@ -12,10 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-var (
-	MAX_COLLECTORS = 10
-)
-
 func New() *ManagerDex {
 	return &ManagerDex{
 		list: []*d.DataSourceDex{},
@@ -56,15 +52,6 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 			pancakeswapV3Pairs = append(pancakeswapV3Pairs, pair)
 			fmt.Printf("%s/%s\n", pair.BaseToken.Name, pair.QuoteToken.Name)
 		}
-
-		if len(pancakeswapV3Pairs) == 10 {
-			break
-		}
-
-		// if pair.PairAddress == "0xC242E7C7d4bC5E920ab2199C407298514b16c92F" {
-		// 	pancakeswapV3Pairs = append(pancakeswapV3Pairs, pair)
-		// 	fmt.Printf("%s/%s\n", pair.BaseToken.Name, pair.QuoteToken.Name)
-		// }
 	}
 	fmt.Printf("TOTAL: %d", len(pancakeswapV3Pairs))
 

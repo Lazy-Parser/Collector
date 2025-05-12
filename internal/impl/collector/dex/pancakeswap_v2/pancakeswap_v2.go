@@ -67,7 +67,7 @@ func (p *PancakeswapV2) Init(toListen *[]database.Pair) error {
 }
 
 func (p *PancakeswapV2) Connect() error {
-	client, err := ethclient.Dial("wss://bsc-mainnet.core.chainstack.com/4984a03359f19068c2334839ea14acd0")
+	client, err := ethclient.Dial("wss://bsc-mainnet.core.chainstack.com/d467926f7a436f3d20ad07c7c65dab08")
 	if err != nil {
 		return fmt.Errorf("[PANCAKESWAP][V2][Connect] Failed to connect '%s', %v", p.Name(), err)
 	}

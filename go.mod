@@ -6,14 +6,14 @@ require (
 	github.com/ethereum/go-ethereum v1.15.11
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/gorilla/websocket v1.5.3
-	github.com/gosuri/uilive v0.0.4
 	github.com/jedib0t/go-pretty/v6 v6.6.7
 	github.com/joho/godotenv v1.5.1
 	github.com/nats-io/nats.go v1.41.1
 	github.com/sourcegraph/conc v0.3.0
 	github.com/urfave/cli/v2 v2.27.6
 	golang.org/x/time v0.11.0
-	google.golang.org/protobuf v1.36.6
+	gorm.io/driver/sqlite v1.5.7
+	gorm.io/gorm v1.26.1
 )
 
 require (
@@ -34,7 +34,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mattn/go-sqlite3 v1.14.28 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
@@ -55,7 +54,6 @@ require (
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/term v0.29.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
-	gorm.io/driver/sqlite v1.5.7 // indirect
-	gorm.io/gorm v1.26.1 // indirect
+	google.golang.org/protobuf v1.36.6 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )

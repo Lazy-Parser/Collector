@@ -57,7 +57,7 @@ func (p *PancakeswapV3) Init(toListen *[]database.Pair) error {
 
 	parsedAbi, err := abi.JSON(strings.NewReader(string(abiJson)))
 	if err != nil {
-		return fmt.Errorf("[PANCAKESWAP][V2][Init] Failed to init '%s', cannot parse ABI file!", p.Name())
+		return fmt.Errorf("[PANCAKESWAP][V2][Init] Failed to init '%s', cannot parse ABI file!: %v", p.Name(), err)
 	}
 
 	p.abi = parsedAbi
@@ -78,13 +78,13 @@ func (p *PancakeswapV3) Connect() error {
 
 func (p *PancakeswapV3) Subscribe() error {
 	var poolAddresses []common.Address
-	address := common.HexToAddress("0x85101e650a2800c366cdc0b9a69a0a2bd38a0242")
-	poolAddresses = append(poolAddresses, address)
-	// for _, pair := range *p.toListen { // 0x85101e650a2800c366cdc0b9a69a0a2bd38a0242
-	// }
+	for _, pair := range *p.toListen {
+		address := common.HexToAddress(pair.PairAddress)
+		poolAddresses = append(poolAddresses, address)
+	}
 
 	// Хэш события Swap
-	swapSig := []byte("Swap(address,address,int256,int256,uint160,uint128,int24)")
+	swapSig := []byte("Swap(address,address,int256,int256,uint160,uint128,int24,uint128,uint128)")
 	swapTopic := crypto.Keccak256Hash(swapSig)
 
 	// Фильтр на событие Swap
@@ -124,7 +124,6 @@ func (p *PancakeswapV3) Run(ctx context.Context, consumerCh chan d.PancakeswapV2
 				log.Fatal("[HandleSwap] error handleSwap: %v", err)
 			}
 
-			fmt.Println("SOME DATA")
 			consumerCh <- res
 		}
 	}
@@ -140,18 +139,18 @@ func handleSwap(
 
 	// ------------------------------------------------------------------ decode
 	var ev struct {
-		Amount0      *big.Int `abi:"amount0"`
-		Amount1      *big.Int `abi:"amount1"`
-		SqrtPriceX96 *big.Int `abi:"sqrtPriceX96"`
-		Liquidity    *big.Int `abi:"liquidity"`
-		Tick         *big.Int `abi:"tick"`
+		Amount0            *big.Int `abi:"amount0"`
+		Amount1            *big.Int `abi:"amount1"`
+		SqrtPriceX96       *big.Int `abi:"sqrtPriceX96"`
+		Liquidity          *big.Int `abi:"liquidity"`
+		Tick               *big.Int `abi:"tick"`
+		ProtocolFeesToken0 *big.Int `abi:"protocolFeesToken0"`
+		ProtocolFeesToken1 *big.Int `abi:"protocolFeesToken1"`
 	}
 	if err := pairABI.UnpackIntoInterface(&ev, "Swap", vLog.Data); err != nil {
 		fmt.Println("Failed to parse logs")
 		return resp, fmt.Errorf("[V3][handleSwap]: decode: %w", err)
 	}
-
-	fmt.Printf("%s, %s, %s", ev.Amount0, ev.Amount1, ev.Liquidity)
 
 	fmt.Printf("\n")
 	resp = d.PancakeswapV2Responce{

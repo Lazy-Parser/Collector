@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v3"
+	managerDex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
 	"log"
 	"os"
 	"time"
@@ -11,10 +13,6 @@ import (
 	db "github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/Lazy-Parser/Collector/internal/generator"
 
-	// "github.com/Lazy-Parser/Collector/internal/impl/aggregator"
-	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v3"
-	// "github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v2"
-	manager_dex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
 	cli "github.com/urfave/cli/v2"
 )
 
@@ -78,11 +76,12 @@ func main() {
 
 func runMain(*cli.Context) error {
 	// init all vars
+
 	ctx, ctxCancel := context.WithTimeout(context.Background(), time.Minute*3) // stop after 3 minutes
 	defer ctxCancel()
-	managerDex := manager_dex.New()
-	collectorDex := pancakeswap_v3.PancakeswapV3{} //pancakeswap_v2.PancakeswapV2{} 
-	err := managerDex.Push(&collectorDex)
+	manager := managerDex.New()
+	collectorDex := pancakeswap_v3.PancakeswapV3{} // pancakeswap_v2.PancakeswapV2{}
+	err := manager.Push(&collectorDex)
 	if err != nil {
 		return fmt.Errorf("managerDex push error: %v", err)
 	}
@@ -117,7 +116,7 @@ func runMain(*cli.Context) error {
 	// aggregator.InitJoiner()
 	// joiner := aggregator.GetJoiner()
 
-	go managerDex.Run(ctx)
+	go manager.Run(ctx)
 
 	<-ctx.Done()
 
@@ -128,7 +127,7 @@ func genPairs(ctx *cli.Context) error {
 	generator.Run()
 
 	// try to log all tokens from db
-	fmt.Println("Genetated tokens:")
+	fmt.Println("Generated tokens:")
 	pairs, err := db.GetDB().PairService.GetAllPairs()
 	if err != nil {
 		return err
