@@ -113,12 +113,20 @@ func (p *PancakeswapV3) Run(ctx context.Context, consumerCh chan d.PancakeswapV2
 			p.client.Close()
 			log.Fatal("[PANCAKESWAP][V2][Run]: Subscribtion error: %v", err)
 		case vLog := <-p.logs:
-			fmt.Println("Swap событие получено!")
+			pair := findPair(p.toListen, vLog.Address.String())
+			token0, _ := sortTokens(
+				common.HexToAddress(pair.BaseToken.Address),
+				common.HexToAddress(pair.QuoteToken.Address),
+			)
+			isBaseToken0 := isBaseToken(token0, common.HexToAddress(pair.BaseToken.Address))
 
 			res, err := handleSwap(
 				p.abi,
 				vLog,
 				p.Name(),
+				pair.BaseToken.Decimals,
+				pair.QuoteToken.Decimals,
+				isBaseToken0,
 			)
 			if err != nil {
 				log.Fatal("[HandleSwap] error handleSwap: %v", err)
@@ -133,6 +141,9 @@ func handleSwap(
 	pairABI abi.ABI,
 	vLog types.Log,
 	poolName string,
+	decimal0 int,
+	decimal1 int,
+	isBaseToken0 bool,
 ) (d.PancakeswapV2Responce, error) {
 	// Placeholder for the result we will build.
 	var resp d.PancakeswapV2Responce
@@ -152,11 +163,32 @@ func handleSwap(
 		return resp, fmt.Errorf("[V3][handleSwap]: decode: %w", err)
 	}
 
-	fmt.Printf("\n")
+	// caclulate price
+	// priceRatio = sqrtPrice / 2^92
+	priceRatio := new(big.Float).Quo(
+		new(big.Float).SetInt(ev.SqrtPriceX96),
+		new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(2), big.NewInt(96), nil)),
+	)
+	decimalsDelta := int64(decimal1 - decimal0)
+	// adjustedPrice = (priceRatio^2) / 10^(decimal0 - decimal1)
+	// (priceRatio^2) = (priceRatio * priceRatio)
+	adjustedPrice := new(big.Float).Quo(
+		new(big.Float).Mul(priceRatio, priceRatio),
+		new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(decimalsDelta), nil)),
+	)
+
+	// by default calcul shoud be token1 / token0. So if Token0 is base, we should reverse price
+	if isBaseToken0 {
+		adjustedPrice = new(big.Float).Quo(
+			new(big.Float).SetInt(big.NewInt(1)), 
+			adjustedPrice,
+		)
+	}
+
 	resp = d.PancakeswapV2Responce{
 		Pool:      poolName,
 		Timestamp: time.Now().Local().String(), // use Unix ms for easier math
-		Price:     new(big.Float),
+		Price:     adjustedPrice,
 		Hex:       vLog.Address.String(),
 	}
 	return resp, nil
@@ -253,14 +285,29 @@ func (p *PancakeswapV3) FetchDecimals(ctx context.Context) (map[common.Address]u
 	return out, nil
 }
 
-// func findPair(pairs *[]database.Pair, pairAddress string) *database.Pair {
-// 	var res *database.Pair
+func findPair(pairs *[]database.Pair, pairAddress string) *database.Pair {
+	var res *database.Pair
 
-// 	for _, pair := range *pairs {
-// 		if pair.PairAddress == pairAddress {
-// 			res = &pair
-// 		}
-// 	}
+	for _, pair := range *pairs {
+		if pair.PairAddress == pairAddress {
+			res = &pair
+		}
+	}
 
-// 	return res
-// }
+	return res
+}
+
+// Правильная сортировка токенов как в контрактах Uniswap/PancakeSwap
+func sortTokens(tokenA, tokenB common.Address) (token0, token1 common.Address) {
+	a := new(big.Int).SetBytes(tokenA.Bytes())
+	b := new(big.Int).SetBytes(tokenB.Bytes())
+
+	if a.Cmp(b) > 0 {
+		return tokenA, tokenB
+	}
+	return tokenB, tokenA
+}
+
+func isBaseToken(token, baseToken common.Address) bool {
+	return strings.EqualFold(token.Hex(), baseToken.Hex())
+}

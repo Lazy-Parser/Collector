@@ -78,8 +78,8 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 			}
 
 			fmt.Printf(
-				"%s/%s. PRICE: %s | URL: %s\n\n",
-				pair.BaseToken.Name, pair.QuoteToken.Name, message.Price.Text('f', 12), pair.URL,
+				"%s/%s - %s\n",
+				pair.BaseToken.Name, pair.QuoteToken.Name, message.Price.Text('f', 12),
 			)
 		}
 	}

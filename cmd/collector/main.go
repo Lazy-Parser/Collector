@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v3"
-	managerDex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
 	"log"
 	"os"
 	"time"
+
+	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v3"
+	managerDex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
 
 	"github.com/Lazy-Parser/Collector/internal/dashboard"
 	db "github.com/Lazy-Parser/Collector/internal/database"

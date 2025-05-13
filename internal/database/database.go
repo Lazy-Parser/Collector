@@ -41,18 +41,26 @@ func GetDB() *Database {
 	return database
 }
 
-// GLOBAL 
+// GLOBAL
 func (db *Database) GloabalQuery(pair *Pair, token *Token) ([]Pair, error) {
 	var pairs []Pair
 
 	queryBuilder := db.DB.Preload("BaseToken").Preload("QuoteToken").Table("pairs").
-	Joins("JOIN tokens AS base_token ON base_token.id = pairs.base_token_id").
-	Joins("JOIN tokens AS quote_token ON quote_token.id = pairs.quote_token_id")
+		Joins("JOIN tokens AS base_token ON base_token.id = pairs.base_token_id").
+		Joins("JOIN tokens AS quote_token ON quote_token.id = pairs.quote_token_id")
 
-	if pair.Network != "" { queryBuilder = queryBuilder.Where("pairs.network = ?", pair.Network) }
-	if pair.Pool != "" { queryBuilder = queryBuilder.Where("pairs.pool = ?", pair.Pool) }
-	if pair.Label != "" { queryBuilder = queryBuilder.Where("pairs.label = ?", pair.Label) }
-	if pair.PairAddress != "" { queryBuilder = queryBuilder.Where("pairs.pair_address = ?", pair.PairAddress) }
+	if pair.Network != "" {
+		queryBuilder = queryBuilder.Where("pairs.network = ?", pair.Network)
+	}
+	if pair.Pool != "" {
+		queryBuilder = queryBuilder.Where("pairs.pool = ?", pair.Pool)
+	}
+	if pair.Label != "" {
+		queryBuilder = queryBuilder.Where("pairs.label = ?", pair.Label)
+	}
+	if pair.PairAddress != "" {
+		queryBuilder = queryBuilder.Where("pairs.pair_address = ?", pair.PairAddress)
+	}
 
 	if token.Address != "" {
 		queryBuilder = queryBuilder.Where("base_token.address = ? OR quote_token.address = ?", token.Address, token.Address)
@@ -156,6 +164,31 @@ func (db *PairService) GetAllPairsByQuery(query PairQuery) ([]Pair, error) {
 
 	res := queryBuilder.Find(&pairs)
 	return pairs, res.Error
+}
+
+func (db *PairService) FindPair(query *Pair) (Pair, error) {
+	var pair Pair
+
+	queryBuilder := db.db.Preload("BaseToken").Preload("QuoteToken")
+
+	if query.Network != "" {
+		queryBuilder = queryBuilder.Where("pairs.network = ?", query.Network)
+	}
+
+	if query.PairAddress != "" {
+		queryBuilder = queryBuilder.Where("pairs.pair_address = ?", query.PairAddress)
+	}
+
+	if query.Pool != "" {
+		queryBuilder = queryBuilder.Where("pairs.pool = ?", query.Pool)
+	}
+
+	if query.Label != "" {
+		queryBuilder = queryBuilder.Where("pairs.label = ?", query.Label)
+	}
+
+	res := queryBuilder.Find(&pair)
+	return pair, res.Error
 }
 
 func (db *PairService) ClearPairs() error {
