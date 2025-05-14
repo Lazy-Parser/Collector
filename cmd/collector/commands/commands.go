@@ -5,10 +5,8 @@ import (
 	"fmt"
 	// "time"
 
-	// "github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v2"
-	// "github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap_v3"
 	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/solana"
-	// managerDex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
+	managerDex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
 
 	"github.com/Lazy-Parser/Collector/internal/dashboard"
 	db "github.com/Lazy-Parser/Collector/internal/database"
@@ -22,9 +20,10 @@ func Main(*cli.Context) error {
 
 	// ctx, ctxCancel := context.WithTimeout(context.Background(), time.Minute*3) // stop after 3 minutes
 	// defer ctxCancel()
-	// manager := managerDex.New()
+	manager := managerDex.New()
 	solana := solana.Solana{}
 	solanaPairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "solana"})
+	manager.Push(&solana, &solanaPairs)
 
 	solana.Init(&solanaPairs)
 	list, err := solana.FetchDecimals(&solanaPairs)

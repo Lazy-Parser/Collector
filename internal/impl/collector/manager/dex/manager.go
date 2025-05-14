@@ -127,7 +127,7 @@ func (m *ManagerDex) FetchDecimals(collectorName string, toListen *[]database.Pa
 		return nil, fmt.Errorf("failed to connect to collector: %v", err)
 	}
 
-	res, err := (*collector).FetchDecimals(context.Background())
+	res, err := (*collector).FetchDecimals()
 	if err != nil {
 		return nil, fmt.Errorf("collector with name '%s' failed to fetchDecimals!, %v", (*collector).Name(), err)
 	}

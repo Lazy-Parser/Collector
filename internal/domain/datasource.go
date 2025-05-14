@@ -4,7 +4,6 @@ import (
 	"context"
 
 	db "github.com/Lazy-Parser/Collector/internal/database"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // CEX
@@ -24,6 +23,6 @@ type DataSourceDex interface {
 	Init(toListen *[]db.Pair) error
 	Connect() error // // pass list of pairs...
 	Subscribe() error
-	Run(ctx context.Context, consumerCh chan PancakeswapV2Responce) // some data
-	FetchDecimals(ctx context.Context) (map[common.Address]uint8, error)
+	Run(ctx context.Context, consumerCh chan CollectorDexResponse) // some data
+	FetchDecimals(pairs *[]db.Pair) (map[string]uint8, error)
 }

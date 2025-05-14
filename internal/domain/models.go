@@ -68,15 +68,6 @@ type Token struct {
 	Decimals int    `json:"tokenDecimals"`
 }
 
-type PancakeswapV2Responce struct {
-	Pool      string
-	Timestamp string
-	Price     *big.Float
-	Hex       string
-	Type      string // "BUY" / "SELL"
-	From      string // pancakeswapV3
-}
-
 type TokenMeta struct {
 	Symbol   string
 	Address  common.Address
@@ -96,4 +87,13 @@ type SolanaRpcResponse struct {
 			Error interface{}   `json:"err"`
 		} `json:"value"`
 	} `json:"result"`
+}
+
+// general response from all DEX-like collectors
+type CollectorDexResponse struct {
+	From      string     // "Solana", "Pancakeswap", ...
+	Timestamp int64      //
+	Price     *big.Float // price of specific pair
+	Address   string     // address of pair
+	Type      string     // "BUY" / "SELL"
 }
