@@ -180,7 +180,7 @@ func handleSwap(
 	// by default calcul shoud be token1 / token0. So if Token0 is base, we should reverse price
 	if isBaseToken0 {
 		adjustedPrice = new(big.Float).Quo(
-			new(big.Float).SetInt(big.NewInt(1)), 
+			new(big.Float).SetInt(big.NewInt(1)),
 			adjustedPrice,
 		)
 	}
@@ -190,6 +190,7 @@ func handleSwap(
 		Timestamp: time.Now().Local().String(), // use Unix ms for easier math
 		Price:     adjustedPrice,
 		Hex:       vLog.Address.String(),
+		From:      poolName,
 	}
 	return resp, nil
 }

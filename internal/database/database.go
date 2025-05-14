@@ -187,7 +187,7 @@ func (db *PairService) FindPair(query *Pair) (Pair, error) {
 		queryBuilder = queryBuilder.Where("pairs.label = ?", query.Label)
 	}
 
-	res := queryBuilder.Find(&pair)
+	res := queryBuilder.First(&pair)
 	return pair, res.Error
 }
 

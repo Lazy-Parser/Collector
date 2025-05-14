@@ -15,15 +15,18 @@ import (
 func New() *ManagerDex {
 	return &ManagerDex{
 		list: []*d.DataSourceDex{},
+		pairs: map[string][]database.Pair{},
 	}
 }
 
-func (m *ManagerDex) Push(collector d.DataSourceDex) error {
+func (m *ManagerDex) Push(collector d.DataSourceDex, pairs *[]database.Pair) error {
 	if collector == nil {
 		return errors.New("cannot push a nil collector")
 	}
+
+	// save collector and pairs for this collector
 	m.list = append(m.list, &collector)
-	fmt.Println("Pushed!")
+	m.pairs[collector.Name()] = *pairs
 
 	return nil
 }
@@ -31,7 +34,7 @@ func (m *ManagerDex) Push(collector d.DataSourceDex) error {
 // do not start in new goroutine! Method run make every provided collector run in seperate goroutine
 func (m *ManagerDex) Run(ctx context.Context) error {
 	// ASSIGN PAIRS TO THE CORRESPONDING COLLECTOR
-	var pancakeswapV3Pairs []database.Pair
+	allPairs, _ := database.GetDB().PairService.GetAllPairs()
 	consumerChan := make(chan d.PancakeswapV2Responce, 1000)
 
 	// load whitelist (allowed networks / pools)
@@ -40,24 +43,10 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 		log.Fatalf("Error: %v", err)
 	}
 
-	// this is hardcode. Change in future
-	allPairs, err := database.GetDB().PairService.GetAllPairs()
-	if err != nil {
-		log.Fatalf("Error: %v", err)
-	}
-
-	fmt.Println("Tokens to listen:")
-	for _, pair := range allPairs {
-		if pair.Pool == "pancakeswap" && pair.Label == "v3" {
-			pancakeswapV3Pairs = append(pancakeswapV3Pairs, pair)
-			fmt.Printf("%s/%s\n", pair.BaseToken.Name, pair.QuoteToken.Name)
-		}
-	}
-	fmt.Printf("TOTAL: %d", len(pancakeswapV3Pairs))
-
 	// start all collectors. Hardcode, change
 	for _, collector := range m.list {
-		go startCollector(ctx, collector, pancakeswapV3Pairs, consumerChan)
+		collectorName := (*collector).Name()
+		go startCollector(ctx, collector, m.pairs[collectorName], consumerChan)
 	}
 
 	for {
@@ -68,18 +57,10 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 		case message := <-consumerChan:
 			// just log
 			pair := findPair(&allPairs, message.Hex)
-			if pair == nil {
-				fmt.Println("New message got, but didnt find appropriate pair! Message:")
-				fmt.Printf(
-					"HEX: %s\t|\tPOOL: %s\t|\tPRICE: %s\t| \n",
-					message.Hex, message.Pool, message.Price.Text('f', 12),
-				)
-				continue
-			}
 
 			fmt.Printf(
-				"%s/%s - %s\n",
-				pair.BaseToken.Name, pair.QuoteToken.Name, message.Price.Text('f', 12),
+				"[%s]: %s/%s - %s\n",
+				message.From, pair.BaseToken.Name, pair.QuoteToken.Name, message.Price.Text('f', 12),
 			)
 		}
 	}

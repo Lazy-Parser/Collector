@@ -74,6 +74,7 @@ type PancakeswapV2Responce struct {
 	Price     *big.Float
 	Hex       string
 	Type      string // "BUY" / "SELL"
+	From      string // pancakeswapV3
 }
 
 type TokenMeta struct {
@@ -86,4 +87,13 @@ type Whitelist struct {
 	Network      string   `json:"network"`      // solana
 	NetworkShort string   `json:"networkShort"` // SOL
 	Pools        []string `json:"pools"`        // radium
+}
+
+type SolanaRpcResponse struct {
+	Result struct {
+		Value []struct {
+			Data  []interface{} `json:"data"` // [base64, encoding]
+			Error interface{}   `json:"err"`
+		} `json:"value"`
+	} `json:"result"`
 }

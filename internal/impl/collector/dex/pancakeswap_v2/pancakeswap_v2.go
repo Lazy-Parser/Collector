@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
 
 	"math/big"
 	"os"
@@ -114,8 +113,6 @@ func (p *PancakeswapV2) Run(ctx context.Context, consumerCh chan d.PancakeswapV2
 			p.client.Close()
 			log.Fatal("[PANCAKESWAP][V2][Run]: Subscribtion error: %v", err)
 		case vLog := <-p.logs:
-			fmt.Println("Swap событие получено!")
-
 			// извлекаем и обрабатываем даныне
 			curPair := findPair(p.toListen, vLog.Address.String())
 			token0, _ := sortTokens(
@@ -209,22 +206,12 @@ func handleSwap(
 		return resp, fmt.Errorf("[V2][handleSwap] invalid price calculation")
 	}
 
-	// ------------------------------------------------------------------ response
-	fmt.Println("METADATA:")
-	fmt.Printf(
-		"amount0in: %s, amount1In: %s\n amount0out: %s, amount1out: %s, isBaseToken0: %s\n",
-		ev.Amount0In.String(), ev.Amount1In.String(), ev.Amount0Out, ev.Amount1Out, strconv.FormatBool(isBaseToken0),
-	)
-	fmt.Printf(
-		"token0Decimal: %s, token1Decimal: %s\n",
-		strconv.FormatInt(int64(token0Decimals), 10), strconv.FormatInt(int64(token1Decimals), 10),
-	)
-	fmt.Printf("\n")
 	resp = d.PancakeswapV2Responce{
 		Pool:      poolName,
 		Timestamp: time.Now().Local().String(), // use Unix ms for easier math
 		Price:     price,
 		Hex:       vLog.Address.String(),
+		From:      poolName,
 	}
 	return resp, nil
 }
