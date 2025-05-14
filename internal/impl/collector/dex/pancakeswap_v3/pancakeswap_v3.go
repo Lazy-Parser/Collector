@@ -212,12 +212,6 @@ func (p *PancakeswapV3) FetchDecimals(pairs *[]database.Pair) (map[string]uint8,
 	}
 	fmt.Printf("Provided tokens to fetch decimals (%s): %d\n", p.Name(), len(list))
 
-	// ----------------------------- connect to pancakeswap
-	err := p.Connect()
-	if err != nil {
-		return nil, fmt.Errorf("failed to start fething decimals in '%s'. %v", p.Name(), err)
-	}
-
 	// ------------------------------------------------  ABI helpers
 	// load ABIs
 	erc20Bytes, err := os.ReadFile(erc20AbiPath)

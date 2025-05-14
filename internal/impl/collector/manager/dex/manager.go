@@ -14,7 +14,7 @@ import (
 
 func New() *ManagerDex {
 	return &ManagerDex{
-		list: []*d.DataSourceDex{},
+		list:  []*d.DataSourceDex{},
 		pairs: map[string][]database.Pair{},
 	}
 }
@@ -35,7 +35,7 @@ func (m *ManagerDex) Push(collector d.DataSourceDex, pairs *[]database.Pair) err
 func (m *ManagerDex) Run(ctx context.Context) error {
 	// ASSIGN PAIRS TO THE CORRESPONDING COLLECTOR
 	allPairs, _ := database.GetDB().PairService.GetAllPairs()
-	consumerChan := make(chan d.PancakeswapV2Responce, 1000)
+	consumerChan := make(chan d.CollectorDexResponse, 1000)
 
 	// load whitelist (allowed networks / pools)
 	_, err := utils.LoadWhitelistFile()
@@ -56,7 +56,7 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 			return nil
 		case message := <-consumerChan:
 			// just log
-			pair := findPair(&allPairs, message.Hex)
+			pair := findPair(&allPairs, message.Address)
 
 			fmt.Printf(
 				"[%s]: %s/%s - %s\n",
@@ -70,7 +70,7 @@ func startCollector(
 	ctx context.Context,
 	collector *d.DataSourceDex,
 	toListen []database.Pair,
-	consumerChan chan d.PancakeswapV2Responce,
+	consumerChan chan d.CollectorDexResponse,
 ) {
 	fmt.Println("Starting collector....")
 	err := (*collector).Init(&toListen)

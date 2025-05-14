@@ -2,6 +2,7 @@ package solana
 
 import (
 	"encoding/json"
+	"math/big"
 
 	"github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/gorilla/websocket"
@@ -16,8 +17,16 @@ type subscribeMsg struct {
 
 type Solana struct {
 	toListen *[]database.Pair
-	subID    []int
+	subID    map[int]string
 	conn     *websocket.Conn
+	vaults   map[string]*vaultState
+}
+
+type vaultState struct {
+	Latest *big.Int
+	Prev   *big.Int
+	Pair   *database.Pair
+	IsBase bool
 }
 
 type Log struct {
