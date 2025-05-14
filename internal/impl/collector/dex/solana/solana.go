@@ -17,12 +17,14 @@ import (
 )
 
 var (
-	rpcEndpointWs   = flag.String("rpcEndpintWs", "wss://solana-mainnet.core.chainstack.com/171bc800908f187df7686f3f75c3080f", "Chainstack rpc endpoint for listening swaps")
+	// rpcEndpointWs   = flag.String("rpcEndpintWs", "wss://solana-mainnet.core.chainstack.com/171bc800908f187df7686f3f75c3080f", "Chainstack rpc endpoint for listening swaps")
 	rpcEndpointHttp = flag.String("rpcEndpintHttp", "http://solana-mainnet.core.chainstack.com/171bc800908f187df7686f3f75c3080f", "Chainstack rpc endpoint for fething decimals")
 )
 
+var rpcEndpoint = "wss://solana-mainnet.core.chainstack.com/171bc800908f187df7686f3f75c3080f"
+
 func (s *Solana) Name() string {
-	return "solana"
+	return "Solana"
 }
 
 func (s *Solana) Init(pairs *[]database.Pair) error {
@@ -38,7 +40,7 @@ func (s *Solana) Init(pairs *[]database.Pair) error {
 }
 
 func (s *Solana) Connect() error {
-	conn, _, err := websocket.DefaultDialer.Dial(*rpcEndpointWs, nil)
+	conn, _, err := websocket.DefaultDialer.Dial(rpcEndpoint, nil)
 	if err != nil {
 		return fmt.Errorf("failed to connect to RpcEndpoint '%s'. %v", s.Name(), err)
 	}
@@ -74,7 +76,7 @@ func (s *Solana) Subscribe() error {
 }
 
 // main listen loop
-func (s *Solana) Run(ctx context.Context, consumerCh chan string) {
+func (s *Solana) Run(ctx context.Context, consumerCh chan d.CollectorDexResponse) {
 	for {
 		// read message
 		_, raw, err := s.conn.ReadMessage()

@@ -30,6 +30,15 @@ type PancakeswapV2 struct {
 	sub      ethereum.Subscription
 }
 
+// type PancakeswapV2Responce struct {
+// 	Pool      string
+// 	Timestamp string
+// 	Price     *big.Float
+// 	Hex       string
+// 	Type      string // "BUY" / "SELL"
+// 	From      string // pancakeswapV3
+// }
+
 var (
 	wd, _         = os.Getwd()
 	erc20AbiPath  = filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap_v2", "abi", "erc20-decimals.json")
@@ -105,7 +114,7 @@ func (p *PancakeswapV2) Subscribe() error {
 	return nil
 }
 
-func (p *PancakeswapV2) Run(ctx context.Context, consumerCh chan d.PancakeswapV2Responce) {
+func (p *PancakeswapV2) Run(ctx context.Context, consumerCh chan d.CollectorDexResponse) {
 	for {
 		select {
 		case err := <-p.sub.Err():
@@ -145,9 +154,9 @@ func handleSwap(
 	token0Decimals int,
 	token1Decimals int,
 	isBaseToken0 bool,
-) (d.PancakeswapV2Responce, error) {
+) (d.CollectorDexResponse, error) {
 	// Placeholder for the result we will build.
-	var resp d.PancakeswapV2Responce
+	var resp d.CollectorDexResponse
 
 	// ------------------------------------------------------------------ decode
 	// Swap(uint256 amount0In, uint256 amount1In,
@@ -206,25 +215,24 @@ func handleSwap(
 		return resp, fmt.Errorf("[V2][handleSwap] invalid price calculation")
 	}
 
-	resp = d.PancakeswapV2Responce{
-		Pool:      poolName,
-		Timestamp: time.Now().Local().String(), // use Unix ms for easier math
+	resp = d.CollectorDexResponse{
+		Timestamp: time.Now().UnixMilli(),
 		Price:     price,
-		Hex:       vLog.Address.String(),
+		Address:   vLog.Address.String(),
 		From:      poolName,
+		Type:      "?",
 	}
 	return resp, nil
 }
 
-func (p *PancakeswapV2) FetchDecimals(ctx context.Context) (map[common.Address]uint8, error) {
-	if len(*p.toListen) == 0 {
+func (p *PancakeswapV2) FetchDecimals(pairs *[]database.Pair) (map[string]uint8, error) {
+	if len(*pairs) == 0 {
 		return nil, errors.New("empty token list")
 	}
 
-	fmt.Printf("Provided list toListen: %d\n", len(*p.toListen))
 	// ------------------------------------------------  уникальный список
 	set := map[common.Address]struct{}{}
-	for _, t := range *p.toListen {
+	for _, t := range *pairs {
 		set[common.HexToAddress(t.BaseToken.Address)] = struct{}{}
 		set[common.HexToAddress(t.QuoteToken.Address)] = struct{}{}
 	}
@@ -232,11 +240,16 @@ func (p *PancakeswapV2) FetchDecimals(ctx context.Context) (map[common.Address]u
 	for a := range set {
 		list = append(list, a)
 	}
-	fmt.Printf("Provided list toListen: %d\n", len(list))
+	fmt.Printf("Provided tokens to fetch decimals (%s): %d\n", p.Name(), len(list))
+
+	// ----------------------------- connect to pancakeswap
+	err := p.Connect()
+	if err != nil {
+		return nil, fmt.Errorf("failed to start fething decimals in '%s'. %v", p.Name(), err)
+	}
 
 	// ------------------------------------------------  ABI helpers
 	// load ABIs
-
 	erc20Bytes, err := os.ReadFile(erc20AbiPath)
 	if err != nil {
 		return nil, err
@@ -272,7 +285,7 @@ func (p *PancakeswapV2) FetchDecimals(ctx context.Context) (map[common.Address]u
 	// ------------------------------------------------  pack & call
 	payload, _ := mc.Pack("tryAggregate", false, calls)
 
-	raw, err := p.client.CallContract(ctx,
+	raw, err := p.client.CallContract(context.Background(),
 		ethereum.CallMsg{To: &mcAddress, Data: payload},
 		nil,
 	)
@@ -289,18 +302,18 @@ func (p *PancakeswapV2) FetchDecimals(ctx context.Context) (map[common.Address]u
 		return nil, err
 	}
 
-	out := make(map[common.Address]uint8, len(list))
+	out := make(map[string]uint8, len(list))
 	for i, r := range returns {
 		if r.Success && len(r.ReturnData) >= 32 {
 			var decimal uint8
 			err := erc.UnpackIntoInterface(&decimal, "decimals", r.ReturnData)
 			if err != nil {
-				out[list[i]] = 18 // Default value (could be set to 18 if decoding fails)
+				out[list[i].String()] = 18 // Default value (could be set to 18 if decoding fails)
 			} else {
-				out[list[i]] = decimal
+				out[list[i].String()] = decimal
 			}
 		} else {
-			out[list[i]] = 0 // не удалось — caller решает, что делать (обычно 18)
+			out[list[i].String()] = 0 // не удалось — caller решает, что делать (обычно 18)
 		}
 	}
 
