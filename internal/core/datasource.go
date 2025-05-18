@@ -1,4 +1,4 @@
-package domain
+package core
 
 import (
 	"context"
@@ -24,5 +24,8 @@ type DataSourceDex interface {
 	Connect() error // // pass list of pairs...
 	Subscribe() error
 	Run(ctx context.Context, consumerCh chan CollectorDexResponse) // some data
-	FetchDecimals(pairs *[]db.Pair) (map[string]uint8, error)
+}
+
+type MetadataCollector interface {
+	FetchMetadata() (Metadata, error)
 }

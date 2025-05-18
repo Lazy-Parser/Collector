@@ -16,15 +16,15 @@ import (
 	"sync"
 	"time"
 
-	d "github.com/Lazy-Parser/Collector/internal/domain"
+	d "github.com/Lazy-Parser/Collector/internal/core"
 	p "github.com/Lazy-Parser/Collector/internal/impl/publisher"
 )
 
 var (
-	once        sync.Once
-	joiner      *Joiner
-	bus         chan d.AggregatorPayload
-	stream      chan d.AggregatorPayload
+	once   sync.Once
+	joiner *Joiner
+	bus    chan d.AggregatorPayload
+	stream chan d.AggregatorPayload
 )
 
 // InitJoiner initializes the singleton Joiner and NATS connection structures.
@@ -84,17 +84,17 @@ func (j *Joiner) Update(data d.AggregatorPayload) {
 
 	// // send via nats
 	// if futures.LastPrice != 0 && spot.Price != 0 {
-		// payload := &p.Message{
-		// 	Symbol:    data.Symbol,
-		// 	Timestamp: data.Timestamp.UnixMilli(),
-		// 	Spot:      d.SpotData{},
-		// 	Futures:   d.FuturesData{},
-		// }
+	// payload := &p.Message{
+	// 	Symbol:    data.Symbol,
+	// 	Timestamp: data.Timestamp.UnixMilli(),
+	// 	Spot:      d.SpotData{},
+	// 	Futures:   d.FuturesData{},
+	// }
 
-		// err := p.GetPublisher().Publish("mexc.spread", *payload)
-		// if err != nil {
-		// 	fmt.Errorf("Send message erorr: %w", err)
-		// }
+	// err := p.GetPublisher().Publish("mexc.spread", *payload)
+	// if err != nil {
+	// 	fmt.Errorf("Send message erorr: %w", err)
+	// }
 
 	// fmt.Printf("🔁 %s: FUTURES %s | SPOT %s",
 	// 	data.Symbol, futures.Price, spot.Price)

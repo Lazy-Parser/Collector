@@ -4,23 +4,23 @@ import (
 	"context"
 	"log"
 
-	"github.com/Lazy-Parser/Collector/internal/domain"
+	"github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/Lazy-Parser/Collector/internal/impl/aggregator"
 )
 
 type CollectorManager struct {
-	collectors []domain.DataSource
+	collectors []core.DataSource
 }
 
 // TODO: maybe add context / logger
 func CreateManager() *CollectorManager {
 	return &CollectorManager{
-		collectors: []domain.DataSource{},
+		collectors: []core.DataSource{},
 	}
 }
 
 // Add new Collector to collectors array
-func (m *CollectorManager) NewCollector(newCollector domain.DataSource) {
+func (m *CollectorManager) NewCollector(newCollector core.DataSource) {
 	m.collectors = append(m.collectors, newCollector)
 }
 

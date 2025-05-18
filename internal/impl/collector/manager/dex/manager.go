@@ -6,20 +6,19 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Lazy-Parser/Collector/internal/core"
 	database "github.com/Lazy-Parser/Collector/internal/database"
-	d "github.com/Lazy-Parser/Collector/internal/domain"
 	"github.com/Lazy-Parser/Collector/internal/utils"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 func New() *ManagerDex {
 	return &ManagerDex{
-		list:  []*d.DataSourceDex{},
+		list:  []*core.DataSourceDex{},
 		pairs: map[string][]database.Pair{},
 	}
 }
 
-func (m *ManagerDex) Push(collector d.DataSourceDex, pairs *[]database.Pair) error {
+func (m *ManagerDex) Push(collector core.DataSourceDex, pairs *[]database.Pair) error {
 	if collector == nil {
 		return errors.New("cannot push a nil collector")
 	}
@@ -35,7 +34,7 @@ func (m *ManagerDex) Push(collector d.DataSourceDex, pairs *[]database.Pair) err
 func (m *ManagerDex) Run(ctx context.Context) error {
 	// ASSIGN PAIRS TO THE CORRESPONDING COLLECTOR
 	allPairs, _ := database.GetDB().PairService.GetAllPairs()
-	consumerChan := make(chan d.CollectorDexResponse, 1000)
+	consumerChan := make(chan core.CollectorDexResponse, 1000)
 
 	// load whitelist (allowed networks / pools)
 	_, err := utils.LoadWhitelistFile()
@@ -68,9 +67,9 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 
 func startCollector(
 	ctx context.Context,
-	collector *d.DataSourceDex,
+	collector *core.DataSourceDex,
 	toListen []database.Pair,
-	consumerChan chan d.CollectorDexResponse,
+	consumerChan chan core.CollectorDexResponse,
 ) {
 	fmt.Println("Starting collector....")
 	err := (*collector).Init(&toListen)
@@ -106,41 +105,63 @@ func findPair(pairs *[]database.Pair, address string) *database.Pair {
 	return res
 }
 
-func (m *ManagerDex) FetchDecimals(collectorName string, toListen *[]database.Pair) (map[common.Address]uint8, error) {
-	// select collector
-	collector, err := m.getCollectorByName(collectorName)
-	if err != nil {
-		return nil, err
+// Fetch decimals for all tokens and vaults for solana and save all to the database.
+// It work with ALL collectors, not only with provided
+func FetchAndSaveMetadata(fetchers *[]core.MetadataCollector) error {
+	for _, collector := range *fetchers {
+		metadata, err := collector.FetchMetadata()
+		if err != nil {
+			return fmt.Errorf("failed to fetch metadata. %v", err)
+		}
+
+		if err := saver(metadata); err != nil {
+			return fmt.Errorf("failed to save metadata. %v", err)
+		}
 	}
 
-	if collector == nil {
-		return nil, errors.New("Collector with name '" + collectorName + "' did not found!")
+	return nil
+}
+func saver(metadata core.Metadata) error {
+	switch metadata.ToSave {
+	case "decimals":
+
+		saveDecimals(&metadata.Decimals)
+		break
+	case "vaults":
+		saveVaults(&metadata.Vaults)
+		break
+	case "all":
+		saveVaults(&metadata.Vaults)
+		saveDecimals(&metadata.Decimals)
+		break
+	default:
+		return errors.New("invalid metadata to_save: '" + metadata.ToSave + "'. (Do not know what to save. Only 'decimals', 'vaults', 'all' available)")
+		break
 	}
 
-	err = (*collector).Init(toListen)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize collector: %v", err)
+	return nil
+}
+func saveDecimals(decimals *map[string]uint8) {
+	for address, decimal := range *decimals {
+		database.GetDB().TokenService.UpdateDecimals(&database.Token{Address: address}, decimal)
 	}
-
-	err = (*collector).Connect()
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to collector: %v", err)
+}
+func saveVaults(vaults *map[string]string) {
+	for address, vault := range *vaults {
+		database.GetDB().TokenService.UpdateVault(&database.Token{Address: address}, vault)
 	}
-
-	res, err := (*collector).FetchDecimals()
-	if err != nil {
-		return nil, fmt.Errorf("collector with name '%s' failed to fetchDecimals!, %v", (*collector).Name(), err)
-	}
-
-	return res, nil
 }
 
 // GetCollectorByName returns a pointer to the collector with the given name.
-func (m *ManagerDex) getCollectorByName(collectorName string) (*d.DataSourceDex, error) {
+func (m *ManagerDex) getCollectorByName(collectorName string) (*core.DataSourceDex, error) {
 	for i := range m.list {
 		if (*m.list[i]).Name() == collectorName {
 			return m.list[i], nil // Return the pointer to the collector
 		}
 	}
 	return nil, fmt.Errorf("collector with name '%s' not found!", collectorName)
+}
+
+func (m *ManagerDex) Stop() {
+
 }

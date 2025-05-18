@@ -44,7 +44,7 @@ func ShowTokens(tokens []database.Token) {
 	// --- go-pretty table set-up (duplicate to writer)
 	tw := table.NewWriter()
 	tw.SetOutputMirror(os.Stdout)
-	tw.AppendHeader(table.Row{"ID", "NAME", "ADDRESS", "DECIMALS"})
+	tw.AppendHeader(table.Row{"ID", "NAME", "ADDRESS", "DECIMALS", "VAULTS (SOLANA)"})
 	tw.SetStyle(table.StyleColoredBlackOnGreenWhite)
 
 	var rows []table.Row
@@ -54,13 +54,14 @@ func ShowTokens(tokens []database.Token) {
 			token.Name,
 			token.Address,
 			showDecimals(token.Decimals),
+			showVaults(token.Vault),
 		}
 		rows = append(rows, row)
 	}
 
 	tw.AppendRows(rows)
 	tw.AppendSeparator()
-	tw.AppendFooter(table.Row{"", "", "Total", len(tokens)})
+	tw.AppendFooter(table.Row{"", "", "", "Total", len(tokens)})
 
 	fmt.Println("TOKENS")
 	tw.Render()
@@ -72,4 +73,12 @@ func showDecimals(d int) string {
 	}
 
 	return strconv.Itoa(d)
+}
+
+func showVaults(str string) string {
+	if str == "" {
+		return "NULL"
+	}
+
+	return str
 }

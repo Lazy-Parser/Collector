@@ -1,4 +1,4 @@
-package domain
+package core
 
 import (
 	"math/big"
@@ -96,4 +96,10 @@ type CollectorDexResponse struct {
 	Price     *big.Float // price of specific pair
 	Address   string     // address of pair
 	Type      string     // "BUY" / "SELL"
+}
+
+type Metadata struct {
+	Decimals map[string]uint8
+	Vaults   map[string]string
+	ToSave   string // "decimals" OR "vaults" OR "all"
 }

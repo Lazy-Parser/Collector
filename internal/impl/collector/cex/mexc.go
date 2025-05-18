@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Lazy-Parser/Collector/internal/domain"
+	"github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/Lazy-Parser/Collector/internal/utils"
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
@@ -63,7 +63,7 @@ func (m *MexcSource) Subscribe() error {
 	return nil
 }
 
-func (m *MexcSource) Run(ctx context.Context, push func(domain.AggregatorPayload)) {
+func (m *MexcSource) Run(ctx context.Context, push func(core.AggregatorPayload)) {
 	go m.ping(ctx)
 
 	for {
@@ -92,17 +92,17 @@ func (m *MexcSource) Run(ctx context.Context, push func(domain.AggregatorPayload
 }
 
 // private methods
-func (m *MexcSource) handleMsg(msg []byte) []domain.AggregatorPayload {
-	var res []domain.AggregatorPayload
-	var data domain.Tickers
+func (m *MexcSource) handleMsg(msg []byte) []core.AggregatorPayload {
+	var res []core.AggregatorPayload
+	var data core.Tickers
 	if err := json.Unmarshal([]byte(msg), &data); err != nil {
 		fmt.Printf("⚠️ Ошибка парсинга внутреннего JSON из data: %v", err)
 		fmt.Println(string(msg))
-		return []domain.AggregatorPayload{}
+		return []core.AggregatorPayload{}
 	}
 
 	for _, ticker := range data.Data {
-		payload := domain.AggregatorPayload{
+		payload := core.AggregatorPayload{
 			Exchange:  m.Name(),
 			Symbol:    utils.NormalizeSymbol(ticker.Symbol),
 			Timestamp: time.Now(),

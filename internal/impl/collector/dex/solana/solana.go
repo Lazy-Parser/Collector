@@ -1,19 +1,16 @@
 package solana
 
 import (
-	"bytes"
 	"context"
-	"encoding/base64"
+	//"encoding/base64"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
-	"log"
-	"net/http"
-
+	d "github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/Lazy-Parser/Collector/internal/database"
-	d "github.com/Lazy-Parser/Collector/internal/domain"
 	"github.com/gorilla/websocket"
+	"log"
 )
 
 var (
@@ -21,6 +18,16 @@ var (
 	rpcEndpointHttp = flag.String("rpcEndpointHttp", "http://solana-mainnet.core.chainstack.com/171bc800908f187df7686f3f75c3080f", "Chainstack rpc endpoint for fething decimals")
 	rpcEndpoint     = "wss://solana-mainnet.core.chainstack.com/171bc800908f187df7686f3f75c3080f"
 	idCounter       = 1
+)
+
+const (
+	offsetBaseVaultV4    = 336  // For Raydium V4 (752 bytes)
+	offsetQuoteVaultV4   = 368  // For Raydium V4 (752 bytes)
+	offsetBaseVaultCLMM  = 1360 // For CLMM Raydium (1544 bytes)
+	offsetQuoteVaultCLMM = 1392 // For CLMM Raydium (1544 bytes)
+	offsetBaseVault637   = 256  // For 637 bytes
+	offsetQuoteVault637  = 288  // For 637 bytes
+	pubkeyLen            = 32
 )
 
 func (s *Solana) Name() string {
@@ -147,72 +154,6 @@ func (s *Solana) Unsubscribe() {
 	// s.conn.WriteJSON()
 }
 
-// fetch decimlas for all provided tokens. All pairs must be from Solana network!
-// Return array, where Key - mint address, value - decimal for address
-func (s *Solana) FetchDecimals(pairs *[]database.Pair) (map[string]uint8, error) {
-	res := make(map[string]uint8, len(*pairs)*2)
-	// create array of unqiue tokens addresses
-	var mints []string
-	set := map[string]struct{}{}
-	for _, pair := range *pairs {
-		set[pair.BaseToken.Address] = struct{}{}
-		set[pair.QuoteToken.Address] = struct{}{}
-	}
-	for address := range set {
-		mints = append(mints, address)
-	}
-
-	req := RpcRequest{
-		Jsonrpc: "2.0",
-		ID:      1,
-		Method:  "getMultipleAccounts",
-		Params: []interface{}{
-			mints,
-			map[string]interface{}{"encoding": "base64", "commitment": "finalized"},
-		},
-	}
-	payload, _ := json.Marshal(req)
-
-	response, err := http.Post(*rpcEndpointHttp, "application/json", bytes.NewReader(payload))
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch decimals in '%s', %v", s.Name(), err)
-	}
-	defer response.Body.Close()
-
-	var body d.SolanaRpcResponse
-	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
-		return nil, fmt.Errorf("failed to decode decimals responce in '%s', %v", s.Name(), err)
-	}
-
-	for idx, resp := range body.Result.Value {
-		if resp.Error != nil || len(resp.Data) == 0 {
-			continue
-		}
-
-		blob64 := resp.Data[0].(string)
-		raw, _ := base64.StdEncoding.DecodeString(blob64)
-		if len(raw) < 45 { // mint layout is 82 bytes, offset 44 holds decimals
-			continue
-		}
-
-		decimal := raw[44]
-		res[mints[idx]] = decimal
-	}
-
-	return res, nil
-}
-
-func (s *Solana) Disconnect() {
-	for _, m := range *s.toListen {
-		idCounter++
-
-		msg := subscribeMsg{
-			Jsonrpc: "2.0",
-			ID:      idCounter, // can be any client-chosen request ID
-			Method:  "logsUnsubscribe",
-			Params:  []interface{}{subscriptionID},
-		}
-	}
-
-	s.conn.Close()
-}
+// TODO
+// Я уже могу получать vaults и decimals в одном запросе, но не везде я могу получит deciaml сразу, так что надо создать две фунции, 1 - получение decimals (уже есть на гитхабе), 2 - получение vaults - уже есть тут
+// так же реализовать хранение vaults в базе данных (обновить бд)

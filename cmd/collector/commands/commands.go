@@ -5,9 +5,6 @@ import (
 	"fmt"
 	// "time"
 
-	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/solana"
-	managerDex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
-
 	"github.com/Lazy-Parser/Collector/internal/dashboard"
 	db "github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/Lazy-Parser/Collector/internal/generator"
@@ -16,37 +13,32 @@ import (
 )
 
 func Main(*cli.Context) error {
-	// init all vars
 
 	// ctx, ctxCancel := context.WithTimeout(context.Background(), time.Minute*3) // stop after 3 minutes
 	// defer ctxCancel()
-	manager := managerDex.New()
-	solana := solana.Solana{}
-	solanaPairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "solana"})
-	manager.Push(&solana, &solanaPairs)
-
-	solana.Init(&solanaPairs)
-	list, err := solana.FetchDecimals(&solanaPairs)
-	if err != nil {
-		return fmt.Errorf("failed to fetch decimals in '%s', %v", solana.Name(), err)
-	}
-
-	// print res
-	for token, decimal := range list {
-		// save
-		db.GetDB().TokenService.UpdateDecimals(&db.Token{Address: token}, decimal)
-		fmt.Printf("Mint: %s | Decimal: %d\n", token, decimal)
-	}
-	fmt.Printf("Total: %d\n", len(list))
-
-	fmt.Println("Saved in database!")
+	//manager := managerDex.New()
+	//solana := solana.Solana{}
+	//solanaPairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "solana"})
+	//manager.Push(&solana, &solanaPairs)
+	//
+	//solana.Init(&solanaPairs)
+	//list, err := solana.FetchDecimals(&solanaPairs)
+	//if err != nil {
+	//	return fmt.Errorf("failed to fetch decimals in '%s', %v", solana.Name(), err)
+	//}
+	//
+	//// print res
+	//for token, decimal := range list {
+	//	// save
+	//	db.GetDB().TokenService.UpdateDecimals(&db.Token{Address: token}, decimal)
+	//	fmt.Printf("Mint: %s | Decimal: %d\n", token, decimal)
+	//}
+	//fmt.Printf("Total: %d\n", len(list))
+	//
+	//fmt.Println("Saved in database!")
 
 	// manager.Push(&solana, &solanaPairs)
 
-	// pancakeswapV3 := pancakeswap_v3.PancakeswapV3{}
-	// pancakeswapV2 := pancakeswap_v2.PancakeswapV2{}
-	// psV2pairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "pancakeswap", Label: "v2"})
-	// psV3pairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "pancakeswap", Label: "v3"})
 	// err := manager.Push(&pancakeswapV2, &psV2pairs)
 	// if err != nil {
 	// 	return fmt.Errorf("managerDex push error: %v", err)
@@ -145,6 +137,7 @@ func Table(ctx *cli.Context) error {
 			return err
 		}
 
+		fmt.Println("Database cleaned!")
 	}
 
 	return nil

@@ -2,7 +2,6 @@ package pancakeswap_v2
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
@@ -12,8 +11,8 @@ import (
 	"strings"
 	"time"
 
+	d "github.com/Lazy-Parser/Collector/internal/core"
 	database "github.com/Lazy-Parser/Collector/internal/database"
-	d "github.com/Lazy-Parser/Collector/internal/domain"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -30,22 +29,6 @@ type PancakeswapV2 struct {
 	sub      ethereum.Subscription
 }
 
-// type PancakeswapV2Responce struct {
-// 	Pool      string
-// 	Timestamp string
-// 	Price     *big.Float
-// 	Hex       string
-// 	Type      string // "BUY" / "SELL"
-// 	From      string // pancakeswapV3
-// }
-
-var (
-	wd, _         = os.Getwd()
-	erc20AbiPath  = filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap_v2", "abi", "erc20-decimals.json")
-	multicallPath = filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap_v2", "abi", "multicall.json")
-	mcAddress     = common.HexToAddress("0xcA11bde05977b3631167028862bE2a173976CA11")
-)
-
 func (p *PancakeswapV2) Name() string {
 	return "PancakeswapV2"
 }
@@ -59,7 +42,7 @@ func (p *PancakeswapV2) Init(toListen *[]database.Pair) error {
 
 	// load ABI
 	wd, _ := os.Getwd()
-	abiJson, err := os.ReadFile(filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap_v2", "abi", "pancakeswapV2-swap.json"))
+	abiJson, err := os.ReadFile(filepath.Join(wd, "internal", "impl", "collector", "dex", "pancakeswap", "pancakeswap_v2", "abi", "pancakeswapV2-swap.json"))
 	if err != nil {
 		return fmt.Errorf("[PANCAKESWAP][V2][Init] Failed to init '%s', cannot load ABI file!", p.Name())
 	}
@@ -223,95 +206,6 @@ func handleSwap(
 		Type:      "?",
 	}
 	return resp, nil
-}
-
-func (p *PancakeswapV2) FetchDecimals(pairs *[]database.Pair) (map[string]uint8, error) {
-	if len(*pairs) == 0 {
-		return nil, errors.New("empty token list")
-	}
-
-	// ------------------------------------------------  уникальный список
-	set := map[common.Address]struct{}{}
-	for _, t := range *pairs {
-		set[common.HexToAddress(t.BaseToken.Address)] = struct{}{}
-		set[common.HexToAddress(t.QuoteToken.Address)] = struct{}{}
-	}
-	list := make([]common.Address, 0, len(set))
-	for a := range set {
-		list = append(list, a)
-	}
-	fmt.Printf("Provided tokens to fetch decimals (%s): %d\n", p.Name(), len(list))
-
-	// ------------------------------------------------  ABI helpers
-	// load ABIs
-	erc20Bytes, err := os.ReadFile(erc20AbiPath)
-	if err != nil {
-		return nil, err
-	}
-
-	multicallBytes, err := os.ReadFile(multicallPath)
-	if err != nil {
-		return nil, err
-	}
-
-	erc, err := abi.JSON(strings.NewReader(string(erc20Bytes)))
-	if err != nil {
-		return nil, err
-	}
-
-	mc, err := abi.JSON(strings.NewReader(string(multicallBytes)))
-	if err != nil {
-		return nil, err
-	}
-
-	decSig, _ := erc.Pack("decimals") // 0x313ce567
-
-	// ------------------------------------------------  build Call[]
-	type call struct {
-		Target   common.Address
-		CallData []byte
-	}
-	calls := make([]call, len(list))
-	for i, t := range list {
-		calls[i] = call{t, decSig}
-	}
-
-	// ------------------------------------------------  pack & call
-	payload, _ := mc.Pack("tryAggregate", false, calls)
-
-	raw, err := p.client.CallContract(context.Background(),
-		ethereum.CallMsg{To: &mcAddress, Data: payload},
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// ------------------------------------------------  decode result
-	var returns []struct {
-		Success    bool
-		ReturnData []byte
-	}
-	if err := mc.UnpackIntoInterface(&returns, "tryAggregate", raw); err != nil {
-		return nil, err
-	}
-
-	out := make(map[string]uint8, len(list))
-	for i, r := range returns {
-		if r.Success && len(r.ReturnData) >= 32 {
-			var decimal uint8
-			err := erc.UnpackIntoInterface(&decimal, "decimals", r.ReturnData)
-			if err != nil {
-				out[list[i].String()] = 18 // Default value (could be set to 18 if decoding fails)
-			} else {
-				out[list[i].String()] = decimal
-			}
-		} else {
-			out[list[i].String()] = 0 // не удалось — caller решает, что делать (обычно 18)
-		}
-	}
-
-	return out, nil
 }
 
 func findPair(pairs *[]database.Pair, pairAddress string) *database.Pair {

@@ -4,19 +4,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Lazy-Parser/Collector/internal/domain"
+	"github.com/Lazy-Parser/Collector/internal/core"
 )
 
 type AggregatorStruct struct {
 	Exchange  string // "MEXC", "MCX", "DexScreener"
 	Type      string // "SPOT", "FUTURES", "DEX"
 	Symbol    string // например: "BTC/USDT"
-	Spot      domain.SpotData
-	Futures   domain.FuturesData
+	Spot      core.SpotData
+	Futures   core.FuturesData
 	Timestamp time.Time // время обновления
 }
 
 type Joiner struct {
-	cache map[string]map[string]domain.AggregatorPayload // Symbol -> Exchange -> Feed
+	cache map[string]map[string]core.AggregatorPayload // Symbol -> Exchange -> Feed
 	mu    sync.RWMutex
 }

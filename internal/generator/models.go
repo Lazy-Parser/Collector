@@ -91,17 +91,6 @@ type Asset struct {
 	NetworkList []Network `json:"networkList"` // all chains
 }
 
-// transforrm to custom type
-// type TokenInfo struct {
-// 	Coin    string
-// 	Network TokenInfoNetwork
-// }
-// type TokenInfoNetwork struct {
-// 	Network      string `json:"network"` // e.g. "BEP20(BSC)"
-// 	NetworkShort string `json:"networkShort"`
-// 	Contract     string `json:"contract"` // 0x…
-// }
-
 // https://contract.mexc.com/api/v1/contract/detail - all futures pairs
 type Contracts struct {
 	Data []ContractDetail `json:"data"`

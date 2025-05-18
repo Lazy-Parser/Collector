@@ -11,8 +11,8 @@ import (
 	"os"
 	"time"
 
+	d "github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/go-resty/resty/v2"
-	d "github.com/Lazy-Parser/Collector/internal/domain"
 	"github.com/joho/godotenv"
 )
 

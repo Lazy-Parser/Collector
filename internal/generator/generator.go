@@ -11,8 +11,8 @@ import (
 
 	// "sync/atomic"
 
+	d "github.com/Lazy-Parser/Collector/internal/core"
 	database "github.com/Lazy-Parser/Collector/internal/database"
-	d "github.com/Lazy-Parser/Collector/internal/domain"
 	"github.com/Lazy-Parser/Collector/internal/utils"
 
 	"github.com/jedib0t/go-pretty/v6/progress"
@@ -88,7 +88,7 @@ func Run() {
 				tracker.Increment(1)
 				mu.Unlock()
 
-				pairs, err := fetchPair(token.NetworkList[0].Network, token.NetworkList[0].Contract)
+				pairs, err := fetchPairs(token.NetworkList[0].Network, token.NetworkList[0].Contract)
 				if err != nil || len(*pairs) == 0 {
 					fmt.Errorf("Fetch DexScreener: %v", err)
 					return
@@ -118,7 +118,7 @@ func Run() {
 }
 
 // methods
-func fetchPair(network, tokenAddress string) (*DexScreenerResponse, error) {
+func fetchPairs(network, tokenAddress string) (*DexScreenerResponse, error) {
 	var res DexScreenerResponse = []PairDS{}
 
 	if len(network) == 0 {
@@ -148,20 +148,20 @@ func fetchPair(network, tokenAddress string) (*DexScreenerResponse, error) {
 
 func validatePairs(pairs DexScreenerResponse) *PairDS {
 	bestToken := &PairDS{Volume: Volume{H24: -1}} // create empty result
-	var curQuoteSymbol string
+	//var curQuoteSymbol string
 	var curVolume24 float64
 
 	for _, pair := range pairs {
-		curQuoteSymbol = pair.QuoteToken.Symbol
+		//curQuoteSymbol = pair.QuoteToken.Symbol
 		curVolume24 = pair.Volume.H24
 
 		// filter by quote token. Only SOL, USDC, USDT allowed
-		if curQuoteSymbol != "SOL" &&
-			curQuoteSymbol != "USDC" &&
-			curQuoteSymbol != "USDT" &&
-			curQuoteSymbol != "WBNB" {
-			continue
-		}
+		//if curQuoteSymbol != "SOL" &&
+		//	curQuoteSymbol != "USDC" &&
+		//	curQuoteSymbol != "USDT" &&
+		//	curQuoteSymbol != "WBNB" {
+		//	continue
+		//}
 
 		// filter by volume
 		if curVolume24 < minVolume {
@@ -269,13 +269,4 @@ func getLabel(arr []string) string {
 	}
 
 	return arr[0]
-}
-
-
-
-func printReceivedToken(counter int32, pair d.Pair) {
-	fmt.Println("dfdfsgdfsgsdfgsdfgsdfgsdfg")
-	fmt.Printf("%d) Token %s/%s | %s\n", counter, pair.Base.Name, pair.Quote.Name, pair.Network)
-	fmt.Println(pair.URL)
-	fmt.Println()
 }

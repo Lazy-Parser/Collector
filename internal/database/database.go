@@ -120,6 +120,12 @@ func (db *TokenService) UpdateDecimals(query *Token, decimals uint8) error {
 	return res.Error
 }
 
+// add vault by address
+func (db *TokenService) UpdateVault(query *Token, vault string) error {
+	res := db.db.Model(&Token{}).Where("tokens.address = ?", query.Address).Update("vault", vault)
+	return res.Error
+}
+
 // PAIR
 func (db *PairService) SavePair(pair *Pair) error {
 	res := db.db.Create(pair)
@@ -160,6 +166,10 @@ func (db *PairService) GetAllPairsByQuery(query PairQuery) ([]Pair, error) {
 
 	if query.PairAddress != "" {
 		queryBuilder = queryBuilder.Where("pairs.pair_address = ?", query.PairAddress)
+	}
+
+	if query.Limit != 0 {
+		queryBuilder = queryBuilder.Limit(query.Limit)
 	}
 
 	res := queryBuilder.Find(&pairs)

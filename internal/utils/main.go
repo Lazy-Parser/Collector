@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	d "github.com/Lazy-Parser/Collector/internal/domain"
+	d "github.com/Lazy-Parser/Collector/internal/core"
 )
 
 // converts symbol string with underscores or without
@@ -37,13 +37,6 @@ func GetWorkDirPath() (string, error) {
 	}
 
 	return workDirPath, nil
-}
-func CheckErrorDatabase(err error) error {
-	if err != nil {
-		return fmt.Errorf("database error: %v", err)
-	}
-
-	return nil
 }
 
 func LoadWhitelistFile() ([]d.Whitelist, error) {
