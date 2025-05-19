@@ -107,7 +107,7 @@ func findPair(pairs *[]database.Pair, address string) *database.Pair {
 
 // Fetch decimals for all tokens and vaults for solana and save all to the database.
 // It work with ALL collectors, not only with provided
-func FetchAndSaveMetadata(fetchers *[]core.MetadataCollector) error {
+func (m *ManagerDex) FetchAndSaveMetadata(fetchers *[]core.MetadataCollector) error {
 	for _, collector := range *fetchers {
 		metadata, err := collector.FetchMetadata()
 		if err != nil {

@@ -27,5 +27,6 @@ type DataSourceDex interface {
 }
 
 type MetadataCollector interface {
+	PushPairs(pairs *[]db.Pair)
 	FetchMetadata() (Metadata, error)
 }

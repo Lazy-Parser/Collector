@@ -147,6 +147,7 @@ func (db *PairService) GetAllPairs() ([]Pair, error) {
 	return pairs, res.Error
 }
 
+// pass NULL if your want to fetch empty fields.
 func (db *PairService) GetAllPairsByQuery(query PairQuery) ([]Pair, error) {
 	var pairs []Pair
 
@@ -161,7 +162,11 @@ func (db *PairService) GetAllPairsByQuery(query PairQuery) ([]Pair, error) {
 	}
 
 	if query.Label != "" {
-		queryBuilder = queryBuilder.Where("pairs.label = ?", query.Label)
+		if query.Label == "NULL" {
+			queryBuilder = queryBuilder.Where(`pairs.label = ""`)
+		} else {
+			queryBuilder = queryBuilder.Where(`pairs.label = ?`, query.Label)
+		}
 	}
 
 	if query.PairAddress != "" {

@@ -20,16 +20,6 @@ var (
 	idCounter       = 1
 )
 
-const (
-	offsetBaseVaultV4    = 336  // For Raydium V4 (752 bytes)
-	offsetQuoteVaultV4   = 368  // For Raydium V4 (752 bytes)
-	offsetBaseVaultCLMM  = 1360 // For CLMM Raydium (1544 bytes)
-	offsetQuoteVaultCLMM = 1392 // For CLMM Raydium (1544 bytes)
-	offsetBaseVault637   = 256  // For 637 bytes
-	offsetQuoteVault637  = 288  // For 637 bytes
-	pubkeyLen            = 32
-)
-
 func (s *Solana) Name() string {
 	return "Solana"
 }

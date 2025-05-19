@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -12,16 +13,27 @@ import (
 	"github.com/mr-tron/base58"
 )
 
+const (
+	offsetBaseVaultV4  = 336 // For Raydium V4 (752 bytes)
+	offsetQuoteVaultV4 = 368 // For Raydium V4 (752 bytes)
+	pubkeyLen          = 32
+)
+
 type SolanaHelper struct {
 	pairs *[]database.Pair
 }
 
+// Only AMM pairs accepted. CLMM / CPMM pairs already have working tokens addresses
 func (h *SolanaHelper) PushPairs(pairs *[]database.Pair) {
 	h.pairs = pairs
 }
 
 func (h *SolanaHelper) FetchMetadata() (core.Metadata, error) {
 	metadata := core.Metadata{}
+
+	if len(*h.pairs) == 0 {
+		return metadata, errors.New("provided pairs array is empty. Maybe your forgot to make 'helper.PushPairs([...])' ?")
+	}
 
 	vaults, err := fetchVaults(h.pairs)
 	if err != nil {
@@ -87,18 +99,9 @@ func fetchVaults(pairs *[]database.Pair) (map[string]string, error) {
 		case 752: // v4
 			offsetBaseVault = offsetBaseVaultV4
 			offsetQuoteVault = offsetQuoteVaultV4
-			break
-		case 1544: // CLMM
-			offsetBaseVault = offsetBaseVaultCLMM
-			offsetQuoteVault = offsetQuoteVaultCLMM
-			break
-		case 637: // Other
-			offsetBaseVault = offsetBaseVault637
-			offsetQuoteVault = offsetQuoteVault637
-			break
+
 		default:
 			fmt.Printf("decoded string from getMultipleAccounts (%d) has %d bytes, but only 752 accepted (Raydium V4) \n", idx, len(decodedStr))
-			break
 		}
 
 		if offsetBaseVault == 0 || offsetQuoteVault == 0 {
