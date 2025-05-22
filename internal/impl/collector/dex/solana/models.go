@@ -1,7 +1,6 @@
 package solana
 
 import (
-	"encoding/json"
 	"math/big"
 
 	"github.com/Lazy-Parser/Collector/internal/database"
@@ -16,39 +15,78 @@ type subscribeMsg struct {
 }
 
 type Solana struct {
-	toListen *[]database.Pair
-	subID    map[int]string
-	conn     *websocket.Conn
-	vaults   map[string]*vaultState
+	toListen    *[]database.Pair
+	conn        *websocket.Conn
+	mapperID    map[uint]mapper        // map subscribtion ID -> dexscreener address
+	baseVaults  map[string]*baseVault  // map dexscreener address -> vault
+	quoteVaults map[string]*quoteVault // map dexscreener address -> vault
 }
 
-type vaultState struct {
-	Latest *big.Int
-	Prev   *big.Int
-	Pair   *database.Pair
-	IsBase bool
+type mapper struct {
+	address string
+	isBase  bool
 }
 
+type baseVault struct {
+	price        *big.Float
+	vault        string // base address
+	quoteAddress string // quote address from dexscrenner. Its not a vault!
+}
+
+type quoteVault struct {
+	price       *big.Float
+	vault       string // quote address
+	baseAddress string // base address from dexscrenner. Its not a vault!
+}
+
+type Account struct {
+	Data struct {
+		Parsed struct {
+			Info struct {
+				TokenAmount struct {
+					Amount   string `json:"amount"`   // raw on‐chain units
+					Decimals int    `json:"decimals"` // their decimal scale
+				} `json:"tokenAmount"`
+			} `json:"info"`
+		} `json:"parsed"`
+	} `json:"data"`
+}
+
+// MultiAccountResponse is the shape of the HTTP getMultipleAccounts call:
+//
+//	resp.Result.Value → []Account
+type LogMultiple struct {
+	Result struct {
+		Value []Account `json:"value"`
+	} `json:"result"`
+}
+
+// AccountNotification is the WS “accountNotification” envelope.
+//
+//	Params.Subscription → your subID
+//	Params.Value        → the Account payload
 type Log struct {
-	Jsonrpc string          `json:"jsonrpc"`
-	ID      int             `json:"id,omitempty"`
-	Method  string          `json:"method,omitempty"`
-	Result  json.RawMessage `json:"result,omitempty"`
-	Params  *struct {
-		Subscription int `json:"subscription"`
+	Params struct {
+		Subscription uint `json:"subscription"`
 		Result       struct {
-			Value struct {
-				Signature string   `json:"signature"`
-				Err       string   `json:"err"`
-				Logs      []string `json:"logs"`
-			} `json:"value"`
+			Value Account `json:"value"`
 		} `json:"result"`
-	} `json:"params,omitempty"`
+	} `json:"params"`
+}
+
+type LogAck struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Result  uint   `json:"result"`
+	ID      uint64 `json:"id"`
+	Error   *struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"error,omitempty"`
 }
 
 type SolanaPayload struct {
 	Jsonrpc string        `json:"jsonrpc"`
-	ID      uint16        `json:"id"`
+	ID      int           `json:"id"`
 	Method  string        `json:"method"`
 	Params  []interface{} `json:"params"` // SolanaPayloadOptions should be in 'Params' as the last value
 }

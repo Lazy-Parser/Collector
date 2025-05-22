@@ -84,12 +84,14 @@ func startCollector(
 	}
 	fmt.Println("Connected!")
 
+	fmt.Println("Subscribing...")
 	err = (*collector).Subscribe()
 	if err != nil {
 		log.Fatalf("failed to subscribe '%s' collector. %v", (*collector).Name(), err)
 	}
 	fmt.Println("Subscribed!")
 
+	fmt.Println("Running...")
 	(*collector).Run(ctx, consumerChan)
 }
 

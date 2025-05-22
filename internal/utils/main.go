@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -58,4 +59,28 @@ func LoadWhitelistFile() ([]d.Whitelist, error) {
 	}
 
 	return res, nil
+}
+
+func TernaryIf[T any](cond bool, argtrue T, argfalse T) T {
+	if cond {
+		return argtrue
+	}
+
+	return argfalse
+}
+
+func IsErrorReturn(err error, message string, messageArgs ...string) error {
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf(message, messageArgs)
+}
+
+func IsErrorLog(err error, message string, messageArgs ...string) error {
+	if err != nil {
+		log.Println(message, messageArgs, err)
+		return err
+	}
+
+	return nil
 }

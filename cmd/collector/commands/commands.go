@@ -2,26 +2,31 @@ package commands
 
 import (
 	// "context"
+	"context"
 	"fmt"
+
 	// "time"
 
-	"github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/Lazy-Parser/Collector/internal/dashboard"
 	db "github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/Lazy-Parser/Collector/internal/generator"
 	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/solana"
-	manager_dex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
+	"github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
 
 	"github.com/urfave/cli/v2"
 )
 
 func Main(*cli.Context) error {
-	solHelper := solana.SolanaHelper{}
-	solAmmPairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "raydium", Label: "NULL"})
+	ctx := context.TODO()
 
-	solHelper.PushPairs(&solAmmPairs)
+	solCollector := solana.Solana{}
+	hosicoPair, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{PairAddress: "J333LZ5UhEjwxb64dcD756viUFXr164dVNxQpXuMPH9V"})
+
 	manager := manager_dex.New()
-	manager.FetchAndSaveMetadata(&[]core.MetadataCollector{&solHelper})
+	manager.Push(&solCollector, &hosicoPair)
+	manager.Run(ctx)
+
+	<-ctx.Done()
 
 	return nil
 }
