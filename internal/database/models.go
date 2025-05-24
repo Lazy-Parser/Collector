@@ -44,7 +44,7 @@ type Pair struct {
 type PairQuery struct {
 	PairAddress string
 	Network     string
-	Pool        string
+	Pool        interface{}
 	Label       string
 	Limit       int
 }

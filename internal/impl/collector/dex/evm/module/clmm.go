@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Lazy-Parser/Collector/internal/core"
+	"github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -17,6 +18,13 @@ import (
 	"strings"
 	"time"
 )
+
+func CreateCLMM() *CLMM {
+	base := BaseEVMModule{
+		toListen: make(map[string][]database.Pair),
+	}
+	return &CLMM{BaseEVMModule: &base}
+}
 
 func (clmm *CLMM) Name() string { return "CLMM" }
 
@@ -33,6 +41,7 @@ func (clmm *CLMM) Init() error {
 	}
 
 	clmm.setAbi(parsedAbi)
+
 	return nil
 }
 
@@ -87,12 +96,13 @@ func (clmm *CLMM) HandleSwap(
 		ProtocolFeesToken0 *big.Int `abi:"protocolFeesToken0"`
 		ProtocolFeesToken1 *big.Int `abi:"protocolFeesToken1"`
 	}
+
 	if err := clmm.GetAbi().UnpackIntoInterface(&ev, "Swap", vLog.Data); err != nil {
 		fmt.Println("Failed to parse logs")
 		return resp, fmt.Errorf("[V3][handleSwap]: decode: %w", err)
 	}
 
-	// caclulate price
+	// calculate price
 	// priceRatio = sqrtPrice / 2^92
 	priceRatio := new(big.Float).Quo(
 		new(big.Float).SetInt(ev.SqrtPriceX96),
@@ -115,11 +125,12 @@ func (clmm *CLMM) HandleSwap(
 	}
 
 	resp = core.CollectorDexResponse{
-		Timestamp: time.Now().UnixMilli(),
-		Price:     adjustedPrice,
-		Address:   vLog.Address.String(),
-		From:      poolName,
-		Type:      "?",
+		IsBaseToken0: isBaseToken0,
+		Timestamp:    time.Now().UnixMilli(),
+		Price:        adjustedPrice,
+		Address:      vLog.Address.String(),
+		From:         clmm.Name(),
+		Type:         "?",
 	}
 	return resp, nil
 }

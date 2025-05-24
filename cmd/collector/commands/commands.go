@@ -4,33 +4,57 @@ import (
 	// "context"
 	"context"
 	"fmt"
-	//"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap/v2"
-	//"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap/v3"
-	//manager_dex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
-
-	// "time"
-
 	"github.com/Lazy-Parser/Collector/internal/dashboard"
 	db "github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/Lazy-Parser/Collector/internal/generator"
+	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/evm"
+	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/evm/module"
+	manager_dex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
+	"github.com/Lazy-Parser/Collector/internal/ui"
 	"github.com/urfave/cli/v2"
 )
 
 func Main(*cli.Context) error {
 	ctx := context.TODO()
 
-	//pairsv2, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "pancakeswap", Label: "v2"})
-	//pairsv3, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "pancakeswap", Label: "v3"})
-	//fmt.Printf("TOTAL: %d", len(pairsv2)+len(pairsv3))
-	//pancakeswapV2 := v2.PancakeswapV2{}
-	//pancakeswapV3 := v3.PancakeswapV3{}
-	//
-	//manager := manager_dex.New()
-	//manager.Push(&pancakeswapV2, &pairsv2)
-	//manager.Push(&pancakeswapV3, &pairsv3)
-	//manager.Run(ctx)
+	ui.GetUI().LogsView("TEST1")
+	ui.GetUI().LogsView("TEST2")
 
-	<-ctx.Done()
+	allowedPools := []string{"pancakeswap", "uniswap", "sushiswap"}
+	ammEth, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: allowedPools, Label: "v2"})
+	ammBsc, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "bsc", Pool: allowedPools, Label: "v2"})
+	clmmEth, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: allowedPools, Label: "v3"})
+	clmmBsc, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "bsc", Pool: allowedPools, Label: "v3"})
+
+	msg := fmt.Sprintf("Lengths of arrays:\n"+
+		"AMM  ETH (v2): %d\n"+
+		"AMM  BSC (v2): %d\n"+
+		"CLMM ETH (v3): %d\n"+
+		"CLMM BSC (v3): %d\n",
+		len(ammEth),
+		len(ammBsc),
+		len(clmmEth),
+		len(clmmBsc))
+	ui.GetUI().LogsView(msg)
+
+	moduleAmm := module.CreateAMM()
+	moduleClmm := module.CreateCLMM()
+
+	moduleAmm.Push(ammEth, "ethereum")
+	moduleAmm.Push(ammBsc, "bsc")
+	moduleClmm.Push(clmmEth, "ethereum")
+	moduleClmm.Push(clmmBsc, "bsc")
+
+	evmCollector := evm.EVM{}
+	evmCollector.Push([]module.EVMModuleImplementation{moduleAmm, moduleClmm})
+	manager := manager_dex.New()
+	manager.Push(&evmCollector)
+	err := manager.Run(ctx)
+	if err != nil {
+		return err
+	}
+
+	ui.GetUI().Run()
 
 	return nil
 }
@@ -66,13 +90,13 @@ func Table(ctx *cli.Context) error {
 
 	if flag == "spairs" {
 		// fetch pairs
-		//res, err := db.GetDB().PairService.GetAllPairs()
-		pairs, err := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: "uniswap"})
+		res, err := db.GetDB().PairService.GetAllPairs()
+		//res, err := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: "uniswap"})
 		if err != nil {
 			return err
 		}
 
-		dashboard.ShowPairs(pairs)
+		dashboard.ShowPairs(res)
 	} else if flag == "stokens" {
 		// fetch tokens
 		res, err := db.GetDB().TokenService.GetAllTokens()

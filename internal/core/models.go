@@ -91,11 +91,12 @@ type SolanaRpcResponse struct {
 
 // general response from all DEX-like collectors
 type CollectorDexResponse struct {
-	From      string     // "Solana", "Pancakeswap", ...
-	Timestamp int64      //
-	Price     *big.Float // price of specific pair
-	Address   string     // address of pair
-	Type      string     // "BUY" / "SELL"
+	IsBaseToken0 bool
+	From         string     // "Solana", "Pancakeswap", ...
+	Timestamp    int64      //
+	Price        *big.Float // price of specific pair
+	Address      string     // address of pair
+	Type         string     // "BUY" / "SELL"
 }
 
 type Metadata struct {

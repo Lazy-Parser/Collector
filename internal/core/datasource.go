@@ -20,7 +20,8 @@ type DataSource interface {
 // DEX (Pool liquidity)
 type DataSourceDex interface {
 	Name() string // pancakeswap, ...
-	Init(toListen *[]db.Pair) error
+	//Init(toListen *[]db.Pair) error
+	Init() error
 	Connect() error // // pass list of pairs...
 	Subscribe() error
 	Run(ctx context.Context, consumerCh chan CollectorDexResponse) // some data

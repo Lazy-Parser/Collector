@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Lazy-Parser/Collector/internal/ui"
 	"log"
 
 	"github.com/Lazy-Parser/Collector/internal/core"
@@ -18,14 +19,13 @@ func New() *ManagerDex {
 	}
 }
 
-func (m *ManagerDex) Push(collector core.DataSourceDex, pairs *[]database.Pair) error {
+func (m *ManagerDex) Push(collector core.DataSourceDex) error {
 	if collector == nil {
 		return errors.New("cannot push a nil collector")
 	}
 
 	// save collector and pairs for this collector
 	m.list = append(m.list, &collector)
-	m.pairs[collector.Name()] = *pairs
 
 	return nil
 }
@@ -33,7 +33,7 @@ func (m *ManagerDex) Push(collector core.DataSourceDex, pairs *[]database.Pair) 
 // do not start in new goroutine! Method run make every provided collector run in seperate goroutine
 func (m *ManagerDex) Run(ctx context.Context) error {
 	// ASSIGN PAIRS TO THE CORRESPONDING COLLECTOR
-	allPairs, _ := database.GetDB().PairService.GetAllPairs()
+	//allPairs, _ := database.GetDB().PairService.GetAllPairs()
 	consumerChan := make(chan core.CollectorDexResponse, 1000)
 
 	// load whitelist (allowed networks / pools)
@@ -44,23 +44,23 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 
 	// start all collectors. Hardcode, change
 	for _, collector := range m.list {
-		collectorName := (*collector).Name()
-		go startCollector(ctx, collector, m.pairs[collectorName], consumerChan)
+		go startCollector(ctx, collector, consumerChan)
 	}
+
+	ui.GetUI().ShowCollectorPrices(consumerChan)
 
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("Stopping Manager...")
 			return nil
-		case message := <-consumerChan:
+			//case message := <-consumerChan:
 			// just log
-			pair := findPair(&allPairs, message.Address)
-
-			fmt.Printf(
-				"[%s]: %s/%s - %s\n",
-				message.From, pair.BaseToken.Name, pair.QuoteToken.Name, message.Price.Text('f', 12),
-			)
+			//pair := findPair(&allPairs, message.Address)
+			//fmt.Printf(
+			//	"[%s]: %s/%s - %s\n",
+			//	message.From, pair.BaseToken.Name, pair.QuoteToken.Name, message.Price.Text('f', 12),
+			//)
 		}
 	}
 }
@@ -68,11 +68,10 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 func startCollector(
 	ctx context.Context,
 	collector *core.DataSourceDex,
-	toListen []database.Pair,
 	consumerChan chan core.CollectorDexResponse,
 ) {
 	fmt.Println("Starting collector....")
-	err := (*collector).Init(&toListen)
+	err := (*collector).Init()
 	if err != nil {
 		log.Fatalf("failed to init '%s' collector. %v", (*collector).Name(), err)
 	}

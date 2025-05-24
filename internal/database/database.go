@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 
@@ -147,7 +148,8 @@ func (db *PairService) GetAllPairs() ([]Pair, error) {
 	return pairs, res.Error
 }
 
-// pass NULL if your want to fetch empty fields.
+// pass NULL if your want to fetch empty fields. Pass '&' (means OR) if you want to fetch by fields, where can be multiple vaulues. For example Pool: "pancakeswap&uniswap&sushiswap".
+// It means to fetch pairs where Label can be pancakeswap OR uniswap OR sushiswap
 func (db *PairService) GetAllPairsByQuery(query PairQuery) ([]Pair, error) {
 	var pairs []Pair
 
@@ -157,8 +159,17 @@ func (db *PairService) GetAllPairsByQuery(query PairQuery) ([]Pair, error) {
 		queryBuilder = queryBuilder.Where("pairs.network = ?", query.Network)
 	}
 
-	if query.Pool != "" {
-		queryBuilder = queryBuilder.Where("pairs.pool = ?", query.Pool)
+	// Pool is an interface
+	if query.Pool != nil {
+		switch query.Pool.(type) {
+		case string:
+			queryBuilder = queryBuilder.Where("pairs.pool = ?", query.Pool)
+		case []string:
+			queryBuilder = queryBuilder.Where("pairs.pool in ?", query.Pool)
+		default:
+			return pairs, errors.New("query.pool type can be only string or []string")
+		}
+
 	}
 
 	if query.Label != "" {

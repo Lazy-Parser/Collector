@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Lazy-Parser/Collector/internal/core"
+	"github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -17,6 +18,13 @@ import (
 	"strings"
 	"time"
 )
+
+func CreateAMM() *AMM {
+	base := BaseEVMModule{
+		toListen: make(map[string][]database.Pair),
+	}
+	return &AMM{BaseEVMModule: &base}
+}
 
 func (amm *AMM) Name() string { return "AMM" }
 
@@ -119,13 +127,13 @@ func (amm *AMM) HandleSwap(
 	// calculate price
 	if isBaseToken0 {
 		price = new(big.Float).Quo(
-			new(big.Float).Mul(amount0, decimals0),
-			new(big.Float).Mul(amount1, decimals1),
+			new(big.Float).Mul(amount1, decimals0),
+			new(big.Float).Mul(amount0, decimals1),
 		)
 	} else {
 		price = new(big.Float).Quo(
-			new(big.Float).Mul(amount1, decimals0),
-			new(big.Float).Mul(amount0, decimals1),
+			new(big.Float).Mul(amount0, decimals0),
+			new(big.Float).Mul(amount1, decimals1),
 		)
 	}
 
@@ -135,11 +143,12 @@ func (amm *AMM) HandleSwap(
 	}
 
 	resp = core.CollectorDexResponse{
-		Timestamp: time.Now().UnixMilli(),
-		Price:     price,
-		Address:   vLog.Address.String(),
-		From:      poolName,
-		Type:      "?",
+		IsBaseToken0: isBaseToken0,
+		Timestamp:    time.Now().UnixMilli(),
+		Price:        price,
+		Address:      vLog.Address.String(),
+		From:         amm.Name(),
+		Type:         "?",
 	}
 	return resp, nil
 }

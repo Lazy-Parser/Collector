@@ -2,10 +2,9 @@ package dashboard
 
 import (
 	"fmt"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"os"
 	"strconv"
-
-	"github.com/jedib0t/go-pretty/v6/table"
 
 	database "github.com/Lazy-Parser/Collector/internal/database"
 )

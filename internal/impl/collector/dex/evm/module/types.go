@@ -10,15 +10,15 @@ import (
 )
 
 type IEvmModule interface {
-	Push(toListen *[]database.Pair, network string)
+	Push(toListen []database.Pair, network string)
 	setAbi(abi abi.ABI)
 	GetAbi() abi.ABI
-	GetAllPairs() *map[string]*[]database.Pair
+	GetAllPairs() *map[string][]database.Pair
 	FindPair(address string) *database.Pair
 	GetPairsByNetwork(network string) (*[]database.Pair, bool)
 }
 type BaseEVMModule struct {
-	toListen map[string]*[]database.Pair
+	toListen map[string][]database.Pair
 	abi      abi.ABI
 }
 
@@ -27,7 +27,6 @@ type EVMModuleImplementation interface {
 	Name() string
 	Init() error
 	Subscribe(client *ethclient.Client, network string, logs chan types.Log) error
-	GetPairs() *map[string]*[]database.Pair
 	FindPair(address string) *database.Pair
 	GetSwapHash() common.Hash
 	HandleSwap(
@@ -40,9 +39,9 @@ type EVMModuleImplementation interface {
 }
 
 type AMM struct {
-	IEvmModule
+	*BaseEVMModule
 }
 
 type CLMM struct {
-	IEvmModule
+	*BaseEVMModule
 }

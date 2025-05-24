@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Lazy-Parser/Collector/internal/ui"
 	"log"
 	"os"
 
@@ -11,6 +12,7 @@ import (
 
 func main() {
 	db.NewConnection()
+	ui.CreateUI()
 
 	app := &cli.App{
 		Name:     "collector",
@@ -21,4 +23,6 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
+
+	ui.GetUI().Run()
 }

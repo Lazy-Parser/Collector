@@ -1,26 +1,25 @@
 package evm
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"log"
-	"math/big"
-	"strings"
-
 	core "github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/evm/module"
+	"github.com/Lazy-Parser/Collector/internal/ui"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"log"
 )
 
 type EVM struct {
 	logs    chan types.Log
 	clients map[string]*ethclient.Client
 	sub     ethereum.Subscription
-	modules *[]module.EVMModuleImplementation
+	modules []module.EVMModuleImplementation
 }
 
 // TODO: load from file conf in future
@@ -35,21 +34,27 @@ func (p *EVM) Name() string {
 	return "EVM"
 }
 
-// toListen - all pairs, that this pool will listen
-func (p *EVM) Init(modules *[]module.EVMModuleImplementation) error {
-	if len(*modules) == 0 {
-		return errors.New("provided modules arr is empty in " + p.Name())
-	}
+func (p *EVM) Push(modules []module.EVMModuleImplementation) error {
 	p.modules = modules
+	return nil
+}
+
+// toListen - all pairs, that this pool will listen
+func (p *EVM) Init() error {
+	p.clients = make(map[string]*ethclient.Client)
+
+	for _, m := range p.modules {
+		m.Init()
+	}
 
 	return nil
 }
 
 func (p *EVM) Connect() error {
 	// get all networks that we will use
-	var networks map[string]struct{}
-	for _, m := range *p.modules {
-		for network := range *m.GetPairs() {
+	networks := make(map[string]struct{})
+	for _, m := range p.modules {
+		for network := range *m.GetAllPairs() {
 			networks[network] = struct{}{}
 		}
 	}
@@ -71,13 +76,13 @@ func (p *EVM) Subscribe() error {
 	p.logs = make(chan types.Log)
 
 	// subscribe to all network clients
-	for _, m := range *p.modules {
-		for network := range *m.GetPairs() {
+	for _, m := range p.modules {
+		for network := range *m.GetAllPairs() {
 			if err := m.Subscribe(p.clients[network], network, p.logs); err != nil {
 				return fmt.Errorf("failed to subcribe '%s' to '%s' network", m.Name(), network)
 			}
 
-			fmt.Printf("'%s' subscribed to '%s' sucessful/n", m.Name(), network)
+			fmt.Printf("'%s' subscribed to '%s' sucessful \n", m.Name(), network)
 		}
 
 	}
@@ -90,7 +95,7 @@ func (p *EVM) Run(ctx context.Context, consumerCh chan core.CollectorDexResponse
 		select {
 		case vLog := <-p.logs:
 			// извлекаем и обрабатываем даныне
-			for _, m := range *p.modules {
+			for _, m := range p.modules {
 				if m.GetSwapHash() == vLog.Topics[0] {
 					p.handleSwap(&m, vLog, consumerCh)
 					break
@@ -106,7 +111,11 @@ func (p *EVM) handleSwap(m *module.EVMModuleImplementation, vLog types.Log, cons
 		common.HexToAddress(curPair.BaseToken.Address),
 		common.HexToAddress(curPair.QuoteToken.Address),
 	)
+
 	isBaseToken0 := isBaseToken(token0, common.HexToAddress(curPair.BaseToken.Address))
+
+	msg := fmt.Sprintf("Token0: %s | BaseToken: %s", token0, common.HexToAddress(curPair.BaseToken.Address))
+	ui.GetUI().LogsView(msg)
 
 	res, err := (*m).HandleSwap(
 		vLog,
@@ -124,15 +133,14 @@ func (p *EVM) handleSwap(m *module.EVMModuleImplementation, vLog types.Log, cons
 
 // Правильная сортировка токенов как в контрактах Uniswap/PancakeSwap
 func sortTokens(tokenA, tokenB common.Address) (token0, token1 common.Address) {
-	a := new(big.Int).SetBytes(tokenA.Bytes())
-	b := new(big.Int).SetBytes(tokenB.Bytes())
+	comp := tokenA.Big().Cmp(tokenB.Big())
 
-	if a.Cmp(b) > 0 {
+	if comp < 0 {
 		return tokenA, tokenB
 	}
 	return tokenB, tokenA
 }
 
 func isBaseToken(token, baseToken common.Address) bool {
-	return strings.EqualFold(token.Hex(), baseToken.Hex())
+	return bytes.Equal(token.Bytes(), baseToken.Bytes())
 }
