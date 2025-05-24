@@ -4,27 +4,31 @@ import (
 	// "context"
 	"context"
 	"fmt"
+	//"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap/v2"
+	//"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/pancakeswap/v3"
+	//manager_dex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
 
 	// "time"
 
 	"github.com/Lazy-Parser/Collector/internal/dashboard"
 	db "github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/Lazy-Parser/Collector/internal/generator"
-	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/solana"
-	"github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
-
 	"github.com/urfave/cli/v2"
 )
 
 func Main(*cli.Context) error {
 	ctx := context.TODO()
 
-	solCollector := solana.Solana{}
-	hosicoPair, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{PairAddress: "J333LZ5UhEjwxb64dcD756viUFXr164dVNxQpXuMPH9V"})
-
-	manager := manager_dex.New()
-	manager.Push(&solCollector, &hosicoPair)
-	manager.Run(ctx)
+	//pairsv2, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "pancakeswap", Label: "v2"})
+	//pairsv3, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "pancakeswap", Label: "v3"})
+	//fmt.Printf("TOTAL: %d", len(pairsv2)+len(pairsv3))
+	//pancakeswapV2 := v2.PancakeswapV2{}
+	//pancakeswapV3 := v3.PancakeswapV3{}
+	//
+	//manager := manager_dex.New()
+	//manager.Push(&pancakeswapV2, &pairsv2)
+	//manager.Push(&pancakeswapV3, &pairsv3)
+	//manager.Run(ctx)
 
 	<-ctx.Done()
 
@@ -62,13 +66,13 @@ func Table(ctx *cli.Context) error {
 
 	if flag == "spairs" {
 		// fetch pairs
-		res, err := db.GetDB().PairService.GetAllPairs()
-		// pairs, err := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "solana", Pool: "raydium"})
+		//res, err := db.GetDB().PairService.GetAllPairs()
+		pairs, err := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: "uniswap"})
 		if err != nil {
 			return err
 		}
 
-		dashboard.ShowPairs(res)
+		dashboard.ShowPairs(pairs)
 	} else if flag == "stokens" {
 		// fetch tokens
 		res, err := db.GetDB().TokenService.GetAllTokens()
