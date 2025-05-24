@@ -22,7 +22,7 @@ func (clmm *CLMM) Name() string { return "CLMM" }
 
 func (clmm *CLMM) Init() error {
 	wd, _ := os.Getwd()
-	abiJson, err := os.ReadFile(filepath.Join(wd, "contracts", "uniLikeSwapV2-swap.json"))
+	abiJson, err := os.ReadFile(filepath.Join(wd, "contracts", "uniLikeSwapV3-swap.json"))
 	if err != nil {
 		return fmt.Errorf("[PANCAKESWAP][V2][Init] Failed to init '%s', cannot load ABI file!", clmm.Name())
 	}
@@ -37,7 +37,7 @@ func (clmm *CLMM) Init() error {
 }
 
 func (clmm *CLMM) GetSwapHash() common.Hash {
-	swapSig := []byte("Swap(address,uint256,uint256,uint256,uint256,address)")
+	swapSig := []byte("Swap(address,address,int256,int256,uint160,uint128,int24,uint128,uint128)")
 	return crypto.Keccak256Hash(swapSig)
 }
 
@@ -70,73 +70,53 @@ func (clmm *CLMM) Subscribe(client *ethclient.Client, network string, logs chan 
 func (clmm *CLMM) HandleSwap(
 	vLog types.Log,
 	poolName string,
-	token0Decimals int,
-	token1Decimals int,
+	decimal0 int,
+	decimal1 int,
 	isBaseToken0 bool,
 ) (core.CollectorDexResponse, error) {
 	// Placeholder for the result we will build.
 	var resp core.CollectorDexResponse
 
 	// ------------------------------------------------------------------ decode
-	// Swap(uint256 amount0In, uint256 amount1In,
-	//      uint256 amount0Out, uint256 amount1Out)
 	var ev struct {
-		Amount0In, Amount1In   *big.Int
-		Amount0Out, Amount1Out *big.Int
+		Amount0            *big.Int `abi:"amount0"`
+		Amount1            *big.Int `abi:"amount1"`
+		SqrtPriceX96       *big.Int `abi:"sqrtPriceX96"`
+		Liquidity          *big.Int `abi:"liquidity"`
+		Tick               *big.Int `abi:"tick"`
+		ProtocolFeesToken0 *big.Int `abi:"protocolFeesToken0"`
+		ProtocolFeesToken1 *big.Int `abi:"protocolFeesToken1"`
 	}
 	if err := clmm.GetAbi().UnpackIntoInterface(&ev, "Swap", vLog.Data); err != nil {
-		return resp, fmt.Errorf("[V2][handleSwap]: decode: %w", err)
+		fmt.Println("Failed to parse logs")
+		return resp, fmt.Errorf("[V3][handleSwap]: decode: %w", err)
 	}
 
-	// 2. Validate swap amounts
-	if (ev.Amount0In.Sign() > 0 && ev.Amount1In.Sign() > 0) ||
-		(ev.Amount0Out.Sign() > 0 && ev.Amount1Out.Sign() > 0) {
-		return resp, fmt.Errorf("[V2][handleSwap] invalid swap amounts")
-	}
+	// caclulate price
+	// priceRatio = sqrtPrice / 2^92
+	priceRatio := new(big.Float).Quo(
+		new(big.Float).SetInt(ev.SqrtPriceX96),
+		new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(2), big.NewInt(96), nil)),
+	)
+	decimalsDelta := int64(decimal1 - decimal0)
+	// adjustedPrice = (priceRatio^2) / 10^(decimal0 - decimal1)
+	// (priceRatio^2) = (priceRatio * priceRatio)
+	adjustedPrice := new(big.Float).Quo(
+		new(big.Float).Mul(priceRatio, priceRatio),
+		new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(decimalsDelta), nil)),
+	)
 
-	// 3. Calculate decimal adjustment factors
-	decimals0 := new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(token0Decimals)), nil))
-	decimals1 := new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(token1Decimals)), nil))
-
-	// 4. Determine swap direction and calculate price
-	var price *big.Float
-	var amount1, amount0 *big.Float
-	switch {
-	// Case 1: Token0 -> Token1 (sell Token0, buy Token1) - Sell
-	case ev.Amount0In.Sign() > 0 && ev.Amount1Out.Sign() > 0:
-		amount0 = new(big.Float).SetInt(ev.Amount0In)
-		amount1 = new(big.Float).SetInt(ev.Amount1Out)
-
-	// Case 2: Token1 -> Token0 (sell Token1, buy Token0) - Buy
-	case ev.Amount1In.Sign() > 0 && ev.Amount0Out.Sign() > 0:
-		amount1 = new(big.Float).SetInt(ev.Amount1In)
-		amount0 = new(big.Float).SetInt(ev.Amount0Out)
-
-	default:
-		return resp, fmt.Errorf("[V2][handleSwap] invalid swap direction")
-	}
-
-	// calculate price
+	// by default calculus are token1 / token0. So if Token0 is base, we should reverse price -> 1 / price
 	if isBaseToken0 {
-		price = new(big.Float).Quo(
-			new(big.Float).Mul(amount0, decimals0),
-			new(big.Float).Mul(amount1, decimals1),
+		adjustedPrice = new(big.Float).Quo(
+			new(big.Float).SetInt(big.NewInt(1)),
+			adjustedPrice,
 		)
-	} else {
-		price = new(big.Float).Quo(
-			new(big.Float).Mul(amount1, decimals0),
-			new(big.Float).Mul(amount0, decimals1),
-		)
-	}
-
-	// 5. Verify price sanity
-	if price.Sign() <= 0 {
-		return resp, fmt.Errorf("[V2][handleSwap] invalid price calculation")
 	}
 
 	resp = core.CollectorDexResponse{
 		Timestamp: time.Now().UnixMilli(),
-		Price:     price,
+		Price:     adjustedPrice,
 		Address:   vLog.Address.String(),
 		From:      poolName,
 		Type:      "?",
