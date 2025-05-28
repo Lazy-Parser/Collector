@@ -55,6 +55,8 @@ func startDex(ctx context.Context) {
 	// clmmEth, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: allowedPools, Label: "v3"})
 	clmmBsc, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "bsc", Pool: allowedPools, Label: "v3"})
 	quoteChangerPairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Type: "quote"})
+	
+	dashboardChan := make(chan core.CollectorDexResponse, 1000)
 
 	msg := fmt.Sprintf("Lengths of arrays:\n"+
 		// "AMM  ETH (v2): %d\n"+
@@ -80,7 +82,10 @@ func startDex(ctx context.Context) {
 	manager := manager_dex.New()
 	manager.Push(&evmCollector)
 	manager.Init(quoteChangerPairs)
-	err := manager.Run(ctx)
+
+	ui.GetUI().ShowCollectorPrices(dashboardChan)
+
+	err := manager.Run(ctx, dashboardChan)
 	if err != nil {
 		ui.GetUI().LogsView(err.Error())
 	}

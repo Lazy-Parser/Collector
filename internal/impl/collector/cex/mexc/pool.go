@@ -4,10 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/Lazy-Parser/Collector/internal/utils"
 	"github.com/gorilla/websocket"
-	"log"
-	"time"
 )
 
 type subscription struct {
@@ -44,7 +46,7 @@ func CreatePool() *Pool {
 func (p *Pool) Subscribe(ctx context.Context, token string) error {
 	for _, connection := range p.connections {
 		if connection.subsSize < *subsMax {
-			if err := tryToSubscribe(connection.conn, token); err != nil {
+			if err := tryToSubscribe(connection.conn, strings.ToUpper(token)); err != nil {
 				return err
 			}
 

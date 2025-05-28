@@ -62,11 +62,10 @@ func (m *ManagerDex) Init(dbPairs []database.Pair) bool {
 }
 
 // do not start in new goroutine! Method run make every provided collector run in seperate goroutine
-func (m *ManagerDex) Run(ctx context.Context) error {
+func (m *ManagerDex) Run(ctx context.Context, dashboardChan chan core.CollectorDexResponse) error {
 	// ASSIGN PAIRS TO THE CORRESPONDING COLLECTOR
 	allPairs, _ := database.GetDB().PairService.GetAllPairs()
 	consumerChan := make(chan core.CollectorDexResponse, 1000)
-	dashboardChan := make(chan core.CollectorDexResponse, 1000)
 
 	// load whitelist (allowed networks / pools)
 	_, err := utils.LoadWhitelistFile()
@@ -92,8 +91,6 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 	//
 	//	dashboardChan <- payload
 	//}
-
-	ui.GetUI().ShowCollectorPrices(dashboardChan)
 
 	for {
 		select {

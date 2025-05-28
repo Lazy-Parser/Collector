@@ -21,7 +21,6 @@ func CreateManager() *CollectorManager {
 
 // Add new Collector to collectors array
 func (m *CollectorManager) NewCollector(newCollector core.DataSource, pairs []database.Pair) {
-	fmt.Printf("→ Registered collector: %#v\n", newCollector)
 	m.collectors = append(m.collectors, newCollector)
 	m.pairsMapper[(newCollector).Name()] = pairs
 }

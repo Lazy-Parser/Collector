@@ -2,11 +2,11 @@ package ui
 
 import (
 	"fmt"
+	"sync"
+
 	"github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/rivo/tview"
-	"strconv"
-	"sync"
 )
 
 func (ui *UI) ShowCollectorPrices(flow chan core.CollectorDexResponse) {
@@ -77,11 +77,6 @@ func (ui *UI) ShowCollectorPrices(flow chan core.CollectorDexResponse) {
 					// URL
 					ui.tableDex.SetCell(row, 5,
 						tview.NewTableCell(pair.URL).
-							SetAlign(tview.AlignRight))
-
-					// IsBaseToken0
-					ui.tableDex.SetCell(row, 6,
-						tview.NewTableCell(strconv.FormatBool(msg.IsBaseToken0)).
 							SetAlign(tview.AlignRight))
 				})
 			}

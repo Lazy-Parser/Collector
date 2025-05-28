@@ -48,7 +48,7 @@ func CreateUI() {
 func createTableDex() *tview.Table {
 	table := tview.NewTable().SetBorders(true).SetSelectable(false, false)
 	table.SetTitle("DEX").SetBorder(true)
-	headers := []string{"PAIR", "DEX_PRICE", "DEX_NETWORK", "POOL", "VERSION", "EXTRA_FIELD"}
+	headers := []string{"PAIR", "PRICE", "NETWORK", "POOL", "VERSION", "URL"}
 	for col, h := range headers {
 		table.SetCell(0, col,
 			tview.NewTableCell(fmt.Sprintf("[yellow]%s", h)).
