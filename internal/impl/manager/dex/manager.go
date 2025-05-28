@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"math/big"
+
 	"github.com/Lazy-Parser/Collector/internal/core"
 	database "github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/Lazy-Parser/Collector/internal/generator"
 	"github.com/Lazy-Parser/Collector/internal/ui"
 	"github.com/Lazy-Parser/Collector/internal/utils"
-	"log"
-	"math/big"
 )
 
 func New() *ManagerDex {
@@ -100,7 +101,6 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 			log.Println("Stopping Manager...")
 			return nil
 		case msg := <-consumerChan:
-
 			pair := findPair(&allPairs, msg.Address)
 			if pair.Type == "quote" { // save quoteChanger price. for example, wbnb -> 0.123
 				m.quotePairs[pair.BaseToken.Address] = msg.Price
@@ -122,7 +122,7 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 				continue
 			}
 
-			msg.Price = new(big.Float).Mul(msg.Price, new(big.Float).Quo(big.NewFloat(1.0), priceChanger))
+			msg.Price = new(big.Float).Mul(msg.Price, priceChanger)
 			dashboardChan <- msg
 		}
 	}
@@ -133,27 +133,25 @@ func startCollector(
 	collector *core.DataSourceDex,
 	consumerChan chan core.CollectorDexResponse,
 ) {
-	fmt.Println("Starting collector....")
 	err := (*collector).Init()
 	if err != nil {
-		log.Fatalf("failed to init '%s' collector. %v", (*collector).Name(), err)
+		ui.GetUI().LogsView(fmt.Sprintf("failed to init '%s' collector. %v", (*collector).Name(), err))
 	}
-	fmt.Println("Inited!")
+	ui.GetUI().LogsView("DEX Inited!")
 
 	err = (*collector).Connect()
 	if err != nil {
-		log.Fatalf("failed to connect '%s' collector. %v", (*collector).Name(), err)
+		ui.GetUI().LogsView(fmt.Sprintf("failed to connect '%s' collector. %v", (*collector).Name(), err))
 	}
-	fmt.Println("Connected!")
+	ui.GetUI().LogsView("DEX Connected!")
 
-	fmt.Println("Subscribing...")
 	err = (*collector).Subscribe()
 	if err != nil {
-		log.Fatalf("failed to subscribe '%s' collector. %v", (*collector).Name(), err)
+		ui.GetUI().LogsView(fmt.Sprintf("failed to subscribe '%s' collector. %v", (*collector).Name(), err))
 	}
-	fmt.Println("Subscribed!")
+	ui.GetUI().LogsView("DEX Subscribed!")
 
-	fmt.Println("Running...")
+	ui.GetUI().LogsView("DEX Running...")
 	(*collector).Run(ctx, consumerChan)
 }
 
@@ -181,19 +179,21 @@ func findQuoteChangerToken(mapper *map[string]*big.Float, pair database.Pair) *b
 
 // Fetch decimals for all tokens and vaults for solana and save all to the database.
 // It work with ALL collectors, not only with provided
-func (m *ManagerDex) FetchAndSaveMetadata(fetchers *[]core.MetadataCollector) error {
+func (m *ManagerDex) FetchAndSaveMetadata(fetchers *[]core.MetadataCollector) {
 	for _, collector := range *fetchers {
 		metadata, err := collector.FetchMetadata()
 		if err != nil {
-			return fmt.Errorf("failed to fetch metadata. %v", err)
+			msg := fmt.Errorf("failed to fetch metadata. %v", err).Error()
+			ui.GetUI().LogsView(msg)
+			return
 		}
 
 		if err := saver(metadata); err != nil {
-			return fmt.Errorf("failed to save metadata. %v", err)
+			msg := fmt.Errorf("failed to save metadata. %v", err).Error()
+			ui.GetUI().LogsView(msg)
+			return
 		}
 	}
-
-	return nil
 }
 func saver(metadata core.Metadata) error {
 	switch metadata.ToSave {

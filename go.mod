@@ -4,12 +4,14 @@ go 1.24.0
 
 require (
 	github.com/ethereum/go-ethereum v1.15.11
+	github.com/gdamore/tcell/v2 v2.8.1
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/gorilla/websocket v1.5.3
 	github.com/jedib0t/go-pretty/v6 v6.6.7
 	github.com/joho/godotenv v1.5.1
 	github.com/mr-tron/base58 v1.2.0
 	github.com/nats-io/nats.go v1.41.1
+	github.com/rivo/tview v0.0.0-20250501113434-0c592cd31026
 	github.com/sourcegraph/conc v0.3.0
 	github.com/urfave/cli/v2 v2.27.6
 	golang.org/x/time v0.11.0
@@ -31,7 +33,6 @@ require (
 	github.com/ethereum/c-kzg-4844/v2 v2.1.0 // indirect
 	github.com/ethereum/go-verkle v0.2.2 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
-	github.com/gdamore/tcell/v2 v2.8.1 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/holiman/uint256 v1.3.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -43,7 +44,6 @@ require (
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/nats-io/nkeys v0.4.9 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
-	github.com/rivo/tview v0.0.0-20250501113434-0c592cd31026 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect

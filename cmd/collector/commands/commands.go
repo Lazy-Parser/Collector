@@ -3,22 +3,40 @@ package commands
 import (
 	"context"
 	"fmt"
+
 	"github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/Lazy-Parser/Collector/internal/dashboard"
 	db "github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/Lazy-Parser/Collector/internal/generator"
 	"github.com/Lazy-Parser/Collector/internal/impl/collector/cex/mexc"
-	manager_cex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/cex"
+	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/evm"
+	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/evm/module"
+	manager_cex "github.com/Lazy-Parser/Collector/internal/impl/manager/cex"
+	manager_dex "github.com/Lazy-Parser/Collector/internal/impl/manager/dex"
+	"github.com/Lazy-Parser/Collector/internal/ui"
 	"github.com/urfave/cli/v2"
 )
 
 func Main(*cli.Context) error {
-	fmt.Println("Welcome to Collector!")
 	ctx := context.TODO()
-	pairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "uniswap", Label: "v3"})
+	ui.CreateUI()
+
+	// just show in ui
+	go startCex(ctx)
+	go startDex(ctx)
+
+	ui.GetUI().Run()
+	return nil
+}
+
+func startCex(ctx context.Context) {
+	pairsV3, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "pancakeswap", Label: "v3"})
+	pairsV2, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "pancakeswap", Label: "v2"})
+	pairs := append(pairsV2, pairsV3...)
+
 	dataFlow := make(chan core.MexcResponse, 100)
-	//ui.GetUI().RenderTableCex(dataFlow)
-	//ui.GetUI().LogsView(fmt.Sprintf("Length: %d", len(pairs)))
+	ui.GetUI().RenderTableCex(dataFlow)
+	ui.GetUI().LogsView(fmt.Sprintf("Length: %d", len(pairs)))
 
 	collector := mexc.Mexc{Pool: mexc.CreatePool()}
 
@@ -27,56 +45,45 @@ func Main(*cli.Context) error {
 
 	go manager.Run(ctx, dataFlow)
 
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case msg := <-dataFlow:
-			fmt.Printf("%+v\n", msg)
-		}
+	ui.GetUI().RenderTableCex(dataFlow)
+}
+
+func startDex(ctx context.Context) {
+	allowedPools := []string{"pancakeswap", "uniswap", "sushiswap"}
+	// ammEth, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: allowedPools, Label: "v2"})
+	ammBsc, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "bsc", Pool: allowedPools, Label: "v2"})
+	// clmmEth, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: allowedPools, Label: "v3"})
+	clmmBsc, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "bsc", Pool: allowedPools, Label: "v3"})
+	quoteChangerPairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Type: "quote"})
+
+	msg := fmt.Sprintf("Lengths of arrays:\n"+
+		// "AMM  ETH (v2): %d\n"+
+		"AMM  BSC (v2): %d\n"+
+		// "CLMM ETH (v3): %d\n"+
+		"CLMM BSC (v3): %d\n",
+		// len(ammEth),
+		len(ammBsc),
+		// len(clmmEth),
+		len(clmmBsc))
+	ui.GetUI().LogsView(msg)
+
+	moduleAmm := module.CreateAMM()
+	moduleClmm := module.CreateCLMM()
+
+	// moduleAmm.Push(ammEth, "ethereum")
+	moduleAmm.Push(ammBsc, "bsc")
+	// moduleClmm.Push(clmmEth, "ethereum")
+	moduleClmm.Push(clmmBsc, "bsc")
+
+	evmCollector := evm.EVM{}
+	evmCollector.Push([]module.EVMModuleImplementation{moduleAmm, moduleClmm})
+	manager := manager_dex.New()
+	manager.Push(&evmCollector)
+	manager.Init(quoteChangerPairs)
+	err := manager.Run(ctx)
+	if err != nil {
+		ui.GetUI().LogsView(err.Error())
 	}
-
-	<-ctx.Done()
-
-	// cex
-
-	//allowedPools := []string{"pancakeswap", "uniswap", "sushiswap"}
-	//ammEth, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: allowedPools, Label: "v2"})
-	//ammBsc, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "bsc", Pool: allowedPools, Label: "v2"})
-	//clmmEth, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: allowedPools, Label: "v3"})
-	//clmmBsc, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "bsc", Pool: allowedPools, Label: "v3"})
-	////quoteChangerPairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Type: "quote"})
-	//
-	//msg := fmt.Sprintf("Lengths of arrays:\n"+
-	//	"AMM  ETH (v2): %d\n"+
-	//	"AMM  BSC (v2): %d\n"+
-	//	"CLMM ETH (v3): %d\n"+
-	//	"CLMM BSC (v3): %d\n",
-	//	len(ammEth),
-	//	len(ammBsc),
-	//	len(clmmEth),
-	//	len(clmmBsc))
-	//ui.GetUI().LogsView(msg)
-	//
-	//moduleAmm := module.CreateAMM()
-	//moduleClmm := module.CreateCLMM()
-	//
-	//moduleAmm.Push(ammEth, "ethereum")
-	//moduleAmm.Push(ammBsc, "bsc")
-	//moduleClmm.Push(clmmEth, "ethereum")
-	//moduleClmm.Push(clmmBsc, "bsc")
-	//
-	//evmCollector := evm.EVM{}
-	//evmCollector.Push([]module.EVMModuleImplementation{moduleAmm, moduleClmm})
-	//manager := manager_dex.New()
-	//manager.Push(&evmCollector)
-	////manager.Init(quoteChangerPairs)
-	//err := manager.Run(ctx)
-	//if err != nil {
-	//	return err
-	//}
-
-	return nil
 }
 
 func Generate(ctx *cli.Context) error {
@@ -159,66 +166,3 @@ func Table(ctx *cli.Context) error {
 
 	return nil
 }
-
-// ctx, ctxCancel := context.WithTimeout(context.Background(), time.Minute*3) // stop after 3 minutes
-// defer ctxCancel()
-//manager := managerDex.New()
-//solana := solana.Solana{}
-//solanaPairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "solana"})
-//manager.Push(&solana, &solanaPairs)
-//
-//solana.Init(&solanaPairs)
-//list, err := solana.FetchDecimals(&solanaPairs)
-//if err != nil {
-//	return fmt.Errorf("failed to fetch decimals in '%s', %v", solana.Name(), err)
-//}
-//
-//// print res
-//for token, decimal := range list {
-//	// save
-//	db.GetDB().TokenService.UpdateDecimals(&db.Token{Address: token}, decimal)
-//	fmt.Printf("Mint: %s | Decimal: %d\n", token, decimal)
-//}
-//fmt.Printf("Total: %d\n", len(list))
-//
-//fmt.Println("Saved in database!")
-
-// manager.Push(&solana, &solanaPairs)
-
-// err := manager.Push(&pancakeswapV2, &psV2pairs)
-// if err != nil {
-// 	return fmt.Errorf("managerDex push error: %v", err)
-// }
-// err = manager.Push(&pancakeswapV3, &psV3pairs)
-// if err != nil {
-// 	return fmt.Errorf("managerDex push error: %v", err)
-// }
-
-// go manager.Run(ctx)
-
-// <-ctx.Done()
-
-// select pairs, that we need to update
-// pairs, err := db.GetDB().GloabalQuery(&db.Pair{Pool: "pancakeswap"}, &db.Token{Decimals: -1})
-// if err != nil {
-// 	return fmt.Errorf("fetching pairs from db: %v", err)
-// }
-// if len(pairs) != 0 { // if some tokens do not have decimals
-// 	res, err := managerDex.FetchDecimals(collectorDex.Name(), &pairs)
-// 	if err != nil {
-// 		return fmt.Errorf("managerDex errror: %v", err)
-// 	}
-// 	fmt.Printf("Fetched decimals: %d\n", len(res))
-// 	fmt.Println("Updating database...")
-// 	// update database
-// 	for address, decimal := range res {
-// 		db.GetDB().TokenService.UpdateDecimals(&db.Token{Address: address.String()}, decimal)
-// 	}
-// 	// show updates
-// 	tokens, _ := db.GetDB().TokenService.GetAllTokens()
-// 	dashboard.ShowTokens(tokens)
-// }
-// start to listen pairs
-// listen selected pairs
-// aggregator.InitJoiner()
-// joiner := aggregator.GetJoiner()

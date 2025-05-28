@@ -2,17 +2,17 @@ package ui
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/rivo/tview"
-	"strconv"
-	"sync"
 )
 
 func (ui *UI) RenderTableCex(flow chan core.MexcResponse) {
 	addrToRow := make(map[string]int)
 	nextRow := 1
 
-	var once sync.Once
+	// var once sync.Once
 	go func() {
 		for {
 			select {
@@ -31,6 +31,9 @@ func (ui *UI) RenderTableCex(flow chan core.MexcResponse) {
 				if !exists {
 					row = nextRow
 					addrToRow[msg.Symbol] = row
+					for col := 0; col < 3; col++ {
+						ui.tableCex.SetCell(row, col, tview.NewTableCell(""))
+					}
 					nextRow++
 				}
 
@@ -43,13 +46,11 @@ func (ui *UI) RenderTableCex(flow chan core.MexcResponse) {
 							SetAlign(tview.AlignCenter))
 
 					// ASK
-					//average = findAverage(msg.Data.Asks[0][0], msg.Data.Asks[1][0], msg.Data.Asks[2][0])
 					ui.tableCex.SetCell(row, 1,
 						tview.NewTableCell(strconv.FormatFloat(msg.Data.Asks[0][0], 'f', 12, 64)).
 							SetAlign(tview.AlignCenter))
 
 					// BID
-					//average = findAverage(msg.Data.Asks[0][0], msg.Data.Asks[1][0], msg.Data.Asks[2][0])
 					ui.tableCex.SetCell(row, 2,
 						tview.NewTableCell(strconv.FormatFloat(msg.Data.Bids[0][0], 'f', 12, 64)).
 							SetAlign(tview.AlignCenter))
@@ -58,14 +59,3 @@ func (ui *UI) RenderTableCex(flow chan core.MexcResponse) {
 		}
 	}()
 }
-
-//
-//func findAverage(args ...float64) float64 {
-//	res := 0.0
-//
-//	for _, arg := range args {
-//		res += arg
-//	}
-//
-//	return res / float64(len(args))
-//}

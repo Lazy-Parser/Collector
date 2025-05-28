@@ -64,12 +64,13 @@ func createTableCex() *tview.Table {
 	table.SetTitle("CEX").SetBorder(true)
 	headers := []string{"TOKEN", "ASK", "BID"}
 	for col, h := range headers {
-		table.SetCell(0, col,
-			tview.NewTableCell(fmt.Sprintf("[yellow]%s", h)).
-				SetSelectable(false).
-				SetAlign(tview.AlignCenter))
+		cell := tview.NewTableCell(fmt.Sprintf("[yellow]%s", h)).
+            SetSelectable(false).
+            SetAlign(tview.AlignCenter).
+            SetExpansion(1)
+
+		table.SetCell(0, col, cell)
 	}
-	table.SetFixed(0, len(headers))
 	return table
 }
 
@@ -83,8 +84,8 @@ func newLogView() *tview.TextView {
 // newLayout собирает основную компоновку: две таблицы сверху, лог внизу
 func newLayout(dex, cex *tview.Table, logView *tview.TextView) *tview.Flex {
 	topFlex := tview.NewFlex().SetDirection(tview.FlexColumn).
-		AddItem(dex, 0, 3, false).
-		AddItem(cex, 0, 1, false)
+		AddItem(dex, 0, 10, false).
+		AddItem(cex, 0, 5, false)
 
 	rootFlex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(topFlex, 0, 3, false).

@@ -81,7 +81,7 @@ func (p *EVM) Subscribe() error {
 				return fmt.Errorf("failed to subcribe '%s' to '%s' network", m.Name(), network)
 			}
 
-			fmt.Printf("'%s' subscribed to '%s' sucessful \n", m.Name(), network)
+			ui.GetUI().LogsView(fmt.Sprintf("'%s' subscribed to '%s' sucessful \n", m.Name(), network))
 		}
 
 	}
