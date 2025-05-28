@@ -29,6 +29,13 @@ type Token struct {
 	Symbol  string `json:"symbol"`
 }
 
+type QuoteToken struct {
+	Address string `json:"address"`
+	Name    string `json:"name"`
+	Symbol  string `json:"symbol"`
+	Network string `json:"network"`
+}
+
 type Txns struct {
 	M5  TxnCount `json:"m5"`
 	H1  TxnCount `json:"h1"`

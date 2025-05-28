@@ -39,6 +39,7 @@ type Pair struct {
 	Pool        string `gorm:"column:pool"`
 	Label       string `gorm:"column:label"`
 	URL         string `gorm:"column:url"`
+	Type        string `gorm:"column:type"`
 }
 
 type PairQuery struct {
@@ -47,4 +48,5 @@ type PairQuery struct {
 	Pool        interface{}
 	Label       string
 	Limit       int
+	Type        string // "base" / "quote"
 }

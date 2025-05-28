@@ -4,18 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Lazy-Parser/Collector/internal/ui"
-	"log"
-
 	"github.com/Lazy-Parser/Collector/internal/core"
 	database "github.com/Lazy-Parser/Collector/internal/database"
+	"github.com/Lazy-Parser/Collector/internal/generator"
+	"github.com/Lazy-Parser/Collector/internal/ui"
 	"github.com/Lazy-Parser/Collector/internal/utils"
+	"log"
+	"math/big"
 )
 
 func New() *ManagerDex {
 	return &ManagerDex{
-		list:  []*core.DataSourceDex{},
-		pairs: map[string][]database.Pair{},
+		quotePairs: map[string]*big.Float{}, // wbnb -> price in usdt
+		list:       []*core.DataSourceDex{},
+		pairs:      map[string][]database.Pair{},
 	}
 }
 
@@ -30,11 +32,40 @@ func (m *ManagerDex) Push(collector core.DataSourceDex) error {
 	return nil
 }
 
+// Preload quote changer pairs
+func (m *ManagerDex) Init(dbPairs []database.Pair) bool {
+	// quote changer pairs
+	payload := make([]generator.QuoteToken, 100)
+	for _, dbPair := range dbPairs {
+		payload = append(payload, generator.QuoteToken{
+			Address: dbPair.BaseToken.Address,
+			Name:    dbPair.BaseToken.Name,
+			Symbol:  dbPair.BaseToken.Name,
+			Network: dbPair.Network,
+		})
+	}
+
+	res := generator.LoadQuoteChangerPairs(context.Background(), payload)
+	if len(res) == 0 {
+		return false
+	}
+
+	// add res to the local quotePairs list
+	for _, elem := range res {
+		price, _ := new(big.Float).SetString(elem.PriceUsd)
+
+		m.quotePairs[elem.Base.Address] = price
+	}
+
+	return true
+}
+
 // do not start in new goroutine! Method run make every provided collector run in seperate goroutine
 func (m *ManagerDex) Run(ctx context.Context) error {
 	// ASSIGN PAIRS TO THE CORRESPONDING COLLECTOR
-	//allPairs, _ := database.GetDB().PairService.GetAllPairs()
+	allPairs, _ := database.GetDB().PairService.GetAllPairs()
 	consumerChan := make(chan core.CollectorDexResponse, 1000)
+	dashboardChan := make(chan core.CollectorDexResponse, 1000)
 
 	// load whitelist (allowed networks / pools)
 	_, err := utils.LoadWhitelistFile()
@@ -47,20 +78,52 @@ func (m *ManagerDex) Run(ctx context.Context) error {
 		go startCollector(ctx, collector, consumerChan)
 	}
 
-	ui.GetUI().ShowCollectorPrices(consumerChan)
+	// append all quoteChanger pairs to ui dashboard
+	//for address, price := range m.quotePairs {
+	//	payload := core.CollectorDexResponse{
+	//		IsBaseToken0: true,
+	//		From:         "Pre init",
+	//		Timestamp:    time.Now().UnixMilli(),
+	//		Price:        price,
+	//		Address:      address,
+	//		Type:         "quote",
+	//	}
+	//
+	//	dashboardChan <- payload
+	//}
+
+	ui.GetUI().ShowCollectorPrices(dashboardChan)
 
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("Stopping Manager...")
 			return nil
-			//case message := <-consumerChan:
-			// just log
-			//pair := findPair(&allPairs, message.Address)
-			//fmt.Printf(
-			//	"[%s]: %s/%s - %s\n",
-			//	message.From, pair.BaseToken.Name, pair.QuoteToken.Name, message.Price.Text('f', 12),
-			//)
+		case msg := <-consumerChan:
+
+			pair := findPair(&allPairs, msg.Address)
+			if pair.Type == "quote" { // save quoteChanger price. for example, wbnb -> 0.123
+				m.quotePairs[pair.BaseToken.Address] = msg.Price
+				dashboardChan <- msg
+				continue
+			}
+
+			// Cast pair price to usdt (MBOX/WBNB -> MBOX/USDT). But first check if the current pair already contains usdt. (usdc and usdt are the same, the difference is about ~0.004%)
+			if pair.QuoteToken.Name == "USDT" || pair.QuoteToken.Name == "USDC" || pair.QuoteToken.Name == "USD1" {
+				dashboardChan <- msg
+				continue
+			}
+
+			// find the quoteChangerToken to cast. (msg = MBOX/WBNB, quoteChangerToken must have the same WBNB.address)
+			priceChanger := findQuoteChangerToken(&m.quotePairs, *pair)
+			if priceChanger == nil {
+				// if not found, do nothing, just log
+				ui.GetUI().LogsView(fmt.Sprintf("'%s' didnt found in QuoteChanger arr to cast '%s' -> 'USDT'", pair.QuoteToken.Name, pair.QuoteToken.Name))
+				continue
+			}
+
+			msg.Price = new(big.Float).Mul(msg.Price, new(big.Float).Quo(big.NewFloat(1.0), priceChanger))
+			dashboardChan <- msg
 		}
 	}
 }
@@ -104,6 +167,16 @@ func findPair(pairs *[]database.Pair, address string) *database.Pair {
 	}
 
 	return res
+}
+
+func findQuoteChangerToken(mapper *map[string]*big.Float, pair database.Pair) *big.Float {
+	for token, priceChanger := range *mapper {
+		if token == pair.QuoteToken.Address {
+			return priceChanger
+		}
+	}
+
+	return nil
 }
 
 // Fetch decimals for all tokens and vaults for solana and save all to the database.

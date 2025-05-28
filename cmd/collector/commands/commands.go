@@ -1,60 +1,80 @@
 package commands
 
 import (
-	// "context"
 	"context"
 	"fmt"
+	"github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/Lazy-Parser/Collector/internal/dashboard"
 	db "github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/Lazy-Parser/Collector/internal/generator"
-	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/evm"
-	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/evm/module"
-	manager_dex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/dex"
-	"github.com/Lazy-Parser/Collector/internal/ui"
+	"github.com/Lazy-Parser/Collector/internal/impl/collector/cex/mexc"
+	manager_cex "github.com/Lazy-Parser/Collector/internal/impl/collector/manager/cex"
 	"github.com/urfave/cli/v2"
 )
 
 func Main(*cli.Context) error {
+	fmt.Println("Welcome to Collector!")
 	ctx := context.TODO()
+	pairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "uniswap", Label: "v3"})
+	dataFlow := make(chan core.MexcResponse, 100)
+	//ui.GetUI().RenderTableCex(dataFlow)
+	//ui.GetUI().LogsView(fmt.Sprintf("Length: %d", len(pairs)))
 
-	ui.GetUI().LogsView("TEST1")
-	ui.GetUI().LogsView("TEST2")
+	collector := mexc.Mexc{Pool: mexc.CreatePool()}
 
-	allowedPools := []string{"pancakeswap", "uniswap", "sushiswap"}
-	ammEth, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: allowedPools, Label: "v2"})
-	ammBsc, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "bsc", Pool: allowedPools, Label: "v2"})
-	clmmEth, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: allowedPools, Label: "v3"})
-	clmmBsc, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "bsc", Pool: allowedPools, Label: "v3"})
+	manager := manager_cex.CreateManager()
+	manager.NewCollector(&collector, pairs)
 
-	msg := fmt.Sprintf("Lengths of arrays:\n"+
-		"AMM  ETH (v2): %d\n"+
-		"AMM  BSC (v2): %d\n"+
-		"CLMM ETH (v3): %d\n"+
-		"CLMM BSC (v3): %d\n",
-		len(ammEth),
-		len(ammBsc),
-		len(clmmEth),
-		len(clmmBsc))
-	ui.GetUI().LogsView(msg)
+	go manager.Run(ctx, dataFlow)
 
-	moduleAmm := module.CreateAMM()
-	moduleClmm := module.CreateCLMM()
-
-	moduleAmm.Push(ammEth, "ethereum")
-	moduleAmm.Push(ammBsc, "bsc")
-	moduleClmm.Push(clmmEth, "ethereum")
-	moduleClmm.Push(clmmBsc, "bsc")
-
-	evmCollector := evm.EVM{}
-	evmCollector.Push([]module.EVMModuleImplementation{moduleAmm, moduleClmm})
-	manager := manager_dex.New()
-	manager.Push(&evmCollector)
-	err := manager.Run(ctx)
-	if err != nil {
-		return err
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case msg := <-dataFlow:
+			fmt.Printf("%+v\n", msg)
+		}
 	}
 
-	ui.GetUI().Run()
+	<-ctx.Done()
+
+	// cex
+
+	//allowedPools := []string{"pancakeswap", "uniswap", "sushiswap"}
+	//ammEth, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: allowedPools, Label: "v2"})
+	//ammBsc, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "bsc", Pool: allowedPools, Label: "v2"})
+	//clmmEth, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: allowedPools, Label: "v3"})
+	//clmmBsc, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "bsc", Pool: allowedPools, Label: "v3"})
+	////quoteChangerPairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Type: "quote"})
+	//
+	//msg := fmt.Sprintf("Lengths of arrays:\n"+
+	//	"AMM  ETH (v2): %d\n"+
+	//	"AMM  BSC (v2): %d\n"+
+	//	"CLMM ETH (v3): %d\n"+
+	//	"CLMM BSC (v3): %d\n",
+	//	len(ammEth),
+	//	len(ammBsc),
+	//	len(clmmEth),
+	//	len(clmmBsc))
+	//ui.GetUI().LogsView(msg)
+	//
+	//moduleAmm := module.CreateAMM()
+	//moduleClmm := module.CreateCLMM()
+	//
+	//moduleAmm.Push(ammEth, "ethereum")
+	//moduleAmm.Push(ammBsc, "bsc")
+	//moduleClmm.Push(clmmEth, "ethereum")
+	//moduleClmm.Push(clmmBsc, "bsc")
+	//
+	//evmCollector := evm.EVM{}
+	//evmCollector.Push([]module.EVMModuleImplementation{moduleAmm, moduleClmm})
+	//manager := manager_dex.New()
+	//manager.Push(&evmCollector)
+	////manager.Init(quoteChangerPairs)
+	//err := manager.Run(ctx)
+	//if err != nil {
+	//	return err
+	//}
 
 	return nil
 }
@@ -90,8 +110,15 @@ func Table(ctx *cli.Context) error {
 
 	if flag == "spairs" {
 		// fetch pairs
+		// 195	USD1/WBNB             2        16  0x4a3218606AF9B4728a9F187E1c1a8c07fBC172a9    bsc       pancakeswap  v3     quote
+		// 196  JitoSOL/SOL         118         6  Hp53XEtt4S8SvPCXarsLSdGfZBuUr5mMmZmX2DRNXQKp  solana    orca         wp     quote
+		// 197  SOL/USDC              6        13  8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj  solana    raydium      CLMM   quote
+		// 198  FRAX/USDC            85         4  0x9A834b70C07C81a9fcD6F22E842BF002fBfFbe4D    ethereum  uniswap      v3     quote
+		// 199  OETH/WETH           159         8  0x52299416C469843F4e0d54688099966a6c7d720f    ethereum  uniswap      v3     quote
+		// 200  WBTC/WETH
+
 		res, err := db.GetDB().PairService.GetAllPairs()
-		//res, err := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: "uniswap"})
+
 		if err != nil {
 			return err
 		}
@@ -99,9 +126,20 @@ func Table(ctx *cli.Context) error {
 		dashboard.ShowPairs(res)
 	} else if flag == "stokens" {
 		// fetch tokens
-		res, err := db.GetDB().TokenService.GetAllTokens()
+		allowedPools := []string{"pancakeswap", "uniswap", "sushiswap"}
+		pairs, err := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: allowedPools})
+		//res, err := db.GetDB().TokenService.GetAllTokens()
 		if err != nil {
 			return err
+		}
+		tokens := make(map[db.Token]struct{})
+		for _, pair := range pairs {
+			tokens[pair.QuoteToken] = struct{}{}
+		}
+
+		var res []db.Token
+		for t := range tokens {
+			res = append(res, t)
 		}
 
 		dashboard.ShowTokens(res)

@@ -12,7 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"log"
 )
 
 type EVM struct {
@@ -107,15 +106,21 @@ func (p *EVM) Run(ctx context.Context, consumerCh chan core.CollectorDexResponse
 
 func (p *EVM) handleSwap(m *module.EVMModuleImplementation, vLog types.Log, consumerCh chan core.CollectorDexResponse) {
 	curPair := (*m).FindPair(vLog.Address.String())
-	token0, _ := sortTokens(
-		common.HexToAddress(curPair.BaseToken.Address),
-		common.HexToAddress(curPair.QuoteToken.Address),
-	)
+	if curPair == nil {
+		msg := fmt.Sprintf("no such pair '%s'", vLog.Address.String())
+		ui.GetUI().LogsView(msg)
+		return
+	}
 
-	isBaseToken0 := isBaseToken(token0, common.HexToAddress(curPair.BaseToken.Address))
+	// Получаем адреса токенов из пары (как в контракте)
+	tokenA := common.HexToAddress(curPair.BaseToken.Address)
+	tokenB := common.HexToAddress(curPair.QuoteToken.Address)
 
-	msg := fmt.Sprintf("Token0: %s | BaseToken: %s", token0, common.HexToAddress(curPair.BaseToken.Address))
-	ui.GetUI().LogsView(msg)
+	// Сортируем токены по адресам, как это делает Uniswap
+	token0, _ := sortTokens(tokenA, tokenB)
+
+	// Определяем, является ли токен0 базовым в системе
+	isBaseToken0 := isBaseToken(token0, tokenA)
 
 	res, err := (*m).HandleSwap(
 		vLog,
@@ -125,7 +130,9 @@ func (p *EVM) handleSwap(m *module.EVMModuleImplementation, vLog types.Log, cons
 		isBaseToken0,
 	)
 	if err != nil {
-		log.Fatal("[HandleSwap] error handleSwap: %v", err)
+		msg := fmt.Sprintf("[HandleSwap] error handleSwap: %v", err)
+		ui.GetUI().LogsView(msg)
+		return
 	}
 
 	consumerCh <- res
@@ -142,5 +149,5 @@ func sortTokens(tokenA, tokenB common.Address) (token0, token1 common.Address) {
 }
 
 func isBaseToken(token, baseToken common.Address) bool {
-	return bytes.Equal(token.Bytes(), baseToken.Bytes())
+	return bytes.EqualFold(token.Bytes(), baseToken.Bytes())
 }

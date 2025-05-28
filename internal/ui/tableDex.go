@@ -50,37 +50,37 @@ func (ui *UI) ShowCollectorPrices(flow chan core.CollectorDexResponse) {
 				// Schedule the UI update on the tview event loop.
 				ui.app.QueueUpdateDraw(func() {
 					// PAIR
-					ui.table.SetCell(row, 0,
+					ui.tableDex.SetCell(row, 0,
 						tview.NewTableCell(pair.BaseToken.Name+"/"+pair.QuoteToken.Name).
 							SetAlign(tview.AlignCenter))
 
 					// PRICE
-					ui.table.SetCell(row, 1,
+					ui.tableDex.SetCell(row, 1,
 						tview.NewTableCell(msg.Price.Text('f', 12)).
 							SetAlign(tview.AlignCenter))
 
 					// NETWORK
-					ui.table.SetCell(row, 2,
+					ui.tableDex.SetCell(row, 2,
 						tview.NewTableCell(pair.Network).
 							SetAlign(tview.AlignCenter))
 
 					// POOL
-					ui.table.SetCell(row, 3,
+					ui.tableDex.SetCell(row, 3,
 						tview.NewTableCell(pair.Pool).
 							SetAlign(tview.AlignCenter))
 
 					// VERSION
-					ui.table.SetCell(row, 4,
+					ui.tableDex.SetCell(row, 4,
 						tview.NewTableCell(pair.Label).
 							SetAlign(tview.AlignCenter))
 
 					// URL
-					ui.table.SetCell(row, 5,
+					ui.tableDex.SetCell(row, 5,
 						tview.NewTableCell(pair.URL).
 							SetAlign(tview.AlignRight))
 
 					// IsBaseToken0
-					ui.table.SetCell(row, 6,
+					ui.tableDex.SetCell(row, 6,
 						tview.NewTableCell(strconv.FormatBool(msg.IsBaseToken0)).
 							SetAlign(tview.AlignRight))
 				})

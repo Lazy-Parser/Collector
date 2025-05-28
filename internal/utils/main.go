@@ -2,14 +2,16 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
-	d "github.com/Lazy-Parser/Collector/internal/core"
+	core "github.com/Lazy-Parser/Collector/internal/core"
 )
 
 // converts symbol string with underscores or without
@@ -40,22 +42,22 @@ func GetWorkDirPath() (string, error) {
 	return workDirPath, nil
 }
 
-func LoadWhitelistFile() ([]d.Whitelist, error) {
+func LoadWhitelistFile() ([]core.Whitelist, error) {
 	workDir, err := GetWorkDirPath()
 	if err != nil {
-		return []d.Whitelist{}, err
+		return []core.Whitelist{}, err
 	}
 
 	path := filepath.Join(workDir, "config", "network_pool_whitelist.json")
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return []d.Whitelist{}, fmt.Errorf("loading 'config/network_pool_whitelist.json' file: %v", err)
+		return []core.Whitelist{}, fmt.Errorf("loading 'config/network_pool_whitelist.json' file: %v", err)
 	}
 
-	var res []d.Whitelist
+	var res []core.Whitelist
 	err = json.Unmarshal(data, &res)
 	if err != nil {
-		return []d.Whitelist{}, fmt.Errorf("unmarshal data from 'config/network_pool_whitelist.json' file: %v", err)
+		return []core.Whitelist{}, fmt.Errorf("unmarshal data from 'config/network_pool_whitelist.json' file: %v", err)
 	}
 
 	return res, nil
@@ -67,6 +69,16 @@ func TernaryIf[T any](cond bool, argtrue T, argfalse T) T {
 	}
 
 	return argfalse
+}
+
+func LoadEnv(envName string) (string, error) {
+	godotenv.Load(".env")
+	res := os.Getenv(envName)
+	if res == "" {
+		return "", errors.New("failed to load .env var: " + envName)
+	}
+
+	return res, nil
 }
 
 func IsErrorReturn(err error, message string, messageArgs ...string) error {

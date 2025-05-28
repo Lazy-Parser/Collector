@@ -61,11 +61,15 @@ type Pair struct {
 	Pool        string   `json:"pool"`
 	Labels      []string `json:"labels"` // pool version. For exmaple: pancakeswap v2 / v3
 	URL         string   `json:"url"`
+	Type        string   `json:"type"` // base or quote
+	PriceNative string   `json:"priceNative"`
+	PriceUsd    string   `json:"priceUsd"`
 }
 type Token struct {
 	Name     string `json:"token"`
 	Address  string `json:"tokenAddress"`
 	Decimals int    `json:"tokenDecimals"`
+	Symbol   string `json:"symbol"`
 }
 
 type TokenMeta struct {
@@ -103,4 +107,15 @@ type Metadata struct {
 	Decimals map[string]uint8
 	Vaults   map[string]string
 	ToSave   string // "decimals" OR "vaults" OR "all"
+}
+
+type MexcResponse struct {
+	Symbol string `json:"symbol"` // например "BTC_USDT"
+	Data   struct {
+		Asks    [][3]float64 `json:"asks"` // каждый уровень: [price, quantity, count]
+		Bids    [][3]float64 `json:"bids"`
+		Version uint64       `json:"version"`
+	} `json:"data"`
+	Channel string `json:"channel"` // "push.depth.full"
+	TS      int64  `json:"ts"`      // timestamp в ms
 }

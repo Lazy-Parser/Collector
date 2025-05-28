@@ -188,6 +188,10 @@ func (db *PairService) GetAllPairsByQuery(query PairQuery) ([]Pair, error) {
 		queryBuilder = queryBuilder.Limit(query.Limit)
 	}
 
+	if query.Type != "" {
+		queryBuilder = queryBuilder.Where("pairs.type = ?", query.Type)
+	}
+
 	res := queryBuilder.Find(&pairs)
 	return pairs, res.Error
 }
@@ -220,5 +224,37 @@ func (db *PairService) FindPair(query *Pair) (Pair, error) {
 func (db *PairService) ClearPairs() error {
 	// var token Token
 	res := db.db.Exec("DELETE FROM `pairs`")
+	return res.Error
+}
+
+func (db *PairService) DeletePair(query *Pair) error {
+	queryBuilder := db.db.Model(&Pair{})
+
+	if query.ID != 0 {
+		queryBuilder = queryBuilder.Where("pairs.id = ?", query.ID)
+	}
+
+	if query.Network != "" {
+		queryBuilder = queryBuilder.Where("pairs.network = ?", query.Network)
+	}
+
+	// Pool is an interface
+	if query.Pool != "" {
+		queryBuilder = queryBuilder.Where("pairs.pool = ?", query.Pool)
+	}
+
+	if query.Label != "" {
+		queryBuilder = queryBuilder.Where(`pairs.label = ?`, query.Label)
+	}
+
+	if query.PairAddress != "" {
+		queryBuilder = queryBuilder.Where("pairs.pair_address = ?", query.PairAddress)
+	}
+
+	if query.Type != "" {
+		queryBuilder = queryBuilder.Where("pairs.type = ?", query.Type)
+	}
+
+	res := queryBuilder.Delete(&Pair{})
 	return res.Error
 }

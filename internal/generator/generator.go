@@ -11,7 +11,7 @@ import (
 
 	// "sync/atomic"
 
-	d "github.com/Lazy-Parser/Collector/internal/core"
+	core "github.com/Lazy-Parser/Collector/internal/core"
 	database "github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/Lazy-Parser/Collector/internal/utils"
 
@@ -23,6 +23,10 @@ import (
 var (
 	dexEnpoint = "https://api.dexscreener.com/token-pairs/v1/" // {chainId}/{tokenAddress}
 	minVolume  = 100000.0                                      // minimum volume for pair - 100k$
+	usdtMap    = map[string]string{
+		"ethereum": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+		"bsc":      "0x55d398326f99059fF775485246999027B3197955",
+	}
 )
 
 func Run() {
@@ -31,12 +35,14 @@ func Run() {
 	defer ctxCancel()
 
 	var (
-		limiter = rate.NewLimiter(rate.Limit(4), 4)
-		mu      sync.Mutex
-		store   []d.Pair
+		limiter       = rate.NewLimiter(rate.Limit(4), 4)
+		mu            sync.Mutex
+		store         []core.Pair
+		quoteStoreMap map[QuoteToken]struct{} // map of unique quote tokens
 		// counter int32
 		pw = progress.NewWriter()
 	)
+	quoteStoreMap = make(map[QuoteToken]struct{})
 
 	// load all tokens from mexc
 	wl, err := utils.LoadWhitelistFile()
@@ -68,7 +74,7 @@ func Run() {
 
 	// find pairAddress and pool name from dexscreener
 	// start worker pool
-	pool := pool.New().WithMaxGoroutines(4)
+	pool1 := pool.New().WithMaxGoroutines(4)
 
 	// иногда количество network в asset больше 1, нужно удалять ненужные в файле mexc.go
 	for _, token := range tokens {
@@ -78,7 +84,7 @@ func Run() {
 			return
 
 		default:
-			pool.Go(func() {
+			pool1.Go(func() {
 				if err := limiter.Wait(ctxLimitter); err != nil {
 					return
 				}
@@ -100,21 +106,89 @@ func Run() {
 					return
 				}
 
-				normalizedPair := normalizePair(selectedPair, token.Coin)
-				// idx := atomic.AddInt32(&counter, 1)
-				// printReceivedToken(idx, *normalizedPair)
+				normalizedPair := normalizePair(selectedPair, "base")
+
+				quoteToken := QuoteToken{
+					Address: normalizedPair.Quote.Address,
+					Name:    normalizedPair.Quote.Name,
+					Symbol:  normalizedPair.Quote.Symbol,
+					Network: normalizedPair.Network,
+				}
 
 				// save pair
 				mu.Lock()
 				store = append(store, *normalizedPair)
+				quoteStoreMap[quoteToken] = struct{}{}
 				mu.Unlock()
 			})
 		}
 	}
 
-	pool.Wait()
+	// We need to cast pairs prices to usdt, so we need to add pairs quoteToken/USDT.
+	var quoteList []QuoteToken
+	for t := range quoteStoreMap {
+		quoteList = append(quoteList, t)
+	}
+
+	pool1.Wait()
+
+	list := LoadQuoteChangerPairs(ctx, quoteList)
+	for _, elem := range list {
+		store = append(store, elem)
+	}
+
 	pw.Stop()
 	savePairs(&store)
+}
+
+func LoadQuoteChangerPairs(ctx context.Context, quoteList []QuoteToken) []core.Pair {
+	var mu sync.Mutex
+	list := make([]core.Pair, 100)
+	ctxLimitter := context.Background()
+	var limiter = rate.NewLimiter(rate.Limit(4), 4)
+
+	pool2 := pool.New().WithMaxGoroutines(4)
+	for _, token := range quoteList {
+		select {
+		case <-ctx.Done():
+			log.Println("Stopping loading...")
+			return nil
+
+		default:
+			pool2.Go(func() {
+				if err := limiter.Wait(ctxLimitter); err != nil {
+					return
+				}
+
+				// skip those tokens, they are already usdt. (usdc equals to usdt, the difference is ~0.004%, so we can ignore it)
+				if token.Symbol == "USDC" || token.Symbol == "USDT" || token.Symbol == "USD1" {
+					return
+				}
+
+				res, err := FetchQuotePair(token.Network, token.Address, usdtMap[token.Network])
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				if len(res) == 0 {
+					fmt.Printf("DexScreener API return nothing for '%s', '%s', '%s'", token.Network, token.Address, usdtMap[token.Network])
+					return
+				}
+
+				normalizedPair := normalizePair(&res[0], "quote")
+				fmt.Printf("%+v\n", normalizedPair)
+
+				//save a quote pair
+				mu.Lock()
+				list = append(list, *normalizedPair)
+				mu.Unlock()
+			})
+		}
+	}
+
+	pool2.Wait()
+
+	return list
 }
 
 // methods
@@ -185,29 +259,58 @@ func validatePairs(pairs DexScreenerResponse) *PairDS {
 	return bestToken
 }
 
-func normalizePair(pair *PairDS, symbol string) *d.Pair {
-	normalized := &d.Pair{
-		Base: d.Token{
+func normalizePair(pair *PairDS, pairType string) *core.Pair {
+	normalized := &core.Pair{
+		Base: core.Token{
 			Name:     pair.BaseToken.Symbol,
 			Address:  pair.BaseToken.Address,
 			Decimals: -1,
+			Symbol:   pair.BaseToken.Symbol,
 		},
-		Quote: d.Token{
+		Quote: core.Token{
 			Name:     pair.QuoteToken.Symbol,
 			Address:  pair.QuoteToken.Address,
 			Decimals: -1,
+			Symbol:   pair.QuoteToken.Symbol,
 		},
 		PairAddress: pair.PairAddress,
 		Network:     pair.ChainID,
 		Pool:        pair.DexID,
 		Labels:      pair.Labels,
 		URL:         pair.URL,
+		Type:        pairType,
+		PriceNative: pair.PriceNative,
+		PriceUsd:    pair.PriceUSD,
 	}
 
 	return normalized
 }
 
-func savePairs(pairs *[]d.Pair) error {
+func FetchQuotePair(network string, address string, usdtAddress string) (DexScreenerResponse, error) {
+	var res DexScreenerResponse = []PairDS{}
+
+	url := "https://api.dexscreener.com/tokens/v1/" + network + "/" + address + "," + usdtAddress
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return res, fmt.Errorf("failed to fetch data from DexScreener API for '%s', '%s', '%s' pair. %v", address, usdtAddress, network, err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return res, fmt.Errorf("failed to read body from DexScreener API for '%s', '%s', '%s' pair %v", address, usdtAddress, network, err)
+	}
+
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return res, fmt.Errorf("failed to parse body from DexScreener API for '%s', '%s', '%s' pair. %v", network, usdtAddress, network, err)
+	}
+
+	return res, nil
+}
+
+func savePairs(pairs *[]core.Pair) error {
 	// NEW - save to sqlite
 	db := database.GetDB()
 	if !db.IsInitied {
@@ -237,6 +340,7 @@ func savePairs(pairs *[]d.Pair) error {
 			Pool:         p.Pool,
 			URL:          p.URL,
 			Label:        getLabel(p.Labels),
+			Type:         p.Type,
 		}
 		err = db.PairService.SavePair(&pair)
 		if err != nil {
@@ -247,20 +351,6 @@ func savePairs(pairs *[]d.Pair) error {
 	log.Println("Saved! Total saved: ", len(*pairs))
 
 	return nil
-
-	// payload, err := json.MarshalIndent(pairs, "", "  ")
-	// if err != nil {
-	// 	log.Panicf("[savePairs] Failed to parse 'pairs' to []byte, %v", err)
-	// }
-	// workDirPath, err := os.Getwd()
-	// if err != nil {
-	// 	log.Panicf("Get work directory: %v", err)
-	// }
-	// path := filepath.Join(workDirPath, "config", "pairs.json")
-	// err = os.WriteFile(path, payload, 0644)
-	// if err != nil {
-	// 	log.Panicf("Write pairs to file: %v", err)
-	// }
 }
 
 func getLabel(arr []string) string {

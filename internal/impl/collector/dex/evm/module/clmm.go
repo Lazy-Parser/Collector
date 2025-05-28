@@ -117,7 +117,7 @@ func (clmm *CLMM) HandleSwap(
 	)
 
 	// by default calculus are token1 / token0. So if Token0 is base, we should reverse price -> 1 / price
-	if isBaseToken0 {
+	if !isBaseToken0 {
 		adjustedPrice = new(big.Float).Quo(
 			new(big.Float).SetInt(big.NewInt(1)),
 			adjustedPrice,

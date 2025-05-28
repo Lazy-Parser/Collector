@@ -26,7 +26,9 @@ func (m *BaseEVMModule) FindPair(address string) *database.Pair {
 
 	for _, pairs := range m.toListen {
 		for _, pair := range pairs {
-			res = &pair
+			if pair.PairAddress == address {
+				res = &pair
+			}
 		}
 	}
 

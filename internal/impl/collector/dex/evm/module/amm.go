@@ -97,8 +97,8 @@ func (amm *AMM) HandleSwap(
 	}
 
 	// 2. Validate swap amounts
-	if (ev.Amount0In.Sign() > 0 && ev.Amount1In.Sign() > 0) ||
-		(ev.Amount0Out.Sign() > 0 && ev.Amount1Out.Sign() > 0) {
+	if (ev.Amount0In.Sign() == 0 && ev.Amount1In.Sign() == 0) ||
+		(ev.Amount0Out.Sign() == 0 && ev.Amount1Out.Sign() == 0) {
 		return resp, fmt.Errorf("[V2][handleSwap] invalid swap amounts")
 	}
 
@@ -140,6 +140,12 @@ func (amm *AMM) HandleSwap(
 	// 5. Verify price sanity
 	if price.Sign() <= 0 {
 		return resp, fmt.Errorf("[V2][handleSwap] invalid price calculation")
+	}
+	if price.Cmp(big.NewFloat(100)) == 1 { // TODO: very bad, remove in future. Sometimes there are inverted prices!!
+		price = new(big.Float).Quo(
+			big.NewFloat(1),
+			price,
+		)
 	}
 
 	resp = core.CollectorDexResponse{

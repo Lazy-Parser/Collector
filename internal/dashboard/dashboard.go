@@ -13,7 +13,7 @@ func ShowPairs(pairs []database.Pair) {
 	// --- go-pretty table set-up (duplicate to writer)
 	tw := table.NewWriter()
 	tw.SetOutputMirror(os.Stdout)
-	tw.AppendHeader(table.Row{"ID", "PAIR", "Base ID", "Quote ID", "PAIR CONTRACT", "NETWORK", "POOL", "LABEL"})
+	tw.AppendHeader(table.Row{"ID", "PAIR", "Base ID", "Quote ID", "PAIR CONTRACT", "NETWORK", "POOL", "LABEL", "TYPE"})
 	tw.SetStyle(table.StyleColoredBlackOnGreenWhite)
 
 	var rows []table.Row
@@ -27,13 +27,14 @@ func ShowPairs(pairs []database.Pair) {
 			pair.Network,
 			pair.Pool,
 			pair.Label,
+			pair.Type,
 		}
 		rows = append(rows, row)
 	}
 
 	tw.AppendRows(rows)
 	tw.AppendSeparator()
-	tw.AppendFooter(table.Row{"", "", "", "", "", "Total", len(pairs), ""})
+	tw.AppendFooter(table.Row{"", "", "", "", "", "", "Total", len(pairs), ""})
 
 	fmt.Println("PAIRS")
 	tw.Render()
