@@ -115,7 +115,8 @@ func (m *ManagerDex) Run(ctx context.Context, dashboardChan chan core.CollectorD
 			priceChanger := findQuoteChangerToken(&m.quotePairs, *pair)
 			if priceChanger == nil {
 				// if not found, do nothing, just log
-				ui.GetUI().LogsView(fmt.Sprintf("'%s' didnt found in QuoteChanger arr to cast '%s' -> 'USDT'", pair.QuoteToken.Name, pair.QuoteToken.Name))
+				msg := fmt.Sprintf("'%s' didnt found in QuoteChanger arr to cast '%s' -> 'USDT'", pair.QuoteToken.Name, pair.QuoteToken.Name)
+				ui.GetUI().LogsView(msg, "warning")
 				continue
 			}
 
@@ -132,23 +133,26 @@ func startCollector(
 ) {
 	err := (*collector).Init()
 	if err != nil {
-		ui.GetUI().LogsView(fmt.Sprintf("failed to init '%s' collector. %v", (*collector).Name(), err))
+		msg := fmt.Sprintf("failed to init '%s' collector. %v", (*collector).Name(), err)
+		ui.GetUI().LogsView(msg, "error")
 	}
-	ui.GetUI().LogsView("DEX Inited!")
+	ui.GetUI().LogsView("DEX Inited!", "log")
 
 	err = (*collector).Connect()
 	if err != nil {
-		ui.GetUI().LogsView(fmt.Sprintf("failed to connect '%s' collector. %v", (*collector).Name(), err))
+		msg := fmt.Sprintf("failed to connect '%s' collector. %v", (*collector).Name(), err)
+		ui.GetUI().LogsView(msg, "error")
 	}
-	ui.GetUI().LogsView("DEX Connected!")
+	ui.GetUI().LogsView("DEX Connected!", "log")
 
 	err = (*collector).Subscribe()
 	if err != nil {
-		ui.GetUI().LogsView(fmt.Sprintf("failed to subscribe '%s' collector. %v", (*collector).Name(), err))
+		msg := fmt.Sprintf("failed to subscribe '%s' collector. %v", (*collector).Name(), err)
+		ui.GetUI().LogsView(msg, "error")
 	}
-	ui.GetUI().LogsView("DEX Subscribed!")
+	ui.GetUI().LogsView("DEX Subscribed!", "log")
 
-	ui.GetUI().LogsView("DEX Running...")
+	ui.GetUI().LogsView("DEX Running...", "log")
 	(*collector).Run(ctx, consumerChan)
 }
 
@@ -181,13 +185,13 @@ func (m *ManagerDex) FetchAndSaveMetadata(fetchers *[]core.MetadataCollector) {
 		metadata, err := collector.FetchMetadata()
 		if err != nil {
 			msg := fmt.Errorf("failed to fetch metadata. %v", err).Error()
-			ui.GetUI().LogsView(msg)
+			ui.GetUI().LogsView(msg, "error")
 			return
 		}
 
 		if err := saver(metadata); err != nil {
 			msg := fmt.Errorf("failed to save metadata. %v", err).Error()
-			ui.GetUI().LogsView(msg)
+			ui.GetUI().LogsView(msg, "error")
 			return
 		}
 	}
