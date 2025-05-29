@@ -81,7 +81,7 @@ func (p *EVM) Subscribe() error {
 				return fmt.Errorf("failed to subcribe '%s' to '%s' network", m.Name(), network)
 			}
 
-			ui.GetUI().LogsView(fmt.Sprintf("'%s' subscribed to '%s' sucessful \n", m.Name(), network))
+			ui.GetUI().LogsView(fmt.Sprintf("'%s' subscribed to '%s' sucessful \n", m.Name(), network), "log")
 		}
 
 	}
@@ -108,7 +108,7 @@ func (p *EVM) handleSwap(m *module.EVMModuleImplementation, vLog types.Log, cons
 	curPair := (*m).FindPair(vLog.Address.String())
 	if curPair == nil {
 		msg := fmt.Sprintf("no such pair '%s'", vLog.Address.String())
-		ui.GetUI().LogsView(msg)
+		ui.GetUI().LogsView(msg, "error")
 		return
 	}
 
@@ -131,7 +131,7 @@ func (p *EVM) handleSwap(m *module.EVMModuleImplementation, vLog types.Log, cons
 	)
 	if err != nil {
 		msg := fmt.Sprintf("[HandleSwap] error handleSwap: %v", err)
-		ui.GetUI().LogsView(msg)
+		ui.GetUI().LogsView(msg, "error")
 		return
 	}
 

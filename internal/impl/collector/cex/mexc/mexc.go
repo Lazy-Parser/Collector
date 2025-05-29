@@ -47,7 +47,7 @@ func (m *Mexc) Run(ctx context.Context, consumerChan chan core.MexcResponse) {
 			body, err := handleMsg(msgBytes)
 			if err != nil {
 				//ui.GetUI().LogsView(fmt.Sprintf("[MEXC] error handleMsg: %v", err))
-				ui.GetUI().LogsView(string(msgBytes))
+				ui.GetUI().LogsView(string(msgBytes), "warning")
 				continue
 			}
 

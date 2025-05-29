@@ -4,19 +4,14 @@ package publisher
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"log"
 	"sync"
 
 	"github.com/Lazy-Parser/Collector/internal/core"
+	"github.com/Lazy-Parser/Collector/internal/ui"
+	"github.com/Lazy-Parser/Collector/internal/utils"
 	"github.com/nats-io/nats.go"
 )
-
-type Message struct {
-	Symbol    string           `json:"symbol"`
-	Futures   core.FuturesData `json:"futures"`
-	Spot      core.SpotData    `json:"spot"`
-	Timestamp int64            `json:"timestamp"`
-}
 
 var (
 	once sync.Once
@@ -24,15 +19,18 @@ var (
 )
 
 // Create connection to the NATS. Singleton
-func InitPublisher() {
+func Init() {
 	once.Do(func() {
-		natsUrl := os.Getenv("NATS_URL")
+		natsUrl, err := utils.LoadEnv("NATS_URL")
+		if err != nil {
+			log.Panic("Failed to load NATS_URL dotenv var!")
+		}
 
 		conn, err := nats.Connect(natsUrl)
 		if err != nil {
-			fmt.Errorf("connect to NATS: %w", err)
+			ui.GetUI().LogsView(fmt.Sprintf("connect to NATS: %w", err), "error")
 		}
-		fmt.Println("Connected to NATS ✅")
+		ui.GetUI().LogsView("Connected to NATS ✅", "log")
 
 		pub = &Publisher{conn}
 	})
@@ -41,20 +39,37 @@ func InitPublisher() {
 // return nats connection
 func GetPublisher() *Publisher {
 	if pub == nil {
-		fmt.Errorf("Publisher is nil. Call InitPublisher first!")
+		ui.GetUI().LogsView("Publisher is nil. Call InitPublisher first!", "error")
 	}
 
 	return pub
 }
 
-// publish (send) message by provided subject
-func (p *Publisher) Publish(subject string, data Message) error {
-	payload, err := json.Marshal(data)
-	if err != nil {
-		return fmt.Errorf("marshal nats payload: %w", err)
+// publish (send) message by provided subject. Call in goroutine!
+func (p *Publisher) PublishStreamDex(dataFlow chan core.CollectorDexResponse) error {
+	subject := "price.dex"
+
+	for msg := range dataFlow {
+		payload, _ := json.Marshal(msg)
+		if err := p.nc.Publish(subject, payload); err != nil {
+			return err
+		}
 	}
 
-	return p.nc.Publish(subject, payload)
+	return nil
+}
+
+func (p *Publisher) PublishStreamCex(dataFlow chan core.MexcResponse) error {
+	subject := "price.dex"
+
+	for msg := range dataFlow {
+		payload, _ := json.Marshal(msg)
+		if err := p.nc.Publish(subject, payload); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (p *Publisher) Close() {

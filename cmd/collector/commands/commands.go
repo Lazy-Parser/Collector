@@ -36,7 +36,7 @@ func startCex(ctx context.Context) {
 
 	dataFlow := make(chan core.MexcResponse, 100)
 	ui.GetUI().RenderTableCex(dataFlow)
-	ui.GetUI().LogsView(fmt.Sprintf("Length: %d", len(pairs)))
+	ui.GetUI().LogsView(fmt.Sprintf("Length: %d", len(pairs)), "log")
 
 	collector := mexc.Mexc{Pool: mexc.CreatePool()}
 
@@ -67,7 +67,7 @@ func startDex(ctx context.Context) {
 		len(ammBsc),
 		// len(clmmEth),
 		len(clmmBsc))
-	ui.GetUI().LogsView(msg)
+	ui.GetUI().LogsView(msg, "log")
 
 	moduleAmm := module.CreateAMM()
 	moduleClmm := module.CreateCLMM()
@@ -87,7 +87,7 @@ func startDex(ctx context.Context) {
 
 	err := manager.Run(ctx, dashboardChan)
 	if err != nil {
-		ui.GetUI().LogsView(err.Error())
+		ui.GetUI().LogsView(err.Error(), "error")
 	}
 }
 

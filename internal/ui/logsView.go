@@ -2,9 +2,17 @@ package ui
 
 import "fmt"
 
-func (ui *UI) LogsView(logLine string) {
+// t (type) - "error" | "log" | "warning"
+func (ui *UI) LogsView(logLine string, t string) {
 	ui.app.QueueUpdateDraw(func() {
-		fmt.Fprintf(ui.logView, "[white]%s\n", logLine)
+		if t == "error" {
+			fmt.Fprintf(ui.logView, "[red]%s\n", logLine)
+		} else if t == "log" {
+			fmt.Fprintf(ui.logView, "[white]%s\n", logLine)
+		} else if t == "warning" {
+			fmt.Fprintf(ui.logView, "[yellow]%s\n", logLine)
+		}
+
 		if !ui.paused {
 			ui.logView.ScrollToEnd()
 		}
