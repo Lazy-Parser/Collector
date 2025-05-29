@@ -60,7 +60,7 @@ func (p *Publisher) PublishStreamDex(dataFlow chan core.CollectorDexResponse) er
 }
 
 func (p *Publisher) PublishStreamCex(dataFlow chan core.MexcResponse) error {
-	subject := "price.dex"
+	subject := "price.cex.mexc"
 
 	for msg := range dataFlow {
 		payload, _ := json.Marshal(msg)
