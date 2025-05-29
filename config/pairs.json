@@ -1,0 +1,2005 @@
+[
+  {
+    "baseToken": "BID",
+    "baseTokenAddress": "0xa1832f7F4e534aE557f9B5AB76dE54B1873e498B",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x764cF114f1838c22b138fB4dcDAAD03A65C946a9",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x764cf114f1838c22b138fb4dcdaad03a65c946a9"
+  },
+  {
+    "baseToken": "MICHI",
+    "baseTokenAddress": "5mbK36SZ7J19An8jFochhQS4of8g6BwUjbeCSxBSoWdp",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "GH8Ers4yzKR3UKDvgVu8cqJfGzU4cU62mTeg9bcJ7ug6",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/gh8ers4yzkr3ukdvgvu8cqjfgzu4cu62mteg9bcj7ug6"
+  },
+  {
+    "baseToken": "TRUMP",
+    "baseTokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "9d9mb8kooFfaD3SctgZtkxQypkshx6ezhbKio89ixyy2",
+    "network": "solana",
+    "pool": "meteora",
+    "labels": [
+      "DLMM"
+    ],
+    "url": "https://dexscreener.com/solana/9d9mb8kooffad3sctgztkxqypkshx6ezhbkio89ixyy2"
+  },
+  {
+    "baseToken": "BSW",
+    "baseTokenAddress": "0x965F527D9159dCe6288a2219DB51fc6Eef120dD1",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x46492B26639Df0cda9b2769429845cb991591E0A",
+    "network": "bsc",
+    "pool": "biswap",
+    "labels": null,
+    "url": "https://dexscreener.com/bsc/0x46492b26639df0cda9b2769429845cb991591e0a"
+  },
+  {
+    "baseToken": "MBOX",
+    "baseTokenAddress": "0x3203c9E46cA618C8C1cE5dC67e7e9D75f5da2377",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x8FA59693458289914dB0097F5F366d771B7a7C3F",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/bsc/0x8fa59693458289914db0097f5f366d771b7a7c3f"
+  },
+  {
+    "baseToken": "KMNO",
+    "baseTokenAddress": "KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "3ndjN1nJVUKGrJBc1hhVpER6kWTZKHdyDrPyCJyX3CXK",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/3ndjn1njvukgrjbc1hhvper6kwtzkhdydrpycjyx3cxk"
+  },
+  {
+    "baseToken": "RACA",
+    "baseTokenAddress": "0x12BB890508c125661E03b09EC06E404bc9289040",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDT",
+    "quoteTokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x1936be860d93B0Ff98f3a9b83254D61A78930B76",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x1936be860d93b0ff98f3a9b83254d61a78930b76"
+  },
+  {
+    "baseToken": "TAI",
+    "baseTokenAddress": "Hax9LTgsQkze1YFychnBLtFH8gYbQKtKfWKKg2SP6gdD",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "99a2qtfLAxv9LVhKesjEawjKy8Pwb4cypC5ccuCB4VUS",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/99a2qtflaxv9lvhkesjeawjky8pwb4cypc5ccucb4vus"
+  },
+  {
+    "baseToken": "CAT",
+    "baseTokenAddress": "0x6894CDe390a3f51155ea41Ed24a33A4827d3063D",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x6DF9aDc1837Bf37E0B1b943d59A7E50D9678c81B",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/bsc/0x6df9adc1837bf37e0b1b943d59a7e50d9678c81b"
+  },
+  {
+    "baseToken": "THE",
+    "baseTokenAddress": "0xF4C8E32EaDEC4BFe97E0F595AdD0f4450a863a11",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x51Bd5e6d3da9064D59BcaA5A76776560aB42cEb8",
+    "network": "bsc",
+    "pool": "thena",
+    "labels": null,
+    "url": "https://dexscreener.com/bsc/0x51bd5e6d3da9064d59bcaa5a76776560ab42ceb8"
+  },
+  {
+    "baseToken": "FORM",
+    "baseTokenAddress": "0x5b73A93b4E5e4f1FD27D8b3F8C97D69908b5E284",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDT",
+    "quoteTokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x7Cb113B487e025b3a69537fcA579559433240cb5",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x7cb113b487e025b3a69537fca579559433240cb5"
+  },
+  {
+    "baseToken": "TOKEN",
+    "baseTokenAddress": "0x4507cEf57C46789eF8d1a19EA45f4216bae2B528",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x05616b7B6Da03Fb4c773B76663816b360ccAEdE4",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/bsc/0x05616b7b6da03fb4c773b76663816b360ccaede4"
+  },
+  {
+    "baseToken": "TST",
+    "baseTokenAddress": "0x86Bb94DdD16Efc8bc58e6b056e8df71D9e666429",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x16969FA79651Bae11736F2f6576a86fE2726b42B",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x16969fa79651bae11736f2f6576a86fe2726b42b"
+  },
+  {
+    "baseToken": "TUT",
+    "baseTokenAddress": "0xCAAE2A2F939F51d97CdFa9A86e79e3F085b799f3",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x6dAfBf0AB4FD72e2a5C0Ad5a1ED277d3bf8a8d1f",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x6dafbf0ab4fd72e2a5c0ad5a1ed277d3bf8a8d1f"
+  },
+  {
+    "baseToken": "VVAIFU",
+    "baseTokenAddress": "FQ1tyso61AH1tzodyJfSwmzsD3GToybbRNoZxUBz21p8",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "9UMuN94bbuH53F4PTVWDYZoQjsJ3zgEx2j2vtT5Rbo1x",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/9umun94bbuh53f4ptvwdyzoqjsj3zgex2j2vtt5rbo1x"
+  },
+  {
+    "baseToken": "TWT",
+    "baseTokenAddress": "0x4B0F1812e5Df2A09796481Ff14017e6005508003",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x8cCB4544b3030dACF3d4D71C658f04e8688e25b1",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x8ccb4544b3030dacf3d4d71c658f04e8688e25b1"
+  },
+  {
+    "baseToken": "TROLLSOL",
+    "baseTokenAddress": "5UUH9RTDiSpq6HKS6bp4NdU9PNJpXRXuiw6ShBTBhgH2",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "4w2cysotX6czaUGmmWg13hDpY4QEMG2CzeKYEQyK9Ama",
+    "network": "solana",
+    "pool": "pumpswap",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/4w2cysotx6czaugmmwg13hdpy4qemg2czekyeqyk9ama"
+  },
+  {
+    "baseToken": "FARTBOY",
+    "baseTokenAddress": "y1AZt42vceCmStjW4zetK3VoNarC1VxJ5iDjpiupump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "DhHVd5s4hqBGnTkFztsK98WGPtYUJjpUCqNnWaNLWb4F",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/dhhvd5s4hqbgntkfztsk98wgptyujjpucqnnwanlwb4f"
+  },
+  {
+    "baseToken": "PWEASE",
+    "baseTokenAddress": "CniPCE4b3s8gSUPhUiyMjXnytrEqUrMfSsnbBjLCpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "9fmdkQipJK2teeUv53BMDXi52uRLbrEvV38K8GBNkiM7",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/9fmdkqipjk2teeuv53bmdxi52urlbrevv38k8gbnkim7"
+  },
+  {
+    "baseToken": "DBR",
+    "baseTokenAddress": "DBRiDgJAMsM95moTzJs7M9LnkGErpbv9v6CUR1DXnUu5",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "E5H5BXLranyJFHEzvR3R2j6kGDQ3Fnx8sPKSsgYqyya8",
+    "network": "solana",
+    "pool": "meteora",
+    "labels": [
+      "DYN"
+    ],
+    "url": "https://dexscreener.com/solana/e5h5bxlranyjfhezvr3r2j6kgdq3fnx8spkssgyqyya8"
+  },
+  {
+    "baseToken": "BUBB",
+    "baseTokenAddress": "0xd5369a3CaC0f4448A9A96bb98AF9c887c92fC37B",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xc8255e3fA0F4c6e6678807d663f9e2263e23a8E8",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0xc8255e3fa0f4c6e6678807d663f9e2263e23a8e8"
+  },
+  {
+    "baseToken": "UFD",
+    "baseTokenAddress": "eL5fUxj2J4CiQsmW85k5FG9DvuQjjUoBHoQBi2Kpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "78sBWyimVhLumzZg1bdMD6ogGig8QpmgYZqCXNyMxx4z",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/78sbwyimvhlumzzg1bdmd6oggig8qpmgyzqcxnymxx4z"
+  },
+  {
+    "baseToken": "B2",
+    "baseTokenAddress": "0x783c3f003f172c6Ac5AC700218a357d2D66Ee2a2",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xc1A780989734a0e5df875cEbe410748562e1c5e6",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0xc1a780989734a0e5df875cebe410748562e1c5e6"
+  },
+  {
+    "baseToken": "SKYAI",
+    "baseTokenAddress": "0x92aa03137385F18539301349dcfC9EbC923fFb10",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xbC42145d5A574EDe9b8860FCa2A49EB7B239Efa5",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/bsc/0xbc42145d5a574ede9b8860fca2a49eb7b239efa5"
+  },
+  {
+    "baseToken": "BR",
+    "baseTokenAddress": "0xFf7d6A96ae471BbCD7713aF9CB1fEeB16cf56B41",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xF95F84e2baD9C234f93dd66614b82F9A854b452e",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0xf95f84e2bad9c234f93dd66614b82f9a854b452e"
+  },
+  {
+    "baseToken": "AVAAI",
+    "baseTokenAddress": "DKu9kykSfbN5LBfFXtNNDPaX35o4Fv6vJ9FKk7pZpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "GjvW8JQSpKG5ogjyD3zozfaeJSShTajS5ZFrexT8L12k",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/gjvw8jqspkg5ogjyd3zozfaejsshtajs5zfrext8l12k"
+  },
+  {
+    "baseToken": "COOKIE",
+    "baseTokenAddress": "0xC0041EF357B183448B235a8Ea73Ce4E4eC8c265F",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDT",
+    "quoteTokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xD4fB9d253739C5dB6aAD90aD2409757d224CCc0C",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0xd4fb9d253739c5db6aad90ad2409757d224ccc0c"
+  },
+  {
+    "baseToken": "IO",
+    "baseTokenAddress": "BZLbGTNCSFfoth2GYDtwr7e4imWzpR5jqcUuGEwr646K",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "DmAe8iPRcgX3QyZ1HCWh8esEuABXd1rV8LUskTcv4Whj",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": [
+      "CLMM"
+    ],
+    "url": "https://dexscreener.com/solana/dmae8iprcgx3qyz1hcwh8eseuabxd1rv8lusktcv4whj"
+  },
+  {
+    "baseToken": "USA",
+    "baseTokenAddress": "69kdRLyP5DTRkpHraaSZAQbWmAwzF9guKjZfzMXzcbAs",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "HKprCtGbnh1j8xeQggzWhhVd3kwDUdphqPqDP8vMay8b",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/hkprctgbnh1j8xeqggzwhhvd3kwdudphqpqdp8vmay8b"
+  },
+  {
+    "baseToken": "CGPT",
+    "baseTokenAddress": "0x9840652DC04fb9db2C43853633f0F62BE6f00f98",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDT",
+    "quoteTokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x1E8D7AB96323953faC85ab687f5D38b45344e62d",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x1e8d7ab96323953fac85ab687f5d38b45344e62d"
+  },
+  {
+    "baseToken": "ME",
+    "baseTokenAddress": "MEFNBXixkEbait3xn9bkm8WsJzXtVsaJEn4c8Sam21u",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "82pU8g2jQDyDfuH5nmCgFANS4vKTv6tPXe4WBDHRRyWh",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": [
+      "CLMM"
+    ],
+    "url": "https://dexscreener.com/solana/82pu8g2jqdydfuh5nmcgfans4vktv6tpxe4wbdhrrywh"
+  },
+  {
+    "baseToken": "KOMA",
+    "baseTokenAddress": "0xd5eaAaC47bD1993d661bc087E15dfb079a7f3C19",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x0eC12dB33551AFBa853b691B4EDf49196eA0e99A",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/bsc/0x0ec12db33551afba853b691b4edf49196ea0e99a"
+  },
+  {
+    "baseToken": "BUZZ",
+    "baseTokenAddress": "9DHe3pycTuymFk4H4bbPoAJ4hQrr2kaLDF6J6aAKpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "J2p6tgZDkvtHQ3VfbGRjzHJNLrqFgGfvjJsp2K7HX5cH",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/j2p6tgzdkvthq3vfbgrjzhjnlrqfggfvjjsp2k7hx5ch"
+  },
+  {
+    "baseToken": "AAVE",
+    "baseTokenAddress": "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xdceaf5d0E5E0dB9596A47C0c4120654e80B1d706",
+    "network": "ethereum",
+    "pool": "uniswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/ethereum/0xdceaf5d0e5e0db9596a47c0c4120654e80b1d706"
+  },
+  {
+    "baseToken": "HOUSE",
+    "baseTokenAddress": "DitHyRMQiSDhn5cnKMJV2CDDt6sVct96YrECiM49pump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "Gj5t6KjTw3gWW7SrMHEi1ojCkaYHyvLwb17gktf96HNH",
+    "network": "solana",
+    "pool": "pumpswap",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/gj5t6kjtw3gww7srmhei1ojckayhyvlwb17gktf96hnh"
+  },
+  {
+    "baseToken": "MELANIA",
+    "baseTokenAddress": "FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "3qhdX4gRWJabvcTLSw8UKrqHENF1ZVeXegQnrada6B5B",
+    "network": "solana",
+    "pool": "meteora",
+    "labels": [
+      "DLMM"
+    ],
+    "url": "https://dexscreener.com/solana/3qhdx4grwjabvctlsw8ukrqhenf1zvexegqnrada6b5b"
+  },
+  {
+    "baseToken": "1DOLLAR",
+    "baseTokenAddress": "GHichsGq8aPnqJyz6Jp1ASTK4PNLpB5KrD6XrfDjpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "HzLxx6SoViXoqB2KYDGT1gWEckZ9ooRnv8n3xN6uvfez",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/hzlxx6sovixoqb2kydgt1gweckz9oornv8n3xn6uvfez"
+  },
+  {
+    "baseToken": "PNUT",
+    "baseTokenAddress": "2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "4AZRPNEfCJ7iw28rJu5aUyeQhYcvdcNm8cswyL51AY9i",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/4azrpnefcj7iw28rju5auyeqhycvdcnm8cswyl51ay9i"
+  },
+  {
+    "baseToken": "VVV",
+    "baseTokenAddress": "0xacfE6019Ed1A7Dc6f7B508C02d1b04ec88cC21bf",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x67A11022B7B6ed66f81233F6C8Ed6e48F7826530",
+    "network": "base",
+    "pool": "uniswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/base/0x67a11022b7b6ed66f81233f6c8ed6e48f7826530"
+  },
+  {
+    "baseToken": "GRASS",
+    "baseTokenAddress": "Grass7B4RdKfBCjTKgSqnXkqjwiGvQyFbuSCUJr3XXjs",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "5BEYpX8vFT9FZx7doc8cdhzUXZh7Tbr3GR27tHYcZQjB",
+    "network": "solana",
+    "pool": "meteora",
+    "labels": [
+      "DLMM"
+    ],
+    "url": "https://dexscreener.com/solana/5beypx8vft9fzx7doc8cdhzuxzh7tbr3gr27thyczqjb"
+  },
+  {
+    "baseToken": "BERT",
+    "baseTokenAddress": "HgBRWfYxEfvPhtqkaeymCQtHCrKE46qQ43pKe8HCpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "BmsZE6TkZYskyS1PatPKRyyazGdxWFxdia4BuvLg9AgY",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/bmsze6tkzyskys1patpkryyazgdxwfxdia4buvlg9agy"
+  },
+  {
+    "baseToken": "ZEREBRO",
+    "baseTokenAddress": "8x5VqbHA8D7NkD52uNuS5nnt3PwA8pLD34ymskeSo2Wn",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "3sjNoCnkkhWPVXYGDtem8rCciHSGc9jSFZuUAzKbvRVp",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/3sjnocnkkhwpvxygdtem8rccihsgc9jsfzuuazkbvrvp"
+  },
+  {
+    "baseToken": "FRED",
+    "baseTokenAddress": "CNvitvFnSM5ed6K28RUNSaAjqqz5tX1rA5HgaBN9pump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "8SQNDszijLRLnXmfQBPzxbBhSUjRJur7CEfqcQZQz1hQ",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/8sqndszijlrlnxmfqbpzxbbhsujrjur7cefqcqzqz1hq"
+  },
+  {
+    "baseToken": "CHEEMS",
+    "baseTokenAddress": "0x0DF0587216a4a1bB7d5082fdc491d93d2dD4B413",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x38231d4ef9d33EBea944C75a21301ff6986499C3",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x38231d4ef9d33ebea944c75a21301ff6986499c3"
+  },
+  {
+    "baseToken": "ARCSOL",
+    "baseTokenAddress": "61V8vBaqAGMpgDQi4JcAwo1dmBGHsyhzodcPqnEVpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "J3b6dvheS2Y1cbMtVz5TCWXNegSjJDbUKxdUVDPoqmS7",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/j3b6dvhes2y1cbmtvz5tcwxnegsjjdbukxduvdpoqms7"
+  },
+  {
+    "baseToken": "SIREN",
+    "baseTokenAddress": "0x997A58129890bBdA032231A52eD1ddC845fc18e1",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x028ca9e999D3Ba038e81F1901c5AF3e7a28e3fc6",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x028ca9e999d3ba038e81f1901c5af3e7a28e3fc6"
+  },
+  {
+    "baseToken": "TITCOIN",
+    "baseTokenAddress": "FtUEW73K6vEYHfbkfpdBZfWpxgQar2HipGdbutEhpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "4qQM2x2pfhU3ToscAqkQxTfhTm7DmJe8LGWU9kvqeNH4",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/4qqm2x2pfhu3toscaqkqxtfhtm7dmje8lgwu9kvqenh4"
+  },
+  {
+    "baseToken": "KAITO",
+    "baseTokenAddress": "0x98d0baa52b2D063E780DE12F615f963Fe8537553",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x51bC3d86583652d2bA5B788341bF64A8A43c1FC3",
+    "network": "base",
+    "pool": "uniswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/base/0x51bc3d86583652d2ba5b788341bf64a8a43c1fc3"
+  },
+  {
+    "baseToken": "WIF",
+    "baseTokenAddress": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/ep2ib6dydeeqd8mfe2ezhcxx3kp3k2elkkirfpm5eymx"
+  },
+  {
+    "baseToken": "FHE",
+    "baseTokenAddress": "0xd55C9fB62E176a8Eb6968f32958FeFDD0962727E",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xC21F33C21d44339b16DD9D8183cbe4CA2B774c3f",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/bsc/0xc21f33c21d44339b16dd9d8183cbe4ca2b774c3f"
+  },
+  {
+    "baseToken": "POPE",
+    "baseTokenAddress": "9u8PP725K2GUf4p5bhKebrzHTGgvHp6KDeQPf7jc1F1W",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "4phTBETgXSxwjDf4tXhaQirZ2okWQBtUW29mgqdcYCRx",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/4phtbetgxsxwjdf4txhaqirz2okwqbtuw29mgqdcycrx"
+  },
+  {
+    "baseToken": "WHITE",
+    "baseTokenAddress": "0x9cdf242Ef7975D8c68D5C1F5B6905801699b1940",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x6Ec94F50cAdcc79984463688dE42A0Ca696EC2db",
+    "network": "ethereum",
+    "pool": "uniswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/ethereum/0x6ec94f50cadcc79984463688de42a0ca696ec2db"
+  },
+  {
+    "baseToken": "DADDY",
+    "baseTokenAddress": "4Cnk9EPnW5ixfLZatCPJjDB1PUtcRpVVgTQukm9epump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "zcdAw3jpcqEY8JYVxNVMqs2cU35cyDdy4ot7V8edNhz",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/zcdaw3jpcqey8jyvxnvmqs2cu35cyddy4ot7v8ednhz"
+  },
+  {
+    "baseToken": "GFM",
+    "baseTokenAddress": "E1jCTXdkMRoawoWoqfbhiNkkLbxcSHPssMo36U84pump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "5ZFEcHfHhSGXXg7R8wA9FEYfw4kbbvoc4a4ChyJyNhZ9",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/5zfechfhhsgxxg7r8wa9feyfw4kbbvoc4a4chyjynhz9"
+  },
+  {
+    "baseToken": "SWARMS",
+    "baseTokenAddress": "74SBV4zDXxTRgv1pEMoECskKBkZHc2yGPnc7GYVepump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "HL4KFTfhZZMm7NGefszQxzJ3M6CaDWE7TesyuRuQYmMJ",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/hl4kftfhzzmm7ngefszqxzj3m6cadwe7tesyuruqymmj"
+  },
+  {
+    "baseToken": "LUCE",
+    "baseTokenAddress": "CBdCxKo9QavR9hfShgpEBG3zekorAeD7W1jfq2o3pump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "HQWsAXxH3dGy9DQbryJyDrquKt2eDY6MMHWmpUEKfgZq",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/hqwsaxxh3dgy9dqbryjydrqukt2edy6mmhwmpuekfgzq"
+  },
+  {
+    "baseToken": "BROCCOLIF2B",
+    "baseTokenAddress": "0x23D3F4EaaA515403C6765bb623F287a8Cca28F2b",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xC18CAa1658B91076425c8D287CA1B8e238344bfE",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0xc18caa1658b91076425c8d287ca1b8e238344bfe"
+  },
+  {
+    "baseToken": "BROCCOLIF3B",
+    "baseTokenAddress": "0x12B4356C65340Fb02cdff01293F95FEBb1512F3b",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xdB25C09d96C165B62F6e6F9d9b17174738d897BA",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0xdb25c09d96c165b62f6e6f9d9b17174738d897ba"
+  },
+  {
+    "baseToken": "YZYSOL",
+    "baseTokenAddress": "9gyfbPVwwZx4y1hotNSLcqXCQNpNqqz6ZRvo8yTLpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "6oi9cUuPCbzK3YKCNnj47Ren7LrSuwcsYA48uMBKemJS",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/6oi9cuupcbzk3ykcnnj47ren7lrsuwcsya48umbkemjs"
+  },
+  {
+    "baseToken": "MOODENG",
+    "baseTokenAddress": "ED5nyyWEzpPPiWimP8vYm7sD7TD3LAt3Q3gRTWHzPJBY",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "22WrmyTj8x2TRVQen3fxxi2r4Rn6JDHWoMTpsSmn8RUd",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/22wrmytj8x2trvqen3fxxi2r4rn6jdhwomtpssmn8rud"
+  },
+  {
+    "baseToken": "HNT",
+    "baseTokenAddress": "hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "CSP4RmB6kBHkKGkyTnzt9zYYXDA8SbZ5Do5WfZcjqjE4",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/csp4rmb6kbhkkgkytnzt9zyyxda8sbz5do5wfzcjqje4"
+  },
+  {
+    "baseToken": "CHILLGUY",
+    "baseTokenAddress": "Df6yfrKC8kZE3KNkrHERKzAetSxbrWeniQfyJY4Jpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "93tjgwff5Ac5ThyMi8C4WejVVQq4tuMeMuYW1LEYZ7bu",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/93tjgwff5ac5thymi8c4wejvvqq4tumemuyw1leyz7bu"
+  },
+  {
+    "baseToken": "MYRO",
+    "baseTokenAddress": "HhJpBhRRn4g56VsyLuT8DL5Bv31HkXqsrahTTUCZeZg4",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "5WGYajM1xtLy3QrLHGSX4YPwsso3jrjEsbU1VivUErzk",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/5wgyajm1xtly3qrlhgsx4ypwsso3jrjesbu1vivuerzk"
+  },
+  {
+    "baseToken": "AGIXT",
+    "baseTokenAddress": "F9TgEJLLRUKDRF16HgjUCdJfJ5BK6ucyiW8uJxVPpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "iJuiniVZc7rHYKcvEy9Dz5arHjjmrbfYLdY4etGfQXr",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/ijuinivzc7rhykcvey9dz5arhjjmrbfyldy4etgfqxr"
+  },
+  {
+    "baseToken": "LAYER",
+    "baseTokenAddress": "LAYER4xPpTCb3QL8S9u41EAhAX7mhBn8Q6xMTwY2Yzc",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "G6drsaPCR3pxsEmSTAc81kW1EL3kFAFwtSAkzUZXmgH3",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": [
+      "CLMM"
+    ],
+    "url": "https://dexscreener.com/solana/g6drsapcr3pxsemstac81kw1el3kfafwtsakzuzxmgh3"
+  },
+  {
+    "baseToken": "BUTTHOLE",
+    "baseTokenAddress": "CboMcTUYUcy9E6B3yGdFn6aEsGUnYV6yWeoeukw6pump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "T5mZpKou42YF3ssrQyrxFJZDL4zvBKg8u1HxqBfDyoo",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/t5mzpkou42yf3ssrqyrxfjzdl4zvbkg8u1hxqbfdyoo"
+  },
+  {
+    "baseToken": "PRCL",
+    "baseTokenAddress": "4LLbsb5ReP3yEtYzmXewyGjcir5uXtKFURtaEUVC2AHs",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "7AhWSjMiXtxgZ6tB39V65sF3Rguv6arkbLWyk2v9MxRV",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/7ahwsjmixtxgz6tb39v65sf3rguv6arkblwyk2v9mxrv"
+  },
+  {
+    "baseToken": "DONKEY",
+    "baseTokenAddress": "0xA49fA5E8106E2d6d6a69E78df9B6A20AaB9c4444",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x58495Ea0271d957632415B5494966899A1FA0BE3",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/bsc/0x58495ea0271d957632415b5494966899a1fa0be3"
+  },
+  {
+    "baseToken": "AERO",
+    "baseTokenAddress": "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x6cDcb1C4A4D1C3C6d054b27AC5B77e89eAFb971d",
+    "network": "base",
+    "pool": "aerodrome",
+    "labels": null,
+    "url": "https://dexscreener.com/base/0x6cdcb1c4a4d1c3c6d054b27ac5b77e89eafb971d"
+  },
+  {
+    "baseToken": "STONKS",
+    "baseTokenAddress": "6NcdiK8B5KK2DzKvzvCfqi8EHaEqu48fyEzC8Mm9pump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "5N96fYr2ZzaiNyZaYGAi31xvT5ExzfPnwh2s95yaXXSv",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/5n96fyr2zzainyzaygai31xvt5exzfpnwh2s95yaxxsv"
+  },
+  {
+    "baseToken": "DOLO",
+    "baseTokenAddress": "0x0F81001eF0A83ecCE5ccebf63EB302c70a39a654",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x003896387666C5c11458EEb3F927B72a11b19783",
+    "network": "ethereum",
+    "pool": "uniswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/ethereum/0x003896387666c5c11458eeb3f927b72a11b19783"
+  },
+  {
+    "baseToken": "ZORA",
+    "baseTokenAddress": "0x1111111111166b7FE7bd91427724B487980aFc69",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x3f53f1Fd5b7723DDf38D93a584D280B9b94C3111",
+    "network": "base",
+    "pool": "aerodrome",
+    "labels": null,
+    "url": "https://dexscreener.com/base/0x3f53f1fd5b7723ddf38d93a584d280b9b94c3111"
+  },
+  {
+    "baseToken": "JELLYJELLY",
+    "baseTokenAddress": "FeR8VBqNRSUD5NtXAj2n3j1dAHkZHfyDktKuLXD4pump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "3bC2e2RxcfvF9oP22LvbaNsVwoS2T98q6ErCRoayQYdq",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/3bc2e2rxcfvf9op22lvbansvwos2t98q6ercroayqydq"
+  },
+  {
+    "baseToken": "DRIFT",
+    "baseTokenAddress": "DriFtupJYLTosbwoN8koMbEYSx54aFAVLddWsbksjwg7",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "5kkX8fiYgBHJ8TdYaLUchtD2HWb2aabxtPZMzm32e2df",
+    "network": "solana",
+    "pool": "meteora",
+    "labels": [
+      "DLMM"
+    ],
+    "url": "https://dexscreener.com/solana/5kkx8fiygbhj8tdyaluchtd2hwb2aabxtpzmzm32e2df"
+  },
+  {
+    "baseToken": "PAXG",
+    "baseTokenAddress": "0x45804880De22913dAFE09f4980848ECE6EcbAf78",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x5aE13BAAEF0620FdaE1D355495Dc51a17adb4082",
+    "network": "ethereum",
+    "pool": "uniswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/ethereum/0x5ae13baaef0620fdae1d355495dc51a17adb4082"
+  },
+  {
+    "baseToken": "PAWS",
+    "baseTokenAddress": "PAWSxhjTyNJELywYiYTxCN857utnYmWXu7Q59Vgn6ZQ",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "2ehkk542BiMKVXBp18EuD6pXQwbqXskNHDnvBLjYXQYU",
+    "network": "solana",
+    "pool": "meteora",
+    "labels": [
+      "DYN"
+    ],
+    "url": "https://dexscreener.com/solana/2ehkk542bimkvxbp18eud6pxqwbqxsknhdnvbljyxqyu"
+  },
+  {
+    "baseToken": "GHIBLI",
+    "baseTokenAddress": "4TBi66vi32S7J8X1A6eWfaLHYmUXu7CStcEmsJQdpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "H9d3XHfvMGfoohydEpqh4w3mopnvjCRzE9VqaiHKdqs7",
+    "network": "solana",
+    "pool": "pumpswap",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/h9d3xhfvmgfoohydepqh4w3mopnvjcrze9vqaihkdqs7"
+  },
+  {
+    "baseToken": "TNSR",
+    "baseTokenAddress": "TNSRxcUxoT9xBG3de7PiJyTDYu7kskLqcpddxnEJAS6",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "7LqL8hDYVYBgoif19fSozZurxm3ve129tfkftz6WdFkR",
+    "network": "solana",
+    "pool": "meteora",
+    "labels": [
+      "DLMM"
+    ],
+    "url": "https://dexscreener.com/solana/7lql8hdyvybgoif19fsozzurxm3ve129tfkftz6wdfkr"
+  },
+  {
+    "baseToken": "POPCAT",
+    "baseTokenAddress": "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "AHTTzwf3GmVMJdxWM8v2MSxyjZj8rQR6hyAC3g9477Yj",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/ahttzwf3gmvmjdxwm8v2msxyjzj8rqr6hyac3g9477yj"
+  },
+  {
+    "baseToken": "JUP",
+    "baseTokenAddress": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "C1MgLojNLWBKADvu9BHdtgzz1oZX4dZ5zGdGcgvvW8Wz",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/c1mglojnlwbkadvu9bhdtgzz1ozx4dz5zgdgcgvvw8wz"
+  },
+  {
+    "baseToken": "GIGA",
+    "baseTokenAddress": "63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "4xxM4cdb6MEsCxM52xvYqkNbzvdeWWsPDZrBcTqVGUar",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/4xxm4cdb6mescxm52xvyqknbzvdewwspdzrbctqvguar"
+  },
+  {
+    "baseToken": "FWOG",
+    "baseTokenAddress": "A8C3xuqscfmyLrte3VmTqrAq8kgMASius9AFNANwpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "AB1eu2L1Jr3nfEft85AuD2zGksUbam1Kr8MR3uM2sjwt",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/ab1eu2l1jr3nfeft85aud2zgksubam1kr8mr3um2sjwt"
+  },
+  {
+    "baseToken": "SHELL",
+    "baseTokenAddress": "0xf2c88757f8d03634671208935974B60a2a28Bdb3",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x1D519280255d5D90F469f79dC8f5ABE05F64429f",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x1d519280255d5d90f469f79dc8f5abe05f64429f"
+  },
+  {
+    "baseToken": "ORCA",
+    "baseTokenAddress": "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "Hxw77h9fEx598afiiZunwHaX3vYu9UskDk9EpPNZp1mG",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/hxw77h9fex598afiizunwhax3vyu9uskdk9eppnzp1mg"
+  },
+  {
+    "baseToken": "BNBCARD",
+    "baseTokenAddress": "0xDc06717F367e57A16e06CcE0c4761604460da8Fc",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x78fc96f3543337cd5393533eA66dC8fe42Ad054d",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x78fc96f3543337cd5393533ea66dc8fe42ad054d"
+  },
+  {
+    "baseToken": "CLOUD",
+    "baseTokenAddress": "CLoUDKc4Ane7HeQcPpE3YHnznRxhMimJ4MyaUqyHFzAu",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "F1KKNyUCsQcZLRjwQ4abX6Ri8gDAQ46nHwSHFKA5sFQv",
+    "network": "solana",
+    "pool": "meteora",
+    "labels": [
+      "DLMM"
+    ],
+    "url": "https://dexscreener.com/solana/f1kknyucsqczlrjwq4abx6ri8gdaq46nhwshfka5sfqv"
+  },
+  {
+    "baseToken": "AI16Z",
+    "baseTokenAddress": "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "44W73kGYQgXCTNkGxUmHv8DDBPCxojBcX49uuKmbFc9U",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/44w73kgyqgxctnkgxumhv8ddbpcxojbcx49uukmbfc9u"
+  },
+  {
+    "baseToken": "PARTI",
+    "baseTokenAddress": "0x59264f02D301281f3393e1385c0aEFd446Eb0F00",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xC0FB39f705Ee65Ef098dD5452997A7846d156aa9",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0xc0fb39f705ee65ef098dd5452997a7846d156aa9"
+  },
+  {
+    "baseToken": "PENGU",
+    "baseTokenAddress": "2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "FAqh648xeeaTqL7du49sztp9nfj5PjRQrfvaMccyd9cz",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/faqh648xeeatql7du49sztp9nfj5pjrqrfvamccyd9cz"
+  },
+  {
+    "baseToken": "DARK",
+    "baseTokenAddress": "8BtoThi2ZoXnF7QQK1Wjmh2JuBw9FjVvhnGMVZ2vpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "4bLcvqxuLia8cFKeMKPXx31iCoty9KbU7bWYYNfCMsSV",
+    "network": "solana",
+    "pool": "pumpswap",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/4blcvqxulia8cfkemkpxx31icoty9kbu7bwyynfcmssv"
+  },
+  {
+    "baseToken": "ALPACA",
+    "baseTokenAddress": "0x8F0528cE5eF7B51152A59745bEfDD91D97091d2F",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xF3CE6Aac24980E6B657926dfC79502Ae414d3083",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v1"
+    ],
+    "url": "https://dexscreener.com/bsc/0xf3ce6aac24980e6b657926dfc79502ae414d3083"
+  },
+  {
+    "baseToken": "MANEKI",
+    "baseTokenAddress": "25hAyBQfoDhfWx9ay6rarbgvWGwDdNqcHsXS3jQ3mTDJ",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "2aPsSVxFw6dGRqWWUKfwujN6WVoyxuhjJaPzYaJvGDDR",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/2apssvxfw6dgrqwwukfwujn6wvoyxuhjjapzyajvgddr"
+  },
+  {
+    "baseToken": "AIOT",
+    "baseTokenAddress": "0x55ad16Bd573B3365f43A9dAeB0Cc66A73821b4a5",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xb433aE7E7011a2fb9A4BBB86140E0f653DCFcFBa",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0xb433ae7e7011a2fb9a4bbb86140e0f653dcfcfba"
+  },
+  {
+    "baseToken": "FLOKI",
+    "baseTokenAddress": "0xfb5B838b6cfEEdC2873aB27866079AC55363D37E",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x231d9e7181E8479A8B40930961e93E7ed798542C",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/bsc/0x231d9e7181e8479a8b40930961e93e7ed798542c"
+  },
+  {
+    "baseToken": "MUBARAK",
+    "baseTokenAddress": "0x5C85D6C6825aB4032337F11Ee92a72DF936b46F6",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x90A54475D512B8f3852351611c38faD30a513491",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x90a54475d512b8f3852351611c38fad30a513491"
+  },
+  {
+    "baseToken": "MUBARAKAH",
+    "baseTokenAddress": "0x3199A64Bc8aaBDFd9A3937a346CC59c3d81D8a9a",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xacB622435b634e75b61473bE6F839c46E36BD754",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0xacb622435b634e75b61473be6f839c46e36bd754"
+  },
+  {
+    "baseToken": "PLUME",
+    "baseTokenAddress": "0x4C1746A800D224393fE2470C70A35717eD4eA5F1",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xe35Bfbf439D7C37E2Df41BF1236cCf1dEc0543fd",
+    "network": "ethereum",
+    "pool": "uniswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/ethereum/0xe35bfbf439d7c37e2df41bf1236ccf1dec0543fd"
+  },
+  {
+    "baseToken": "MEW",
+    "baseTokenAddress": "MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "ENrEBzFdNp8mZ11j1wXYZ5mbyX5yA3Z4t9ALbBKtZ2RD",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/enrebzfdnp8mz11j1wxyz5mbyx5ya3z4t9albbktz2rd"
+  },
+  {
+    "baseToken": "ZBCN",
+    "baseTokenAddress": "ZBCNpuD7YMXzTHB2fhGkGi78MNsHGLRXUhRewNRm9RU",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "6Mo8W6b67brHWokLNeXPdfwH7B1ir3xYCGd4EcBen6eM",
+    "network": "solana",
+    "pool": "meteora",
+    "labels": [
+      "DLMM"
+    ],
+    "url": "https://dexscreener.com/solana/6mo8w6b67brhwoklnexpdfwh7b1ir3xycgd4ecben6em"
+  },
+  {
+    "baseToken": "OBOL",
+    "baseTokenAddress": "0x0B010000b7624eb9B3DfBC279673C76E9D29D5F7",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDT",
+    "quoteTokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x09400c5bDE8e2f2E08d959BA3c7F36D514f62C9b",
+    "network": "ethereum",
+    "pool": "uniswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/ethereum/0x09400c5bde8e2f2e08d959ba3c7f36d514f62c9b"
+  },
+  {
+    "baseToken": "PONKE",
+    "baseTokenAddress": "5z3EqYQo9HiCEs3R84RCDMu2n7anpDMxRhdK8PSWmrRC",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "5uTwG3y3F5cx4YkodgTjWEHDrX5HDKZ5bZZ72x8eQ6zE",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/5utwg3y3f5cx4ykodgtjwehdrx5hdkz5bzz72x8eq6ze"
+  },
+  {
+    "baseToken": "MYX",
+    "baseTokenAddress": "0xD82544bf0dfe8385eF8FA34D67e6e4940CC63e16",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x6eC31Af1Bb9a72aaCEc12E4dED508861b05F4503",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x6ec31af1bb9a72aacec12e4ded508861b05f4503"
+  },
+  {
+    "baseToken": "VIRTUAL",
+    "baseTokenAddress": "0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x529d2863a1521d0b57db028168fdE2E97120017C",
+    "network": "base",
+    "pool": "uniswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/base/0x529d2863a1521d0b57db028168fde2e97120017c"
+  },
+  {
+    "baseToken": "FIDA",
+    "baseTokenAddress": "EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "A73SMfz2Skp4PkQpDd1UrMiwaseazk5wKKAWKf96Dcys",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/a73smfz2skp4pkqpdd1urmiwaseazk5wkkawkf96dcys"
+  },
+  {
+    "baseToken": "SOLV",
+    "baseTokenAddress": "0xabE8E5CabE24Cb36df9540088fD7cE1175b9bc52",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDT",
+    "quoteTokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xc13EE38CEb54C871EeBa75C88fE19199aebd6845",
+    "network": "bsc",
+    "pool": "thena",
+    "labels": null,
+    "url": "https://dexscreener.com/bsc/0xc13ee38ceb54c871eeba75c88fe19199aebd6845"
+  },
+  {
+    "baseToken": "JAGER",
+    "baseTokenAddress": "0x74836cC0E821A6bE18e407E6388E430B689C66e9",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x589e1c953BCB822a2094Fd8C7cBbD84A7762Fb04",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/bsc/0x589e1c953bcb822a2094fd8c7cbbd84a7762fb04"
+  },
+  {
+    "baseToken": "NOS",
+    "baseTokenAddress": "nosXBVoaCTtYdLvKY6Csb4AC8JCdQKKAaWYtx2ZMoo7",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "Cj7kD2VmzwSrwKBieuYYbjPEvr8gwhNi76KUESbGDNfF",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/cj7kd2vmzwsrwkbieuyybjpevr8gwhni76kuesbgdnff"
+  },
+  {
+    "baseToken": "BANANAS31",
+    "baseTokenAddress": "0x3d4f0513E8a29669B960f9dBcA61861548A9A760",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x7F51BBf34156ba802dEB0E38B7671DC4fa32041d",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x7f51bbf34156ba802deb0e38b7671dc4fa32041d"
+  },
+  {
+    "baseToken": "LISTA",
+    "baseTokenAddress": "0xFceB31A79F71AC9CBDCF853519c1b12D379EdC46",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDT",
+    "quoteTokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x2C533e2C2B4fd1172b5A0a0178805Be1526a15a7",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x2c533e2c2b4fd1172b5a0a0178805be1526a15a7"
+  },
+  {
+    "baseToken": "GRIFFAIN",
+    "baseTokenAddress": "KENJSUYLASHUMfHyy5o4Hp2FdNqZg1AsUPhfH2kYvEP",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "CpsMssqi3P9VMvNqxrdWVbSBCwyUHbGgNcrw7MorBq3g",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/cpsmssqi3p9vmvnqxrdwvbsbcwyuhbggncrw7morbq3g"
+  },
+  {
+    "baseToken": "ALCH",
+    "baseTokenAddress": "HNg5PYJmtqcmzXrv6S9zP1CDKk5BgDuyFBxbvNApump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "FyDF3vKQFbcvNTsBi7L7LremrFPmXKbQqgAgnPg1hXXd",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/fydf3vkqfbcvntsbi7l7lremrfpmxkbqqgagnpg1hxxd"
+  },
+  {
+    "baseToken": "CAKE",
+    "baseTokenAddress": "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDT",
+    "quoteTokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x7f51c8AaA6B0599aBd16674e2b17FEc7a9f674A1",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x7f51c8aaa6b0599abd16674e2b17fec7a9f674a1"
+  },
+  {
+    "baseToken": "CAPTAINBNB",
+    "baseTokenAddress": "0x47A1EB0b825b73e6A14807BEaECAFef199d5477c",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x07F071AA224e2FC2Cf03cA2e6558Ec6181d66a90",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x07f071aa224e2fc2cf03ca2e6558ec6181d66a90"
+  },
+  {
+    "baseToken": "SONIC",
+    "baseTokenAddress": "SonicxvLud67EceaEzCLRnMTBqzYUUYNr93DBkBdDES",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "26BQ9SdKYP6odaFeGQC3oaST724QPFLpVuWqpB7xL1US",
+    "network": "solana",
+    "pool": "meteora",
+    "labels": [
+      "DLMM"
+    ],
+    "url": "https://dexscreener.com/solana/26bq9sdkyp6odafegqc3oast724qpflpvuwqpb7xl1us"
+  },
+  {
+    "baseToken": "BOME",
+    "baseTokenAddress": "ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "DSUvc5qf5LJHHV5e2tD184ixotSnCnwj7i4jJa4Xsrmt",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/dsuvc5qf5ljhhv5e2td184ixotsncnwj7i4jja4xsrmt"
+  },
+  {
+    "baseToken": "BOOP",
+    "baseTokenAddress": "boopkpWqe68MSxLqBGogs8ZbUDN4GXaLhFwNP7mpP1i",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "62xUy3X5qeFzE36tbvnAod8wDf7MT6CJmjnVkNeZQpKV",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/62xuy3x5qefze36tbvnaod8wdf7mt6cjmjnvknezqpkv"
+  },
+  {
+    "baseToken": "KILO",
+    "baseTokenAddress": "0x503Fa24B7972677F00C4618e5FBe237780C1df53",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xC242E7C7d4bC5E920ab2199C407298514b16c92F",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0xc242e7c7d4bc5e920ab2199c407298514b16c92f"
+  },
+  {
+    "baseToken": "VINE",
+    "baseTokenAddress": "6AJcP7wuLwmRYLBNbi825wgguaPsWzPBEHcHndpRpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "58fzJMbX5PatnfJPqWWsqkVFPRKptkbb5r2vCw4Qq3z9",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/58fzjmbx5patnfjpqwwsqkvfprkptkbb5r2vcw4qq3z9"
+  },
+  {
+    "baseToken": "PIPPIN",
+    "baseTokenAddress": "Dfh5DzRgSvvCFDoYc2ciTkMrbDfRKybA4SoFbPmApump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "8WwcNqdZjCY5Pt7AkhupAFknV2txca9sq6YBkGzLbvdt",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/8wwcnqdzjcy5pt7akhupafknv2txca9sq6ybkgzlbvdt"
+  },
+  {
+    "baseToken": "PYTH",
+    "baseTokenAddress": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "8erNF5u3CHrqZJXtkfY8CjSxFYF1yqHmN8uDbAhk6tWM",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/8ernf5u3chrqzjxtkfy8cjsxfyf1yqhmn8udbahk6twm"
+  },
+  {
+    "baseToken": "FARTCOIN",
+    "baseTokenAddress": "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "C9U2Ksk6KKWvLEeo5yUQ7Xu46X7NzeBJtd9PBfuXaUSM",
+    "network": "solana",
+    "pool": "orca",
+    "labels": [
+      "wp"
+    ],
+    "url": "https://dexscreener.com/solana/c9u2ksk6kkwvleeo5yuq7xu46x7nzebjtd9pbfuxausm"
+  },
+  {
+    "baseToken": "ZEUS",
+    "baseTokenAddress": "ZEUS1aR7aX8DFFJf5QjWj2ftDDdNTroMNGo8YoQm3Gq",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "E5X7mWprg8pdAqBT5HJ1ehu4crAsgUkUX5MwCjuTusZU",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": [
+      "CLMM"
+    ],
+    "url": "https://dexscreener.com/solana/e5x7mwprg8pdaqbt5hj1ehu4crasgukux5mwcjutuszu"
+  },
+  {
+    "baseToken": "GOAT",
+    "baseTokenAddress": "CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "9Tb2ohu5P16BpBarqd3N27WnkF51Ukfs8Z1GzzLDxVZW",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/9tb2ohu5p16bpbarqd3n27wnkf51ukfs8z1gzzldxvzw"
+  },
+  {
+    "baseToken": "BROCCOLI",
+    "baseTokenAddress": "0x6d5AD1592ed9D6D1dF9b93c793AB759573Ed6714",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xA5067360b13Fc7A2685Dc82dcD1bF2B4B8D7868B",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0xa5067360b13fc7a2685dc82dcd1bf2b4b8d7868b"
+  },
+  {
+    "baseToken": "GORK",
+    "baseTokenAddress": "38PgzpJYu2HkiYvV8qePFakB8tuobPdGm2FFEn7Dpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "37iWFSqgnTSAfShoBTBzQghwsTtkWAZW3yVzgJWKn6iK",
+    "network": "solana",
+    "pool": "pumpswap",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/37iwfsqgntsafshobtbzqghwsttkwazw3yvzgjwkn6ik"
+  },
+  {
+    "baseToken": "RIFSOL",
+    "baseTokenAddress": "GJtJuWD9qYcCkrwMBmtY1tpapV1sKfB2zUv9Q4aqpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "A8iNixG97AjK5kCXTdi5ooDg2DrKeEBpnW2Ghchpe4j1",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/a8inixg97ajk5kcxtdi5oodg2drkeebpnw2ghchpe4j1"
+  },
+  {
+    "baseToken": "AIXBT",
+    "baseTokenAddress": "0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xf1Fdc83c3A336bdbDC9fB06e318B08EadDC82FF4",
+    "network": "base",
+    "pool": "uniswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/base/0xf1fdc83c3a336bdbdc9fb06e318b08eaddc82ff4"
+  },
+  {
+    "baseToken": "ANON",
+    "baseTokenAddress": "9McvH6w97oewLmPxqQEoHUAv3u5iYMyQ9AeZZhguYf1T",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "AeGBjqTeXiEgdAxU1ZhBEqmkXk6RuQNCXJWvdo4N4CBg",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": [
+      "CPMM"
+    ],
+    "url": "https://dexscreener.com/solana/aegbjqtexiegdaxu1zhbeqmkxk6ruqncxjwvdo4n4cbg"
+  },
+  {
+    "baseToken": "RENDER",
+    "baseTokenAddress": "rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "FZ8MJvdTPbp8juhtFCCzb7LsKunhexgzShGQ59SUJkNL",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": [
+      "CLMM"
+    ],
+    "url": "https://dexscreener.com/solana/fz8mjvdtpbp8juhtfcczb7lskunhexgzshgq59sujknl"
+  },
+  {
+    "baseToken": "RAD",
+    "baseTokenAddress": "0x31c8EAcBFFdD875c74b94b077895Bd78CF1E64A3",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDC",
+    "quoteTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x8C1c499b1796D7F3C2521AC37186B52De024e58c",
+    "network": "ethereum",
+    "pool": "uniswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/ethereum/0x8c1c499b1796d7f3c2521ac37186b52de024e58c"
+  },
+  {
+    "baseToken": "RAY",
+    "baseTokenAddress": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "2AXXcN6oN9bBT5owwmTH53C7QHUXvhLeu718Kqt8rvY2",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": [
+      "CLMM"
+    ],
+    "url": "https://dexscreener.com/solana/2axxcn6on9bbt5owwmth53c7qhuxvhleu718kqt8rvy2"
+  },
+  {
+    "baseToken": "ACT",
+    "baseTokenAddress": "GJAFwWjJ3vnTsrQVabjBVK2TYB1YtRCQXRDfDgUnpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "B4PHSkL6CeZbxVqm1aUPQuVpc5ERFcaZj7u9dhtphmVX",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/b4phskl6cezbxvqm1aupquvpc5erfcazj7u9dhtphmvx"
+  },
+  {
+    "baseToken": "REX",
+    "baseTokenAddress": "0x90869b3a42E399951bd5F5fF278B8CC5ee1Dc0fE",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDT",
+    "quoteTokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x81E3088D7C6e0D6EcCF00a2f85b7cF87b5B0055A",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0x81e3088d7c6e0d6eccf00a2f85b7cf87b5b0055a"
+  },
+  {
+    "baseToken": "RFC",
+    "baseTokenAddress": "C3DwDjT17gDvvCYC2nsdGHxDHVmQRdhKfpAdqQ29pump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "D6Rgz1JG2syjsTXGaSAZ39cLffWL4TfabEAAnJHGRrZC",
+    "network": "solana",
+    "pool": "pumpswap",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/d6rgz1jg2syjstxgasaz39clffwl4tfabeaanjhgrrzc"
+  },
+  {
+    "baseToken": "SLERF",
+    "baseTokenAddress": "7BgBvyjrZX1YKz4oh9mjb8ZScatkkwb8DzFx7LoiVkM3",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "AgFnRLUScRD2E4nWQxW73hdbSN7eKEUb2jHX7tx9YTYc",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/agfnrluscrd2e4nwqxw73hdbsn7ekeub2jhx7tx9ytyc"
+  },
+  {
+    "baseToken": "HOSICO",
+    "baseTokenAddress": "9wK8yN6iz1ie5kEJkvZCTxyN1x5sTdNfx8yeMY8Ebonk",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "J333LZ5UhEjwxb64dcD756viUFXr164dVNxQpXuMPH9V",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/j333lz5uhejwxb64dcd756viufxr164dvnxqpxumph9v"
+  },
+  {
+    "baseToken": "ALU",
+    "baseTokenAddress": "0x8263CD1601FE73C066bf49cc09841f35348e3be0",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0x3C7e7122f4DDcfC5b5c31b5c735Ce2Ae3b015856",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/bsc/0x3c7e7122f4ddcfc5b5c31b5c735ce2ae3b015856"
+  },
+  {
+    "baseToken": "BANK",
+    "baseTokenAddress": "0x3AeE7602b612de36088F3ffEd8c8f10E86EbF2bF",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xee6fF918A1f68B5d2FDEcb14b367FA2EB5C6951c",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/bsc/0xee6ff918a1f68b5d2fdecb14b367fa2eb5c6951c"
+  },
+  {
+    "baseToken": "APX",
+    "baseTokenAddress": "0x78F5d389F5CDCcFc41594aBaB4B0Ed02F31398b3",
+    "baseTokenDecimals": 0,
+    "quoteToken": "WBNB",
+    "quoteTokenAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xAf839f4D3620a1EED00cCc21dDC01119C26a75E1",
+    "network": "bsc",
+    "pool": "pancakeswap",
+    "labels": [
+      "v2"
+    ],
+    "url": "https://dexscreener.com/bsc/0xaf839f4d3620a1eed00ccc21ddc01119c26a75e1"
+  },
+  {
+    "baseToken": "XAUT",
+    "baseTokenAddress": "0x68749665FF8D2d112Fa859AA293F07A622782F38",
+    "baseTokenDecimals": 0,
+    "quoteToken": "USDT",
+    "quoteTokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "0xa91F80380D9Cc9c86EB98D2965A0DED9E2000791",
+    "network": "ethereum",
+    "pool": "uniswap",
+    "labels": [
+      "v3"
+    ],
+    "url": "https://dexscreener.com/ethereum/0xa91f80380d9cc9c86eb98d2965a0ded9e2000791"
+  },
+  {
+    "baseToken": "BAN",
+    "baseTokenAddress": "9PR7nCP9DpcUotnDPVLUBUZKu5WAYkwrCUx9wDnSpump",
+    "baseTokenDecimals": 0,
+    "quoteToken": "SOL",
+    "quoteTokenAddress": "So11111111111111111111111111111111111111112",
+    "quoteTokenDecimals": 0,
+    "pairAddress": "DmAsjXoceoL5vTKZbYpTpXPo7MKm16FMfNMm3PJFiUha",
+    "network": "solana",
+    "pool": "raydium",
+    "labels": null,
+    "url": "https://dexscreener.com/solana/dmasjxoceol5vtkzbyptpxpo7mkm16fmfnmm3pjfiuha"
+  }
+]
