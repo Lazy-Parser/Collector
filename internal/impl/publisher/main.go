@@ -7,7 +7,6 @@ import (
 	"log"
 	"sync"
 
-	"github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/Lazy-Parser/Collector/internal/ui"
 	"github.com/Lazy-Parser/Collector/internal/utils"
 	"github.com/nats-io/nats.go"
@@ -28,7 +27,7 @@ func Init() {
 
 		conn, err := nats.Connect(natsUrl)
 		if err != nil {
-			ui.GetUI().LogsView(fmt.Sprintf("connect to NATS: %w", err), "error")
+			ui.GetUI().LogsView(fmt.Errorf("connect to NATS: %w", err).Error(), "error")
 		}
 		ui.GetUI().LogsView("Connected to NATS ✅", "log")
 
@@ -46,7 +45,7 @@ func GetPublisher() *Publisher {
 }
 
 // publish (send) message by provided subject. Call in goroutine!
-func (p *Publisher) PublishStreamDex(dataFlow chan core.CollectorDexResponse) error {
+func (p *Publisher) PublishStreamDex(dataFlow chan DexTick) error {
 	subject := "price.dex"
 
 	for msg := range dataFlow {
@@ -59,7 +58,7 @@ func (p *Publisher) PublishStreamDex(dataFlow chan core.CollectorDexResponse) er
 	return nil
 }
 
-func (p *Publisher) PublishStreamCex(dataFlow chan core.MexcResponse) error {
+func (p *Publisher) PublishStreamCex(dataFlow chan CexTick) error {
 	subject := "price.cex.mexc"
 
 	for msg := range dataFlow {

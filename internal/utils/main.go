@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/joho/godotenv"
+
 	core "github.com/Lazy-Parser/Collector/internal/core"
+	"github.com/Lazy-Parser/Collector/internal/database"
 )
 
 // converts symbol string with underscores or without
@@ -95,4 +97,24 @@ func IsErrorLog(err error, message string, messageArgs ...string) error {
 	}
 
 	return nil
+}
+
+func FindPairByBaseName(pairs *[]database.Pair, baseName string) (database.Pair, bool) {
+	for _, pair := range *pairs {
+		if strings.EqualFold(strings.ToLower(pair.BaseToken.Name), strings.ToLower(baseName)) {
+			return pair, true
+		}
+	}
+	
+	return database.Pair{}, false
+}
+
+func FindPairByAddress(pairs *[]database.Pair, pairAddress string) (database.Pair, bool) {
+	for _, pair := range *pairs {
+		if strings.EqualFold(pair.PairAddress, pairAddress) {
+			return pair, true
+		}
+	}
+	
+	return database.Pair{}, false
 }

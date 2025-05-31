@@ -3,6 +3,9 @@ package commands
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"strconv"
+	"strings"
 
 	"github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/Lazy-Parser/Collector/internal/dashboard"
@@ -13,17 +16,26 @@ import (
 	"github.com/Lazy-Parser/Collector/internal/impl/collector/dex/evm/module"
 	manager_cex "github.com/Lazy-Parser/Collector/internal/impl/manager/cex"
 	manager_dex "github.com/Lazy-Parser/Collector/internal/impl/manager/dex"
+	"github.com/Lazy-Parser/Collector/internal/impl/publisher"
 	"github.com/Lazy-Parser/Collector/internal/ui"
+	"github.com/Lazy-Parser/Collector/internal/utils"
 	"github.com/urfave/cli/v2"
 )
 
 func Main(*cli.Context) error {
 	ctx := context.TODO()
+	publisher.Init()
 	ui.CreateUI()
 
 	// just show in ui
 	go startCex(ctx)
 	go startDex(ctx)
+
+	// close publisher
+	go func() {
+		<-ctx.Done()
+		publisher.GetPublisher().Close()
+	}()
 
 	ui.GetUI().Run()
 	return nil
@@ -33,19 +45,57 @@ func startCex(ctx context.Context) {
 	pairsV3, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "pancakeswap", Label: "v3"})
 	pairsV2, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Pool: "pancakeswap", Label: "v2"})
 	pairs := append(pairsV2, pairsV3...)
-
-	dataFlow := make(chan core.MexcResponse, 100)
-	ui.GetUI().RenderTableCex(dataFlow)
 	ui.GetUI().LogsView(fmt.Sprintf("Length: %d", len(pairs)), "log")
 
-	collector := mexc.Mexc{Pool: mexc.CreatePool()}
+	dataFlow := make(chan core.MexcResponse, 1000)
+	tableChan := make(chan core.MexcResponse, 1000)
+	publisherChan := make(chan publisher.CexTick, 1000)
 
+	collector := mexc.Mexc{Pool: mexc.CreatePool()}
 	manager := manager_cex.CreateManager()
 	manager.NewCollector(&collector, pairs)
 
 	go manager.Run(ctx, dataFlow)
 
-	ui.GetUI().RenderTableCex(dataFlow)
+	ui.GetUI().RenderTableCex(tableChan)
+	publisher.GetPublisher().PublishStreamCex(publisherChan)
+	for {
+		select {
+		case <-ctx.Done():
+			close(dataFlow)
+			close(tableChan)
+			close(publisherChan)
+			return
+
+		case msg := <-dataFlow:
+			if len(msg.Data.Asks) == 0 || len (msg.Data.Bids) == 0 {
+				continue
+			}
+
+			// show in table
+			tableChan <- msg
+
+			// fetch appropriate pair (to get base/quote addresses) and send to publisher
+			baseName := strings.Split(msg.Symbols, "_")[0]
+			pair, ok := utils.FindPairByBaseName(&pairs, baseName)
+			if !ok { // if not found
+				slog.Warn("Failed to find pair in CEX main loop by '%s' base name (full '%s')", baseName, msg.Symbols)
+			} 
+
+			payload := publisher.CexTick{
+				Symbols: msg.Symbols,
+				BaseAddress: pair.BaseToken.Address,
+				QuoteAddress: pair.QuoteToken.Address,
+				CexName: "MEXC", // TODO: i should get CexName from collector responce. So i should make custom type, that every collector will fill and add its own collector name
+				Bid: strconv.FormatFloat(msg.Data.Bids[0][0], 'f', -1, 64),
+				Ask: strconv.FormatFloat(msg.Data.Asks[0][0], 'f', -1, 64),
+				Timestamp: msg.TS,
+			}
+
+			publisherChan <- payload
+		}
+	}
+
 }
 
 func startDex(ctx context.Context) {
@@ -55,8 +105,12 @@ func startDex(ctx context.Context) {
 	// clmmEth, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "ethereum", Pool: allowedPools, Label: "v3"})
 	clmmBsc, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Network: "bsc", Pool: allowedPools, Label: "v3"})
 	quoteChangerPairs, _ := db.GetDB().PairService.GetAllPairsByQuery(db.PairQuery{Type: "quote"})
-	
-	dashboardChan := make(chan core.CollectorDexResponse, 1000)
+	allPairs := append(ammBsc, clmmBsc...)
+	allPairs = append(allPairs, quoteChangerPairs...)
+
+	dashboardChan := make(chan core.CollectorDexResponse, 100)
+	dataFlow := make(chan core.CollectorDexResponse, 100)
+	publisherChan := make(chan publisher.DexTick, 100)
 
 	msg := fmt.Sprintf("Lengths of arrays:\n"+
 		// "AMM  ETH (v2): %d\n"+
@@ -85,9 +139,41 @@ func startDex(ctx context.Context) {
 
 	ui.GetUI().ShowCollectorPrices(dashboardChan)
 
-	err := manager.Run(ctx, dashboardChan)
+	err := manager.Run(ctx, dataFlow)
 	if err != nil {
 		ui.GetUI().LogsView(err.Error(), "error")
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			close(dataFlow)
+			close(dashboardChan)
+			close(publisherChan)
+			return
+
+		case msg := <-dataFlow:
+			// show in table
+			dashboardChan <- msg
+
+			// fetch appropriate pair (to get base/quote addresses) and send to publisher
+			pair, ok := utils.FindPairByAddress(&allPairs, msg.Address)
+			if !ok { // pair nor found
+				slog.Warn("Failed to find pair in DEX main loop by '%s' pair address", msg.Address)
+			}
+
+			payload := publisher.DexTick{
+				Network: pair.Network,
+				Pool: pair.Pool,
+				BaseToken: pair.BaseToken.Address,
+				QuoteToken: pair.QuoteToken.Address,
+				Price: msg.Price.String(),
+				PairAddress: msg.Address,
+				Timestamp: msg.Timestamp,
+			}
+
+			publisherChan <- payload
+		}
 	}
 }
 

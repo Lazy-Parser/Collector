@@ -8,11 +8,6 @@ import (
 	"github.com/Lazy-Parser/Collector/internal/ui"
 )
 
-var (
-	//pingTimeout = flag.Duration("pingTimeout", time.Second*10, "How long should this service wait to ping MEXC")
-	state chan bool // true - working / false - not working / stop / error
-)
-
 type Mexc struct {
 	Pool *Pool
 }
@@ -65,12 +60,4 @@ func handleMsg(msg []byte) (core.MexcResponse, error) {
 	}
 
 	return res, nil
-}
-
-func (m *Mexc) ListenState() <-chan bool {
-	return state
-}
-
-func (m *Mexc) SetState(value bool) {
-	state <- value
 }

@@ -27,10 +27,10 @@ func (ui *UI) RenderTableCex(flow chan core.MexcResponse) {
 				})
 
 				// add if new pair
-				row, exists := addrToRow[msg.Symbol]
+				row, exists := addrToRow[msg.Symbols]
 				if !exists {
 					row = nextRow
-					addrToRow[msg.Symbol] = row
+					addrToRow[msg.Symbols] = row
 					for col := 0; col < 3; col++ {
 						ui.tableCex.SetCell(row, col, tview.NewTableCell(""))
 					}
@@ -42,7 +42,7 @@ func (ui *UI) RenderTableCex(flow chan core.MexcResponse) {
 				ui.app.QueueUpdateDraw(func() {
 					// TOKEN
 					ui.tableCex.SetCell(row, 0,
-						tview.NewTableCell(msg.Symbol).
+						tview.NewTableCell(msg.Symbols).
 							SetAlign(tview.AlignCenter))
 
 					// ASK

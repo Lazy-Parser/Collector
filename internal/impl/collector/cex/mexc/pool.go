@@ -78,7 +78,14 @@ func (p *Pool) Listen() <-chan []byte {
 }
 
 func (p *Pool) UnsubscribeAll() error {
-	return nil // TODO: implement
+	for _, conn := range p.connections {
+		if err := conn.conn.Close(); err != nil {
+			return err
+		}
+	}
+	close(p.dataFlow)
+
+	return nil
 }
 
 // private methods

@@ -27,7 +27,6 @@ func (m *CollectorManager) NewCollector(newCollector core.DataSource, pairs []da
 
 // You should not start it in a new GoRoutine. This func iterate over each collector and start it.
 func (m *CollectorManager) Run(ctx context.Context, consumerChan chan core.MexcResponse) {
-	// mexc
 	for _, collector := range m.collectors {
 		if err := collector.Connect(); err != nil {
 			fmt.Println(err.Error())

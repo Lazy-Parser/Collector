@@ -110,7 +110,7 @@ type Metadata struct {
 }
 
 type MexcResponse struct {
-	Symbol string `json:"symbol"` // например "BTC_USDT"
+	Symbols string `json:"symbol"` // например "BTC_USDT"
 	Data   struct {
 		Asks    [][3]float64 `json:"asks"` // каждый уровень: [price, quantity, count]
 		Bids    [][3]float64 `json:"bids"`
