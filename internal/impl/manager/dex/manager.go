@@ -36,14 +36,14 @@ func (m *ManagerDex) Push(collector core.DataSourceDex) error {
 // Preload quote changer pairs
 func (m *ManagerDex) Init(dbPairs []database.Pair) bool {
 	// quote changer pairs
-	payload := make([]generator.QuoteToken, 100)
-	for _, dbPair := range dbPairs {
-		payload = append(payload, generator.QuoteToken{
-			Address: dbPair.BaseToken.Address,
-			Name:    dbPair.BaseToken.Name,
-			Symbol:  dbPair.BaseToken.Name,
-			Network: dbPair.Network,
-		})
+	payload := make([]generator.QuoteToken, len(dbPairs))
+	for i := 0; i < len(dbPairs); i++ {
+		payload[i] = generator.QuoteToken{
+			Address: dbPairs[i].BaseToken.Address,
+			Name:    dbPairs[i].BaseToken.Name,
+			Symbol:  dbPairs[i].BaseToken.Name,
+			Network: dbPairs[i].Network,
+		}
 	}
 
 	res := generator.LoadQuoteChangerPairs(context.Background(), payload)

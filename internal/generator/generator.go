@@ -143,11 +143,11 @@ func Run() {
 
 func LoadQuoteChangerPairs(ctx context.Context, quoteList []QuoteToken) []core.Pair {
 	var mu sync.Mutex
-	list := make([]core.Pair, 100)
+	list := make([]core.Pair, len(quoteList))
 	ctxLimitter := context.Background()
 	var limiter = rate.NewLimiter(rate.Limit(4), 4)
 
-	pool2 := pool.New().WithMaxGoroutines(4)
+	pool := pool.New().WithMaxGoroutines(4)
 	for _, token := range quoteList {
 		select {
 		case <-ctx.Done():
@@ -155,7 +155,7 @@ func LoadQuoteChangerPairs(ctx context.Context, quoteList []QuoteToken) []core.P
 			return nil
 
 		default:
-			pool2.Go(func() {
+			pool.Go(func() {
 				if err := limiter.Wait(ctxLimitter); err != nil {
 					return
 				}
@@ -165,7 +165,7 @@ func LoadQuoteChangerPairs(ctx context.Context, quoteList []QuoteToken) []core.P
 					return
 				}
 
-				res, err := FetchQuotePair(token.Network, token.Address, usdtMap[token.Network])
+				res, err := fetchQuotePair(token.Network, token.Address, usdtMap[token.Network])
 				if err != nil {
 					fmt.Println(err)
 					return
@@ -186,7 +186,7 @@ func LoadQuoteChangerPairs(ctx context.Context, quoteList []QuoteToken) []core.P
 		}
 	}
 
-	pool2.Wait()
+	pool.Wait()
 
 	return list
 }
@@ -286,7 +286,7 @@ func normalizePair(pair *PairDS, pairType string) *core.Pair {
 	return normalized
 }
 
-func FetchQuotePair(network string, address string, usdtAddress string) (DexScreenerResponse, error) {
+func fetchQuotePair(network string, address string, usdtAddress string) (DexScreenerResponse, error) {
 	var res DexScreenerResponse = []PairDS{}
 
 	url := "https://api.dexscreener.com/tokens/v1/" + network + "/" + address + "," + usdtAddress
@@ -304,7 +304,7 @@ func FetchQuotePair(network string, address string, usdtAddress string) (DexScre
 
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		return res, fmt.Errorf("failed to parse body from DexScreener API for '%s', '%s', '%s' pair. %v", network, usdtAddress, network, err)
+		return res, fmt.Errorf("fetchQuotePair: failed to parse body from DexScreener API for '%s', '%s', '%s' pair. %v", network, usdtAddress, network, err)
 	}
 
 	return res, nil
