@@ -6,14 +6,14 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"github.com/Lazy-Parser/Collector/internal/utils"
 	"log"
 	"net/url"
-	"os"
 	"time"
 
 	d "github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/go-resty/resty/v2"
-	"github.com/joho/godotenv"
+	//"github.com/joho/godotenv"
 )
 
 var (
@@ -28,15 +28,19 @@ func MexcInit() error {
 	stream = make(chan Asset, 5000)
 
 	// remove in prod
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
-	}
+	//err := godotenv.Load(".env")
+	//if err != nil {
+	//	log.Fatalf("Error loading .env file: %s", err)
+	//}
 	// remove in prod
 
 	// load tokens from https://api.mexc.com/api/v3/capital/config/getall
-	accessToken := os.Getenv("MEXC_ACCESS_TOKEN")
-	privateToken := os.Getenv("MEXC_PRIVATE_TOKEN")
+	accessToken, err := utils.LoadEnv("MEXC_ACCESS_TOKEN")
+	privateToken, err := utils.LoadEnv("MEXC_PRIVATE_TOKEN")
+	if err != nil {
+		return err
+	}
+
 	assets, err = getAssets(ctx, accessToken, privateToken)
 	if err != nil {
 		return fmt.Errorf("fetching all tokens from MEXC [generator/mexc.go/getAssets]. %v", err)

@@ -24,20 +24,18 @@ import (
 
 func Main(*cli.Context) error {
 	ctx := context.TODO()
-	publisher.Init()
 	ui.CreateUI()
+	go ui.GetUI().Run()
+
+	publisher.Init()
 
 	// just show in ui
 	go startCex(ctx)
 	go startDex(ctx)
 
-	// close publisher
-	go func() {
-		<-ctx.Done()
-		publisher.GetPublisher().Close()
-	}()
+	<-ctx.Done()
+	publisher.GetPublisher().Close()
 
-	ui.GetUI().Run()
 	return nil
 }
 
@@ -57,8 +55,13 @@ func startCex(ctx context.Context) {
 
 	go manager.Run(ctx, dataFlow)
 
-	ui.GetUI().RenderTableCex(tableChan)
-	publisher.GetPublisher().PublishStreamCex(publisherChan)
+	go ui.GetUI().RenderTableCex(tableChan)
+	go func() {
+		if err := publisher.GetPublisher().PublishStreamCex(publisherChan); err != nil {
+			ui.GetUI().LogsView("Failed to push cex tick to nats: "+err.Error(), "error")
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -68,7 +71,7 @@ func startCex(ctx context.Context) {
 			return
 
 		case msg := <-dataFlow:
-			if len(msg.Data.Asks) == 0 || len (msg.Data.Bids) == 0 {
+			if len(msg.Data.Asks) == 0 || len(msg.Data.Bids) == 0 {
 				continue
 			}
 
@@ -80,16 +83,16 @@ func startCex(ctx context.Context) {
 			pair, ok := utils.FindPairByBaseName(&pairs, baseName)
 			if !ok { // if not found
 				slog.Warn("Failed to find pair in CEX main loop by '%s' base name (full '%s')", baseName, msg.Symbols)
-			} 
+			}
 
 			payload := publisher.CexTick{
-				Symbols: msg.Symbols,
-				BaseAddress: pair.BaseToken.Address,
+				Symbols:      msg.Symbols,
+				BaseAddress:  pair.BaseToken.Address,
 				QuoteAddress: pair.QuoteToken.Address,
-				CexName: "MEXC", // TODO: i should get CexName from collector responce. So i should make custom type, that every collector will fill and add its own collector name
-				Bid: strconv.FormatFloat(msg.Data.Bids[0][0], 'f', -1, 64),
-				Ask: strconv.FormatFloat(msg.Data.Asks[0][0], 'f', -1, 64),
-				Timestamp: msg.TS,
+				CexName:      "MEXC", // TODO: i should get CexName from collector responce. So i should make custom type, that every collector will fill and add its own collector name
+				Bid:          strconv.FormatFloat(msg.Data.Bids[0][0], 'f', -1, 64),
+				Ask:          strconv.FormatFloat(msg.Data.Asks[0][0], 'f', -1, 64),
+				Timestamp:    msg.TS,
 			}
 
 			publisherChan <- payload
@@ -116,11 +119,13 @@ func startDex(ctx context.Context) {
 		// "AMM  ETH (v2): %d\n"+
 		"AMM  BSC (v2): %d\n"+
 		// "CLMM ETH (v3): %d\n"+
-		"CLMM BSC (v3): %d\n",
+		"CLMM BSC (v3): %d\n"+
+		"QUOTE CAHNGER: %d\n",
 		// len(ammEth),
 		len(ammBsc),
 		// len(clmmEth),
-		len(clmmBsc))
+		len(clmmBsc),
+		len(quoteChangerPairs))
 	ui.GetUI().LogsView(msg, "log")
 
 	moduleAmm := module.CreateAMM()
@@ -137,12 +142,19 @@ func startDex(ctx context.Context) {
 	manager.Push(&evmCollector)
 	manager.Init(quoteChangerPairs)
 
-	ui.GetUI().ShowCollectorPrices(dashboardChan)
+	go ui.GetUI().ShowCollectorPrices(dashboardChan)
 
-	err := manager.Run(ctx, dataFlow)
-	if err != nil {
-		ui.GetUI().LogsView(err.Error(), "error")
-	}
+	go func() {
+		if err := manager.Run(ctx, dataFlow); err != nil {
+			ui.GetUI().LogsView(err.Error(), "error")
+		}
+	}()
+
+	go func() {
+		if err := publisher.GetPublisher().PublishStreamDex(publisherChan); err != nil {
+			ui.GetUI().LogsView("Failed to push dex tick to nats: "+err.Error(), "error")
+		}
+	}()
 
 	for {
 		select {
@@ -156,20 +168,20 @@ func startDex(ctx context.Context) {
 			// show in table
 			dashboardChan <- msg
 
-			// fetch appropriate pair (to get base/quote addresses) and send to publisher
+			// fetch the appropriate pair (to get base/quote addresses) and send to publisher
 			pair, ok := utils.FindPairByAddress(&allPairs, msg.Address)
 			if !ok { // pair nor found
 				slog.Warn("Failed to find pair in DEX main loop by '%s' pair address", msg.Address)
 			}
 
 			payload := publisher.DexTick{
-				Network: pair.Network,
-				Pool: pair.Pool,
-				BaseToken: pair.BaseToken.Address,
-				QuoteToken: pair.QuoteToken.Address,
-				Price: msg.Price.String(),
+				Network:     pair.Network,
+				Pool:        pair.Pool,
+				BaseToken:   pair.BaseToken.Address,
+				QuoteToken:  pair.QuoteToken.Address,
+				Price:       msg.Price.String(),
 				PairAddress: msg.Address,
-				Timestamp: msg.Timestamp,
+				Timestamp:   msg.Timestamp,
 			}
 
 			publisherChan <- payload

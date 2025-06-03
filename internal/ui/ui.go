@@ -9,7 +9,7 @@ import (
 )
 
 type UI struct {
-	app      *tview.Application
+	App      *tview.Application
 	tableDex *tview.Table
 	tableCex *tview.Table
 	flex     *tview.Flex
@@ -32,7 +32,7 @@ func CreateUI() {
 
 	once.Do(func() {
 		ui = &UI{
-			app:      tview.NewApplication(),
+			App:      tview.NewApplication(),
 			tableDex: tableDex,
 			tableCex: tableCex,
 			logView:  logView,
@@ -65,9 +65,9 @@ func createTableCex() *tview.Table {
 	headers := []string{"TOKEN", "ASK", "BID"}
 	for col, h := range headers {
 		cell := tview.NewTableCell(fmt.Sprintf("[yellow]%s", h)).
-            SetSelectable(false).
-            SetAlign(tview.AlignCenter).
-            SetExpansion(1)
+			SetSelectable(false).
+			SetAlign(tview.AlignCenter).
+			SetExpansion(1)
 
 		table.SetCell(0, col, cell)
 	}
@@ -98,7 +98,7 @@ func newLayout(dex, cex *tview.Table, logView *tview.TextView) *tview.Flex {
 func configureLogScrolling() {
 	ui.logView.SetChangedFunc(func() {
 		if !ui.paused {
-			ui.app.Draw()
+			ui.App.Draw()
 		}
 	})
 	ui.logView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -129,7 +129,7 @@ func GetUI() *UI { return ui }
 
 // Run запускает приложение
 func (ui *UI) Run() {
-	if err := ui.app.SetRoot(ui.flex, true).EnableMouse(true).Run(); err != nil {
+	if err := ui.App.SetRoot(ui.flex, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
 	}
 }

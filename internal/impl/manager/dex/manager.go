@@ -36,14 +36,14 @@ func (m *ManagerDex) Push(collector core.DataSourceDex) error {
 // Preload quote changer pairs
 func (m *ManagerDex) Init(dbPairs []database.Pair) bool {
 	// quote changer pairs
-	payload := make([]generator.QuoteToken, 100)
-	for _, dbPair := range dbPairs {
-		payload = append(payload, generator.QuoteToken{
-			Address: dbPair.BaseToken.Address,
-			Name:    dbPair.BaseToken.Name,
-			Symbol:  dbPair.BaseToken.Name,
-			Network: dbPair.Network,
-		})
+	payload := make([]generator.QuoteToken, len(dbPairs))
+	for i := 0; i < len(dbPairs); i++ {
+		payload[i] = generator.QuoteToken{
+			Address: dbPairs[i].BaseToken.Address,
+			Name:    dbPairs[i].BaseToken.Name,
+			Symbol:  dbPairs[i].BaseToken.Name,
+			Network: dbPairs[i].Network,
+		}
 	}
 
 	res := generator.LoadQuoteChangerPairs(context.Background(), payload)
@@ -77,20 +77,6 @@ func (m *ManagerDex) Run(ctx context.Context, dashboardChan chan core.CollectorD
 	for _, collector := range m.list {
 		go startCollector(ctx, collector, consumerChan)
 	}
-
-	// append all quoteChanger pairs to ui dashboard
-	//for address, price := range m.quotePairs {
-	//	payload := core.CollectorDexResponse{
-	//		IsBaseToken0: true,
-	//		From:         "Pre init",
-	//		Timestamp:    time.Now().UnixMilli(),
-	//		Price:        price,
-	//		Address:      address,
-	//		Type:         "quote",
-	//	}
-	//
-	//	dashboardChan <- payload
-	//}
 
 	for {
 		select {

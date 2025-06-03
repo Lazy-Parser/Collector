@@ -28,8 +28,9 @@ func Init() {
 		conn, err := nats.Connect(natsUrl)
 		if err != nil {
 			ui.GetUI().LogsView(fmt.Errorf("connect to NATS: %w", err).Error(), "error")
+		} else {
+			ui.GetUI().LogsView("Connected to NATS ✅", "log")
 		}
-		ui.GetUI().LogsView("Connected to NATS ✅", "log")
 
 		pub = &Publisher{conn}
 	})

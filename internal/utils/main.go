@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"github.com/joho/godotenv"
 
 	core "github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/Lazy-Parser/Collector/internal/database"
@@ -74,7 +73,7 @@ func TernaryIf[T any](cond bool, argtrue T, argfalse T) T {
 }
 
 func LoadEnv(envName string) (string, error) {
-	godotenv.Load(".env")
+	godotenv.Load(".env") // ONLY FOR LOCAL DEV
 	res := os.Getenv(envName)
 	if res == "" {
 		return "", errors.New("failed to load .env var: " + envName)
@@ -105,7 +104,7 @@ func FindPairByBaseName(pairs *[]database.Pair, baseName string) (database.Pair,
 			return pair, true
 		}
 	}
-	
+
 	return database.Pair{}, false
 }
 
@@ -115,6 +114,6 @@ func FindPairByAddress(pairs *[]database.Pair, pairAddress string) (database.Pai
 			return pair, true
 		}
 	}
-	
+
 	return database.Pair{}, false
 }

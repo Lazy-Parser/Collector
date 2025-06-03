@@ -39,7 +39,7 @@ func (ui *UI) RenderTableCex(flow chan core.MexcResponse) {
 
 				//var average float64
 				// Schedule the UI update on the tview event loop.
-				ui.app.QueueUpdateDraw(func() {
+				ui.App.QueueUpdateDraw(func() {
 					// TOKEN
 					ui.tableCex.SetCell(row, 0,
 						tview.NewTableCell(msg.Symbols).

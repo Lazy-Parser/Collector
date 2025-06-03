@@ -48,7 +48,7 @@ func (ui *UI) ShowCollectorPrices(flow chan core.CollectorDexResponse) {
 				}
 
 				// Schedule the UI update on the tview event loop.
-				ui.app.QueueUpdateDraw(func() {
+				ui.App.QueueUpdateDraw(func() {
 					// PAIR
 					ui.tableDex.SetCell(row, 0,
 						tview.NewTableCell(pair.BaseToken.Name+"/"+pair.QuoteToken.Name).

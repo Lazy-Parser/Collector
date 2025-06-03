@@ -4,7 +4,7 @@ import "fmt"
 
 // t (type) - "error" | "log" | "warning"
 func (ui *UI) LogsView(logLine string, t string) {
-	ui.app.QueueUpdateDraw(func() {
+	ui.App.QueueUpdateDraw(func() {
 		if t == "error" {
 			fmt.Fprintf(ui.logView, "[red]%s\n", logLine)
 		} else if t == "log" {
