@@ -4,19 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/Lazy-Parser/Collector/internal/core"
 	"github.com/Lazy-Parser/Collector/internal/database"
+	"github.com/Lazy-Parser/Collector/internal/ui"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"math/big"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 func CreateCLMM() *CLMM {
@@ -98,7 +100,8 @@ func (clmm *CLMM) HandleSwap(
 	}
 
 	if err := clmm.GetAbi().UnpackIntoInterface(&ev, "Swap", vLog.Data); err != nil {
-		fmt.Println("Failed to parse logs")
+		// fmt.Println("Failed to parse logs")
+		ui.GetUI().LogsView("Failed to parse logs", "error")
 		return resp, fmt.Errorf("[V3][handleSwap]: decode: %w", err)
 	}
 
