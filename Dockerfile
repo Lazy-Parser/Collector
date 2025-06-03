@@ -1,11 +1,23 @@
 # Define the first stage with the name 'builder'
 FROM golang:1.24-alpine AS builder
 
+# Set sqlite
+ENV CGO_ENABLED=1
+RUN apk add \
+    # Important: required for go-sqlite3
+    gcc \
+    # Required for Alpine
+    musl-dev
+
 # Set the working directory inside the container
-WORKDIR /workspace
+WORKDIR /collector
+
+## Кэшируем зависимости Go, чтобы ускорить повторные билды
+#ENV GOPROXY=https://proxy.golang.org
+#RUN --mount=type=cache,target=/go/pkg/mod,sharing=locked true
 
 # Copy go.mod and go.sum to the working directory
-COPY /go.mod ./go.sum
+COPY go.mod ./
 
 # Download Go module dependencies
 RUN go mod download
@@ -21,8 +33,7 @@ RUN go build -o app ./cmd/collector/main.go
 FROM alpine:latest
 
 # Copy the compiled application from the first stage to the final image
-COPY --from=builder /workspace/app /app
+COPY --from=builder /collector/app /app
 
-# Expose the port that the application will run on
-EXPOSE 8080
 ENTRYPOINT ["/app"]
+CMD ["collect"]
