@@ -1,9 +1,0 @@
-[ 
-  { 
-    "inputs": [], 
-    "name": "decimals",
-    "outputs": [ { "type": "uint8" } ],
-    "stateMutability": "view", 
-    "type": "function" 
-  } 
-]

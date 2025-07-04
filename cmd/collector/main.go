@@ -1,24 +1,17 @@
 package main
 
 import (
-	"log"
-	"os"
+	"context"
 
-	"github.com/Lazy-Parser/Collector/cmd/collector/commands"
-	db "github.com/Lazy-Parser/Collector/internal/database"
-	"github.com/urfave/cli/v2"
+	"github.com/Lazy-Parser/Collector/internal/app"
 )
 
 func main() {
-	db.NewConnection()
+	ctx, ctxCancel := context.WithCancel(context.Background())
 
-	app := &cli.App{
-		Name:     "collector",
-		Usage:    "Service, that collects pairs prices and publish to NATS",
-		Commands: commands.MyCommands,
-	}
+	// Starting app
+	go app.Run(ctx)
 
-	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
-	}
+	// Listening for some interruption from console (CTRL + C)
+	ListenInterruptionAndStop(ctxCancel)
 }
