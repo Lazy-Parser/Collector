@@ -8,8 +8,8 @@ import (
 	"syscall"
 )
 
-// Listen listen to some Signal, that mean interruption (CTRL + C). Should not call in goroutine, because it should block main goroutine
-// When interruption fire, then ctxCancel calls to stop all program
+// Listen listen for some Signal, that mean interruption (CTRL + C). It should block main goroutine
+// When interruption fire, then ctxCancel is called to stop whole program
 func ListenInterruptionAndStop(ctxCancel context.CancelFunc) {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)

@@ -9,9 +9,13 @@ import (
 func main() {
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
-	// Starting app
-	go app.Run(ctx)
-
 	// Listening for some interruption from console (CTRL + C)
-	ListenInterruptionAndStop(ctxCancel)
+	go ListenInterruptionAndStop(ctxCancel)
+
+	app.Init()
+	if err := app.Run(ctx); err != nil {
+		panic(err)
+	}
+
+	ctxCancel()
 }
