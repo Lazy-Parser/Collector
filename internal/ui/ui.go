@@ -17,6 +17,7 @@ type UI struct {
 	app      *tview.Application
 	textView *tview.TextView
 	layout   *tview.Flex
+	pages    *tview.Pages
 
 	DBView *p.DBView
 }
@@ -35,7 +36,7 @@ func Create() *UI {
 	pages := tview.NewPages()
 	generate := p.InitPageGenerate(pages)
 	listen := p.InitPageListen(pages)
-	dbView := p.InitPageDBView(pages)
+	dbView := p.InitPageDBView(pages, app)
 
 	pages.AddPage("generate", generate, true, false)
 	pages.AddPage("listen", listen, true, false)
@@ -54,6 +55,7 @@ func Create() *UI {
 	userInterface.layout = layout
 	userInterface.textView = logBox
 	userInterface.DBView = dbView
+	userInterface.pages = pages
 	ui = &userInterface
 
 	return &userInterface

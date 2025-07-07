@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"fmt"
-
 	"github.com/Lazy-Parser/Collector/internal/logger"
 	"github.com/Lazy-Parser/Collector/internal/logic"
 	"github.com/rivo/tview"
@@ -28,12 +26,6 @@ func InitMenuList(app *tview.Application, pages *tview.Pages) *tview.List {
 			// Set table with data from database
 			tokens := logic.GetDatabaseTokens()
 			ui.DBView.SetTableTokens(tokens)
-
-			// Set data amount in text
-			text := ui.DBView.Text.GetText(false)
-			text += fmt.Sprintf("\nTotal tokens: %d", len(tokens))
-			text += fmt.Sprintf("\nTotal pairs: %d", 0)
-			ui.DBView.Text.SetText(text)
 		}).
 		AddItem("Quit", "Exit the application", 'q', func() {
 			app.Stop()

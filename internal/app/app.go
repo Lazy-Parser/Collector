@@ -6,9 +6,16 @@ import (
 
 	"github.com/Lazy-Parser/Collector/internal/logger"
 	"github.com/Lazy-Parser/Collector/internal/ui"
+	"golang.design/x/clipboard"
 )
 
-func Init() {
+func Init() error {
+	// Init clipboard
+	err := clipboard.Init()
+	if err != nil {
+		return err
+	}
+
 	// Create logger with default Writer
 	logger.New(os.Stdout)
 
@@ -16,6 +23,8 @@ func Init() {
 	ui.Create()
 
 	// ...
+
+	return nil
 }
 
 func Run(ctx context.Context) error {
