@@ -15,7 +15,7 @@ var (
 
 func NewConnection() error {
 	wd, _ := os.Getwd()
-	dbPath := filepath.Join(wd, "store", "collector.db")
+	dbPath := filepath.Join(wd, "storage", "collector.db")
 	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		return err
@@ -69,8 +69,8 @@ func (db *Database) GloabalQuery(pair *Pair, token *Token) ([]Pair, error) {
 	if token.Name != "" {
 		queryBuilder = queryBuilder.Where("base_token.name = ? OR quote_token.name = ?", token.Name, token.Name)
 	}
-	if token.Decimals != 0 {
-		queryBuilder = queryBuilder.Where("base_token.decimals = ? OR quote_token.decimals = ?", token.Decimals, token.Decimals)
+	if token.Decimal != 0 {
+		queryBuilder = queryBuilder.Where("base_token.decimal = ? OR quote_token.decimal = ?", token.Decimal, token.Decimal)
 	}
 
 	res := queryBuilder.Find(&pairs)
@@ -115,9 +115,9 @@ func (db *TokenService) FindTokensByQuery(query *Token) ([]Token, error) {
 	return tokens, res.Error
 }
 
-// update token decimals by address
-func (db *TokenService) UpdateDecimals(query *Token, decimals uint8) error {
-	res := db.db.Model(&Token{}).Where("tokens.address = ?", query.Address).Update("decimals", int(decimals))
+// update token ss by address
+func (db *TokenService) UpdateDecimals(query *Token, decimal uint8) error {
+	res := db.db.Model(&Token{}).Where("tokens.address = ?", query.Address).Update("decimal", int(decimal))
 	return res.Error
 }
 

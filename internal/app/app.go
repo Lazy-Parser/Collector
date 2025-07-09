@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/Lazy-Parser/Collector/internal/logger"
 	"github.com/Lazy-Parser/Collector/internal/ui"
 	"golang.design/x/clipboard"
@@ -21,6 +22,12 @@ func Init() error {
 
 	// UI will change logger's Writer to custom while ui creation
 	ui.Create()
+
+	// Database connection / creation
+	if err := database.NewConnection(); err != nil {
+		return err
+	}
+	logger.Get().Z.Info().Msg("Database inited successful")
 
 	// ...
 

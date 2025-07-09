@@ -18,11 +18,11 @@ type TokenService struct {
 }
 
 type Token struct {
-	ID       int    `gorm:"primaryKey;autoIncrement"`
-	Name     string `gorm:"column:name"`
-	Address  string `gorm:"unique;column:address"`
-	Vault    string `gorm:"column:vault"` // only for solana
-	Decimals int    `gorm:"column:decimals"`
+	ID      int    `gorm:"primaryKey;autoIncrement"`
+	Name    string `gorm:"column:name"`
+	Address string `gorm:"unique;column:address"`
+	Vault   string `gorm:"column:vault"` // only for solana
+	Decimal int    `gorm:"column:decimals"`
 }
 
 type Pair struct {

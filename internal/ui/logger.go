@@ -46,7 +46,7 @@ func (tw *tviewWriter) Write(p []byte) (n int, err error) {
 	var prefix string
 	switch entry.Level {
 	case "info":
-		prefix = "[blue]"
+		prefix = "[green]"
 	case "warn":
 		prefix = "[orange]"
 	case "error":

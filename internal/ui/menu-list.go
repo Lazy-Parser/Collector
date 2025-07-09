@@ -24,7 +24,15 @@ func InitMenuList(app *tview.Application, pages *tview.Pages) *tview.List {
 			pages.SwitchToPage("dbview")
 
 			// Set table with data from database
-			tokens := logic.GetDatabaseTokens()
+			tokens, err := logic.GetDatabaseTokens()
+			if err != nil {
+				logger.Get().Z.Error().Msgf(
+					"Level: %s .Failed to get all tokens from database: %v",
+					logger.Get().Z.GetLevel(),
+					err,
+				)
+			}
+
 			ui.DBView.SetTableTokens(tokens)
 		}).
 		AddItem("Quit", "Exit the application", 'q', func() {

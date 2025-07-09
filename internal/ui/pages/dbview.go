@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/Lazy-Parser/Collector/internal/core"
+	"github.com/Lazy-Parser/Collector/internal/database"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"golang.design/x/clipboard"
@@ -30,7 +31,7 @@ func InitPageDBView(pages *tview.Pages, app *tview.Application) *DBView {
 	// Table tokens
 	tableTokens := tview.NewTable().SetBorders(true).SetSelectable(true, false)
 	tableTokens.SetTitle("TOKENS")
-	headers := []string{"NAME", "DECIMALS", "ADDRESS"}
+	headers := []string{"ID", "NAME", "DECIMALS", "ADDRESS"}
 	for i, h := range headers {
 		tableTokens.SetCell(0, i,
 			tview.NewTableCell(h).
@@ -39,9 +40,9 @@ func InitPageDBView(pages *tview.Pages, app *tview.Application) *DBView {
 				SetSelectable(false))
 	}
 	tableTokens.SetSelectedFunc(func(row int, column int) {
-		name := tableTokens.GetCell(row, 0).Text
-		decimal := tableTokens.GetCell(row, 1).Text
-		address := tableTokens.GetCell(row, 2).Text
+		name := tableTokens.GetCell(row, 1).Text
+		decimal := tableTokens.GetCell(row, 2).Text
+		address := tableTokens.GetCell(row, 3).Text
 
 		msg := fmt.Sprintf(
 			"Name: %s\n Decimal: %s \nAddress: %s",
@@ -130,20 +131,24 @@ func InitPageDBView(pages *tview.Pages, app *tview.Application) *DBView {
 	return &dbview
 }
 
-func (dbview *DBView) SetTableTokens(tokens []core.Token) {
+func (dbview *DBView) SetTableTokens(tokens []database.Token) {
 	// Insert new data
 	for i, token := range tokens {
 		rowIndex := i + 1 // skip header
 
 		dbview.TableTokens.SetCell(rowIndex, 0,
-			tview.NewTableCell(token.Name).
+			tview.NewTableCell(strconv.FormatInt(int64(token.ID), 10)).
 				SetAlign(tview.AlignCenter).
 				SetSelectable(true))
 		dbview.TableTokens.SetCell(rowIndex, 1,
-			tview.NewTableCell(strconv.FormatUint(uint64(token.Decimal), 10)).
+			tview.NewTableCell(token.Name).
 				SetAlign(tview.AlignCenter).
 				SetSelectable(true))
 		dbview.TableTokens.SetCell(rowIndex, 2,
+			tview.NewTableCell(strconv.FormatUint(uint64(token.Decimal), 10)).
+				SetAlign(tview.AlignCenter).
+				SetSelectable(true))
+		dbview.TableTokens.SetCell(rowIndex, 3,
 			tview.NewTableCell(token.Address).
 				SetAlign(tview.AlignCenter).
 				SetSelectable(true))
