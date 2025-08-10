@@ -1,7 +1,7 @@
 package chains_test
 
 import (
-	"Cleopatra/internal/adapter/out/webapi/chains"
+	"github.com/Lazy-Parser/Collector/internal/common/chains"
 	"fmt"
 	"log"
 	"os"
@@ -24,7 +24,7 @@ func TestConfigTestSuite(t *testing.T) {
 func (s *IntegrationTestSuite) SetupSuite() {
 	wd, _ := os.Getwd()
 	path := filepath.Join(wd, "store", "chains.json")
-	
+
 	chainsService, err := chains.NewChains(path)
 	s.Require().NoError(err, "err while creation new ChainsService")
 

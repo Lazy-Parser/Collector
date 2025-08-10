@@ -1,12 +1,18 @@
 package main
 
 import (
-	config "Cleopatra/config/service"
-	"Cleopatra/internal/app"
+	"os"
+	"path/filepath"
+
+	config "github.com/Lazy-Parser/Collector/config/service"
+	"github.com/Lazy-Parser/Collector/internal/app"
 )
 
 func main() {
-	cfg, err := config.NewConfig()
+	wd, _ := os.Getwd()
+	path := filepath.Join(wd, "..", "..", ".env")
+
+	cfg, err := config.NewConfig(path)
 	if err != nil {
 		panic(err)
 	}

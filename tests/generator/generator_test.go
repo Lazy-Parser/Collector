@@ -1,16 +1,18 @@
 package generator_test
 
 import (
-	config "Cleopatra/config/service"
-	logger "Cleopatra/internal/adapter/out/log/zerolog"
-	database "Cleopatra/internal/adapter/out/persistent/sqlite"
-	"Cleopatra/internal/adapter/out/webapi/chains"
-	"Cleopatra/internal/adapter/out/webapi/coingecko"
-	"Cleopatra/internal/adapter/out/webapi/dexscreener"
-	"Cleopatra/internal/adapter/out/webapi/mexc"
-	generator "Cleopatra/internal/generator/usecase"
-	market "Cleopatra/internal/market/entity"
-	server_test "Cleopatra/tests/server"
+	config "github.com/Lazy-Parser/Collector/config/service"
+	api_coingecko "github.com/Lazy-Parser/Collector/internal/api/coingecko"
+	api_dexscreener "github.com/Lazy-Parser/Collector/internal/api/dexscreener"
+	api_mexc "github.com/Lazy-Parser/Collector/internal/api/mexc"
+	"github.com/Lazy-Parser/Collector/internal/application/generator"
+	"github.com/Lazy-Parser/Collector/internal/common/chains"
+	logger "github.com/Lazy-Parser/Collector/internal/common/zerolog"
+	worker_coingecko "github.com/Lazy-Parser/Collector/internal/domain/api/coingecko"
+	worker_dexscreener "github.com/Lazy-Parser/Collector/internal/domain/api/dexscreener"
+	worker_mexc "github.com/Lazy-Parser/Collector/internal/domain/api/mexc"
+	"github.com/Lazy-Parser/Collector/internal/domain/market"
+	server_test "github.com/Lazy-Parser/Collector/tests/server"
 	"context"
 	"log"
 	"net/http/httptest"
@@ -28,8 +30,10 @@ type IntegrationTestSuite struct {
 	suite.Suite
 	config           *config.Config
 	server           *httptest.Server
-	generatorService *generator.Generator
+	generatorService *generator.GeneratorService
 	futures          []market.Token
+	cg               *worker_coingecko.CoingeckoWorker
+	tokenWorker      *market.TokenWorker
 }
 
 func TestConfigTestSuite(t *testing.T) {
@@ -56,9 +60,9 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.config = cfg
 
 	// database
-	dbPath := filepath.Join(wd, "..", "database", "collector_fake.db")
-	db, err := database.NewConnection(dbPath)
-	s.Require().NoError(err, "Creating fake database")
+	// dbPath := filepath.Join(wd, "..", "database", "collector_fake.db")
+	// db, err := database.NewConnection(dbPath)
+	// s.Require().NoError(err, "Creating fake database")
 
 	// chains
 	chainsPaths := filepath.Join(wd, "..", "..", "config", "configs", "chains.json")
@@ -66,20 +70,27 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.Require().NoError(err, "failed to create new instanse of Chains Service")
 
 	// exchange
-	exchange := mexc.NewMexc(chainsService)
+	mexcApi := api_mexc.NewMexcAPI()
+	exchange := worker_mexc.NewWorker(mexcApi, cfg, chainsService)
 
 	// logger
-	l := logger.New(os.Stdout)
+	logger.New(os.Stdout)
 
 	// dexscreener
-	dex := dexscreener.NewDexscreener()
+	dsApi := api_dexscreener.NewDexscreenerAPI(cfg)
+	dex := worker_dexscreener.NewWorker(dsApi, chainsService)
 
 	// coingecko
-	cg := coingecko.NewCoingecko()
+	cgApi := api_coingecko.NewCoingeckoAPI(cfg)
+	cg := worker_coingecko.NewWorker(cfg, cgApi)
+	s.cg = cg
 
-	generatorService := generator.NewGenerator(l, db, exchange, dex, cg, chainsService)
+	generatorService := generator.NewGeneratorService(exchange, dex, cg)
 	s.generatorService = generatorService
 
+	tokenWorker := market.NewTokenWorker()
+	s.tokenWorker = tokenWorker
+	
 	log.Println("Generator created!")
 }
 
@@ -87,34 +98,59 @@ func (s *IntegrationTestSuite) Test_01_Mexc() {
 	shouldContain := []string{"CELR", "SCR", "TRUMP", "FARTCOIN"}
 
 	ctx := context.Background()
-	tokens, err := s.generatorService.FetchFuturesMexc(ctx, s.config)
+	tokens, err := s.generatorService.GetFutures(ctx)
 	s.Require().NoError(err, "Fetching and validating tokens from mexc")
 
 	for _, token := range tokens {
-		log.Printf("Token: %+v", token)
 		s.Require().True(slices.Contains(shouldContain, token.Name), "MexcService response doesn't contains expected tokens")
 	}
 
-	s.futures = tokens
+	s.tokenWorker.PushMany(tokens)
 }
 
 func (s *IntegrationTestSuite) Test_02_Dexscreener() {
-	shouldContain := []string{"trump", "fartcoin "}
-	emptyPair := market.Pair{}
-
 	ctx := context.Background()
-	pairCh := make(chan market.Pair, 2048)
+	shouldContain := []string{"trump", "fartcoin", "celr"}
 
-	s.generatorService.FetchPairs(ctx, s.config, pairCh, s.futures)
+	// here we got Pair info + base token info. Quote token has not all info we need. So we need to fetch it separately
+	pairs, err := s.generatorService.GetPairs(ctx, s.tokenWorker.GetAllTokens())
+	s.Require().NoError(err, "Fetching and validating pairs from dexscreener")
 
-	for pair := range pairCh {
-		if pair == emptyPair {
+	
+	
+	log.Println("--------- PAIRS ---------")
+	var payload []market.Token
+	for _, pair := range pairs {
+		log.Printf("Pair: %+v", pair)
+		payload = append(payload, pair.QuoteToken)
+		payload = append(payload, pair.BaseToken)
+	}
+	log.Println("--------- PAIRS ---------")
+	tokens, err := s.generatorService.GetDecimals(ctx, payload)
+	s.Require().NoError(err, "Fetching and validating quote tokens from dexscreener")
+	for i := range pairs {
+		for _, token := range tokens {
+			if token.Address == pairs[i].QuoteToken.Address {
+				pairs[i].QuoteToken = token
+				break
+			} else if token.Address == pairs[i].BaseToken.Address {
+				pairs[i].BaseToken = token
+				break
+			}
+		}
+	}
+
+	log.Println("----------------------")
+	log.Println("RESULT")
+	log.Println("----------------------")
+
+	for _, pair := range pairs {
+		if pair.Address == "" {
 			continue
 		}
 		log.Printf("Pair: %+v", pair)
 		s.Require().True(slices.Contains(shouldContain, strings.ToLower(pair.BaseToken.Name)), "DexscreenerService response doesn't contains expected pairs")
 	}
-
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {

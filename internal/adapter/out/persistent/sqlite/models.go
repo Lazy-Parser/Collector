@@ -1,6 +1,6 @@
 package database
 
-import market "Cleopatra/internal/market/entity"
+import market "github.com/Lazy-Parser/Collector/internal/domain/market"
 
 type Token struct {
 	ID      int    `gorm:"primaryKey;autoIncrement"`

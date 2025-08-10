@@ -1,6 +1,6 @@
 package database
 
-import market "Cleopatra/internal/market/entity"
+import market "github.com/Lazy-Parser/Collector/internal/domain/market"
 
 func (db *Database) SaveToken(token market.Token) error {
 	toSave := toDBToken(token)
