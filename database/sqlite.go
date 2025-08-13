@@ -49,8 +49,8 @@ func Start(dbPath string, opts ...Option) (*gorm.DB, error) {
 	return db, nil
 }
 
-// func NewPairRepo(db *gorm.DB) market.PairRepo   { return internal_sqlite.NewPairRepo(db) }
 func NewTokenRepo(db *gorm.DB) market.TokenRepo { return sqlite_custom.NewTokenRepo(db) }
+func NewPairRepo(db *gorm.DB) market.PairRepo   { return sqlite_custom.NewPairRepo(db) }
 
 func checkIfFileExists(path string) bool {
 	info, err := os.Stat(path)
