@@ -10,8 +10,11 @@ require (
 )
 
 require (
+	github.com/go-resty/resty/v2 v2.16.5 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/time v0.12.0 // indirect
 )
