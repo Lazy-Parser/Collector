@@ -16,16 +16,16 @@ import (
 )
 
 type MexcApi struct {
-	cfg config.Config
+	cfg *config.Config
 }
 
-func NewMexcApi(cfg config.Config) *MexcApi {
+func NewMexcApi(cfg *config.Config) *MexcApi {
 	return &MexcApi{cfg: cfg}
 }
 
-func (api *MexcApi) FetchCurrencyInformation(ctx context.Context, cfg *config.Config) ([]market.MexcAsset, error) {
+func (api *MexcApi) FetchCurrencyInformation(ctx context.Context) ([]market.MexcAsset, error) {
 	qs := url.Values{"timestamp": {fmt.Sprint(time.Now().UnixMilli())}}
-	mac := hmac.New(sha256.New, []byte(cfg.Mexc.PRIVATE_TOKEN))
+	mac := hmac.New(sha256.New, []byte(api.cfg.Mexc.PRIVATE_TOKEN))
 	mac.Write([]byte(qs.Encode()))
 	qs.Set("signature", hex.EncodeToString(mac.Sum(nil)))
 
@@ -35,8 +35,8 @@ func (api *MexcApi) FetchCurrencyInformation(ctx context.Context, cfg *config.Co
 		SetContext(ctx).
 		SetQueryString(qs.Encode()).
 		SetResult(&res).
-		SetHeader("X-MEXC-APIKEY", cfg.Mexc.ACCESS_TOKEN).
-		Get(cfg.Mexc.API.CONFIG_GETALL)
+		SetHeader("X-MEXC-APIKEY", api.cfg.Mexc.ACCESS_TOKEN).
+		Get(api.cfg.Mexc.API.CONFIG_GETALL)
 	return res, err
 }
 
