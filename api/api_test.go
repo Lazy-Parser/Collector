@@ -35,3 +35,16 @@ func ExampleNewDexscreenerApi() {
 	_ = dsApiService
 }
 
+func ExampleNewCoingeckoApi() {
+	path := filepath.Join("some", "path", "to", "the", ".env")
+	cfgService, err := config.NewConfig(path)
+	if err != nil {
+		// do not panic in real app
+		panic(err)
+	}
+	
+	dsApiService := api.NewCoingeckoApi(cfgService)
+
+	// do something with service
+	_ = dsApiService
+}
