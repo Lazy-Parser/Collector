@@ -10,7 +10,7 @@ import (
 
 type MexcAPI interface {
 	FetchCurrencyInformation(ctx context.Context) ([]market.MexcAsset, error)
-	FetchContractInformation(ctx context.Context, url string) ([]market.MexcContractDetail, error)
+	FetchContractInformation(ctx context.Context) ([]market.MexcContractDetail, error)
 }
 
 func NewMexcApi(cfg *config.Config) MexcAPI {

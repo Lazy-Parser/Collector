@@ -5,7 +5,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"net/url"
 	"time"
@@ -40,16 +39,12 @@ func (api *MexcApi) FetchCurrencyInformation(ctx context.Context) ([]market.Mexc
 	return res, err
 }
 
-func (api *MexcApi) FetchContractInformation(ctx context.Context, url string) ([]market.MexcContractDetail, error) {
-	if len(url) == 0 {
-		return nil, errors.New("provided url in 'FetchContractInformation' is empty!")
-	}
-
+func (api *MexcApi) FetchContractInformation(ctx context.Context) ([]market.MexcContractDetail, error) {
 	var res market.MexcContracts
 	_, err := resty.New().
 		R().
 		SetContext(ctx).
 		SetResult(&res).
-		Get(url)
+		Get(api.cfg.Mexc.API.CONTRACTS_DETAIL)
 	return res.Data, err
 }
