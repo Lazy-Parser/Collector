@@ -1,3 +1,4 @@
+// Package api provides and ability to interact with Dexscreener / Mexc / CoinGecko API with already set limiter.
 package api
 
 import (
