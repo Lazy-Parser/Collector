@@ -31,3 +31,4 @@ go.work.sum
 # custom
 .env
 .DS_Store
+.obsidian
