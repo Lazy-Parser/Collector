@@ -66,3 +66,25 @@ type CGPoolRef struct {
 	ID   string `json:"id"`
 	Type string `json:"type"`
 }
+
+// ------- CHUNK ------------
+type Chunk struct {
+	Network string
+	Tokens  []Token
+}
+
+const ChunkMaxSize = 30
+
+func (chunk *Chunk) Push(token Token) {
+	chunk.Tokens = append(chunk.Tokens, token)
+}
+
+func (chunk *Chunk) GetAddresses() []string {
+	var res []string
+
+	for _, token := range chunk.Tokens {
+		res = append(res, token.Address)
+	}
+
+	return res
+}
