@@ -1,31 +1,142 @@
-# Generation. Theory 
-This is a big and a little complicated part of the program. But if we will understand the base idea it will be super easy!
+# Generation. Theory  
+This part of the bot is both **critical and a bit tricky**. It may look complicated at first, but once you understand the core idea, everything becomes much easier. Essentially, generation is the foundation that allows the bot to know which pairs to monitor, how to interpret their prices, and how to filter out irrelevant data.  
 
 ---
 
-### 1. Why do we need to generate tokens \ pairs?
-So lets first clarify, we do we need to make such a complicated thing?
-The answer is that for listening prices of some pairs from **DEX** we need to know about each pair next info:
-1. Address (contract). Its obvious that we need to know the address of some pair to listen its price. This data we get from Mexc or other exchange
-2.  xNetwork + pool (`Ethereum + Pancakeswap V3` for example). We also need this info to **specify a specific** pair. Because just `Address` is not 100% unique for ALL existing pairs. But the combination of address and network + pool provides precise identification.
-3. Decimal (8, 18 or other): its just a number. But very important one! Because of the specific inner architecture of smart contracts and blockchain, all pools store not human like prices. So to calculate unclear numbers from pools to the human format, we need to use Decimals.
-   By the way, all pools have different formulas of calculating price. 
-   For example, the formula from Uniswap V3:
-   (image here)
-4. What pair ( `Quote Token` in particular)  better to select for some token? (Because at the start we have only list of tokens. Not the pairs)
-5. Which pairs are on futures of the exchange (Mexc in our case)
-6. Also Filter pairs / tokens with not supported in the application networks. Filter by volume
+### 1. Why do we need to generate tokens and pairs?  
+Before diving into the technical details, let’s clarify: **why do we even need this step?**  
+
+When we want to track prices of trading pairs on a **DEX** (Decentralized Exchange), the bot must have detailed information about each pair. Without this metadata, prices can’t be interpreted correctly. Here’s what we need to know for every pair:  
+
+1. **Address (Contract Address)**  
+   Each pool on the blockchain has a smart contract address. To fetch its data, we must know this address.  
+   Example: On Uniswap, the pair `ETH/USDC` has a unique contract address.  
+
+2. **Network + Pool (e.g., `Ethereum + Uniswap V3`)**  
+   The contract address alone is **not always globally unique**. Different networks (Ethereum, BNB Chain, Polygon, etc.) and different pools (Uniswap, PancakeSwap, SushiSwap) can contain pools with similar addresses.  
+   - That’s why we need the **combination of address + network + pool** to precisely identify a pair.  
+
+3. **Decimals (e.g., 8, 18, etc.)**  
+   This number defines how raw blockchain values should be converted into human-readable numbers.  
+
+   #### ❓ Why Decimals Exist?  
+   One important thing to understand: **smart contracts cannot store floating-point numbers**.  
+
+   On blockchains (Ethereum, BNB Chain, etc.) all arithmetic is done with **integers only**. This is because floating-point math is:  
+   - **imprecise** (rounding errors),  
+   - **expensive** to implement in smart contracts,  
+   - and could lead to security issues in financial applications.  
+
+   So instead of floats, contracts use **decimals** as a way to represent fractional values.  
+
+   **Example:**  
+   Let’s say a token has `decimals = 18`.  
+   - The smart contract stores balances in **wei** (the smallest indivisible unit).  
+   - If your balance is `1.000000000000000000` ETH, the contract actually stores it as the integer:\
+     `1000000000000000000` `(= 1 * 10^18)`\
+     To convert this into a human-readable number, you divide by `10^decimals`.
+     
+     By the way, all pools have different formulas of calculating price.  
+     For example, the formula from Uniswap V3:
+     
+     ![Formula](https://github.com/Lazy-Parser/Collector/blob/core-achitecture/docs/img/Decimals%20example.png?raw=true)
+
+
+4. **Base vs. Quote Token Selection**  
+   In arbitrage, it’s important to choose the correct **quote token** for comparison.  
+   - Example: If you want to know the value of a random token `XYZ`, should you track `XYZ/USDT`, `XYZ/USDC`, or `XYZ/ETH`?  
+   - The generation process must decide which pair is the most reliable.  
+
+5. **Futures Compatibility**  
+   Since our arbitrage bot also considers futures trading (MEXC in this case), we must link tokens/pairs from spot markets with their corresponding futures pairs.  
+
+6. **Filtering**  
+   Not every pair is useful. We need to filter out:  
+   - Pairs from unsupported networks  
+   - Pairs with very low liquidity or volume  
+   - Tokens with no futures mapping
+  
+---
+
+### 2. Theory — How Generation Works  
+So, in short, we need **a lot of metadata** just to start listening to pair prices.  
+That’s where the **generation pipeline** comes into play.  
+
+The process is simple in concept:  
+1. Start with a **list of tokens on futures** (e.g., from MEXC or another exchange).  
+2. Step by step, **enrich this data** with more information by calling external APIs (Dexscreener, Coingecko).  
+3. After each step, the dataset becomes more structured and ready for usage by the trading logic.  
+
+Here is a diagram of the process:  
+![Theory](https://raw.githubusercontent.com/Lazy-Parser/Collector/refs/heads/core-achitecture/docs/img/Generator.png)  
+
+Think of it as a **chain of transformations**:  
+- At the beginning → we only know token symbols, contract (address) and network.  
+- At the end → we have fully described pairs with address (!Pair, not just token), decimals, quote tokens, and volume filters applied.  
 
 ---
 
-### 2. Theory
-Now we know that we need a lot of data to just listen pairs data from pool!
-Let's watch my realization:
-![Theory](https://raw.githubusercontent.com/Lazy-Parser/Collector/refs/heads/core-achitecture/docs/img/Generator.png)
+### 3. Practice - Technical realization
+Now we know all the theory, and we need to write some code.
+Of course, this core repo has instruments for this:
+ 1. **`MexcWorker`**
+    -  `GetAllTokens()`  - fetch all existing tokens that are on Mexc. Useful because this request has a lot of info for each pair. (Contract, network, withdraw, deposit, symbol, ...).\
+       But there are some tokens that exist only on spot, not on futures. So how to know wich token is on futures?\
+       
+       > **Note!**\
+       > There is some **problem** here: in mexc api we get reponse in this format:\
+       > `[ {coin: 'symbol', networks: [ { network, contract, ... }, ... ] }, ... ]`\
+       > As you can see, it can be more than one network for each coin (token). For now, we pick the first one. But its wrong.
+       > **In future updates I will correct this problem!**
+       
+    -  `GetAllFutures()` - fetch all tokens that are on futures. This request has very little info. But it contains `symbol` field, and thats enough to 'pick' tokens from previous method.
+   
+    -  `FindContractBySymbol()`. A method to select tokens from `GetAllTokens()` by `GetAllFutures()` symbols.
 
-As you can see, the whole process is just to make requests by chain. In each step we get more and more useful info.
+   
+   2. **`DexscreenerWorker`** - a little complicated part, but it contains just one public method that try to find the best pair from provided token.\
+      Just to clarify: in this worker you need to pass only tokens from MexcWorker/
+
+      **For now, we have all needed info, accept of `Decimals`**
+
+
+   4. **`CoingeckoWroker`**:
+      - `CreateChunks()` - a method that 'group' provided tokens from `DexscreenerWorker` by networks.\
+        We do this because Coingecko API provides ability to pass multiple tokens (up to 30), that have the same network.
+
+      - `CreateChunks()` - just fetch info about tokens from provided chunk. In this part we can get decimals and save it.
+
+
+Thats all!
 
 ---
-### 3. Realization
-Ok, so now we know what we need to fetch from different APIs. 
-And for this i have the next:
+
+### 4. Additionally
+1. You do not really need to know about this service, because its for an internal work.\
+   But as you need to create it manually and pass to every worker, it will be better to know what does it do.
+   
+   **Problem**: Mexc, Coingecko and Dexscreener have different network names for the particular network name.
+   For example: eth - Mexc, Dexscreener - ethereum, Coingecko - ETH.
+   
+   But in each step (from part #3) we need to provide network names and tecnically those network names are different, despite the fact that they mean the same thing.
+   
+   **Solution**: the solution is to write custom `chains` service, that will store all netoworks that are allowed, in all possible types.\
+   In 'under the hood' every worker change provided network name to the custom.
+
+
+2. `Worker`s are just a little bit of logic over `api`s. `api` its also just a service that contains ONLY request methods. And Worker  just change input data for convenient API operation. They are also have some logic.
+
+
+      
+
+
+
+
+
+
+
+
+
+
+   
+   
