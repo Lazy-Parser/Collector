@@ -46,7 +46,7 @@ func (dw *DexscreenerWorker) FetchPairByToken(ctx context.Context, token market.
 	// change network name to the global
 	globalNetwork, ok := dw.chains.Select(pair.Network).ToBase()
 	if !ok {
-		err := errors.New(fmt.Sprintf("Failed to cast dexscreener like network name to the global name. Failed on: %s", pair.Network))
+		err := errors.New("Failed to cast dexscreener like network name to the global name. Failed on: " + pair.Network)
 		return market.Pair{}, err
 	}
 	pair.Network = globalNetwork

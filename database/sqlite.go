@@ -39,7 +39,7 @@ func Start(dbPath string, opts ...Option) (*gorm.DB, error) {
 	}
 
 	if c.autoMigrate {
-		if err := db.AutoMigrate(&market.Token{}, &market.Pair{}); err != nil {
+		if err := db.AutoMigrate(&sqlite_custom.TokenDB{}, &sqlite_custom.PairDB{}); err != nil {
 			sqlDB, _ := db.DB()
 			sqlDB.Close()
 			return nil, err

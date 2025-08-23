@@ -16,24 +16,32 @@ func NewPairRepo(db *gorm.DB) *pairRepo {
 }
 
 func (r *pairRepo) GetAll(ctx context.Context) ([]market.Pair, error) {
-	var pairs []market.Pair
-	// if err := r.db.Find(&tokens).Error; err != nil {
-	// 	return nil, err
-	// }
+	var pairsdb []PairDB
+	if err := r.db.WithContext(ctx).Find(&pairsdb).Error; err != nil {
+		return nil, err
+	}
+
+	pairs := make([]market.Pair, len(pairsdb))
+	for i, pdb := range pairsdb {
+		pairs[i] = ToPair(pdb)
+	}
+
 	return pairs, nil
 }
 
 func (r *pairRepo) Get(ctx context.Context, addr string) (market.Pair, error) {
-	var pair market.Pair
-	// if err := r.db.WithContext(ctx).Where("address = ?", addr).First(&token).Error; err != nil {
-	// 	return market.Token{}, err
-	// }
-	return pair, nil
+	var pairdb PairDB
+	if err := r.db.WithContext(ctx).Where("address = ?", addr).First(&pairdb).Error; err != nil {
+		return market.Pair{}, err
+	}
+
+	return ToPair(pairdb), nil
 }
 
 func (r *pairRepo) Save(ctx context.Context, pair market.Pair) error {
-	// if err := r.db.WithContext(ctx).Save(&token).Error; err != nil {
-	// 	return err
-	// }
+	pairdb := ToPairDB(pair)
+	if err := r.db.WithContext(ctx).Save(&pairdb).Error; err != nil {
+		return err
+	}
 	return nil
 }
