@@ -36,14 +36,25 @@ func (r *tokenRepo) Get(ctx context.Context, addr string) (market.Token, error) 
 	if err := r.db.WithContext(ctx).Where("address = ?", addr).First(&tokendb).Error; err != nil {
 		return market.Token{}, err
 	}
-	
+
 	return ToToken(tokendb), nil
 }
 
-func (r *tokenRepo) Save(ctx context.Context, token market.Token) error {
+// Update if already exists (by address), insert otherwise
+// Returns the ID of the saved token and error
+// ID returns always: if token already exists, or inserted
+func (r *tokenRepo) FindOrCreate(ctx context.Context, token market.Token) (uint, error) {
 	t := ToTokenDB(token)
-	if err := r.db.WithContext(ctx).Save(&t).Error; err != nil {
-		return err
+
+	// res := r.db.WithContext(ctx).FirstOrCreate(&t, TokenDB{Address: t.Address})
+	res := r.db.WithContext(ctx).Create(&t)
+	if res.Error != nil {
+		return 0, res.Error
 	}
-	return nil
+
+	return t.ID, nil
+}
+
+func (r *tokenRepo) RemoveAll() error {
+	return r.db.Exec("DELETE FROM token_dbs").Error
 }

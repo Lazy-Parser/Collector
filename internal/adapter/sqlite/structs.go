@@ -1,9 +1,8 @@
 package sqlite_custom
 
-
 import "github.com/Lazy-Parser/Collector/market"
 
-type PairDB struct {
+type PoolDB struct {
 	ID uint `gorm:"primarykey"`
 
 	BaseTokenID  uint
@@ -31,10 +30,10 @@ type TokenDB struct {
 	Network     string
 }
 
-func ToPairDB(p market.Pair) PairDB {
-	return PairDB{
-		BaseToken:  ToTokenDB(p.BaseToken),
-		QuoteToken: ToTokenDB(p.QuoteToken),
+func ToPoolDB(p market.Pool) PoolDB {
+	return PoolDB{
+		BaseToken:  ToTokenDB(p.Pair.BaseToken),
+		QuoteToken: ToTokenDB(p.Pair.QuoteToken),
 		Address:    p.Address,
 		Network:    p.Network,
 		Pool:       p.Pool,
@@ -44,10 +43,12 @@ func ToPairDB(p market.Pair) PairDB {
 	}
 }
 
-func ToPair(m PairDB) market.Pair {
-	return market.Pair{
-		BaseToken:  ToToken(m.BaseToken),
-		QuoteToken: ToToken(m.QuoteToken),
+func ToPool(m PoolDB) market.Pool {
+	return market.Pool{
+		Pair: market.Pair{
+			BaseToken:  ToToken(m.BaseToken),
+			QuoteToken: ToToken(m.QuoteToken),
+		},
 		Address:    m.Address,
 		Network:    m.Network,
 		Pool:       m.Pool,
@@ -62,6 +63,8 @@ func ToTokenDB(t market.Token) TokenDB {
 		Name:    t.Name,
 		Network: t.Network,
 		Address: t.Address,
+		Decimal: t.Decimal,
+		// TODO: add more fields
 	}
 }
 
@@ -70,5 +73,6 @@ func ToToken(t TokenDB) market.Token {
 		Name:    t.Name,
 		Network: t.Network,
 		Address: t.Address,
+		Decimal: t.Decimal,
 	}
 }
