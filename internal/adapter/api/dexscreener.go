@@ -28,7 +28,7 @@ func NewDexscreenerApi(cfg *config.Config) *DexscreenerApi {
 	}
 }
 
-func (api *DexscreenerApi) GetTokenPairs(ctx context.Context, network string, address string) (*market.DexscreenerResponse, error) {
+func (api *DexscreenerApi) FetchPool(ctx context.Context, network string, address string) (*market.DexscreenerResponse, error) {
 	urlStr := api.cfg.Dexscreener.API.TOKEN_PAIRS
 	urlStr = strings.ReplaceAll(urlStr, "{chainId}", network)
 	urlStr = strings.ReplaceAll(urlStr, "{tokenAddress}", address)

@@ -10,7 +10,7 @@ import (
 )
 
 type DexscreenerApi interface {
-	GetTokenPairs(ctx context.Context, network string, address string) (*market.DexscreenerResponse, error)
+	FetchPool(ctx context.Context, network string, address string) (*market.DexscreenerResponse, error)
 }
 
 func NewDexscreenerApi(cfg *config.Config) DexscreenerApi {

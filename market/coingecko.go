@@ -1,23 +1,58 @@
 package market
 
 // CG - coingecko
+type CGPoolRes struct {
+	Data struct {
+		ID         string `json:"id"`
+		Type       string `json:"type"`
+		Attributes struct {
+			Address         string  `json:"address"`
+			Name            string  `json:"name"`
+			PoolName        string  `json:"pool_name"`
+			PoolCreatedAt   string  `json:"pool_created_at"`
+			ReserveInUsd    string  `json:"reserve_in_usd"`
+			LockedLiquidity *string `json:"locked_liquidity_percentage"`
+			VolumeUsd       struct {
+				M5  string `json:"m5"`
+				M15 string `json:"m15"`
+				M30 string `json:"m30"`
+				H1  string `json:"h1"`
+				H6  string `json:"h6"`
+				H24 string `json:"h24"`
+			} `json:"volume_usd"`
+		} `json:"attributes"`
 
-type CGRequestGroup struct {
-	network string
-	tokens  []Token
-}
+		Relationships struct {
+			Dex struct {
+				Data struct {
+					ID   string `json:"id"`
+					Type string `json:"type"`
+				} `json:"data"`
+			} `json:"dex"`
+		} `json:"relationships"`
+	} `json:"data"`
 
-func (rg CGRequestGroup) GetSize() int {
-	return len(rg.tokens)
-}
+	Included []struct {
+		ID         string `json:"id"`
+		Type       string `json:"type"`
+		Attributes struct {
+			// For tokens
+			Address         string `json:"address,omitempty"`
+			Name            string `json:"name,omitempty"`
+			Symbol          string `json:"symbol,omitempty"`
+			Decimals        int    `json:"decimals,omitempty"`
+			ImageURL        string `json:"image_url,omitempty"`
+			CoinGeckoCoinID string `json:"coingecko_coin_id,omitempty"`
 
-func (rg CGRequestGroup) Push(token Token) {
-	rg.tokens = append(rg.tokens, token)
+			// For dex
+			// (only name is provided, reused here)
+		} `json:"attributes"`
+	} `json:"included"`
 }
 
 // Root object
 type CGResponse struct {
-	Data []Token `json:"data"`
+	Data []CGToken `json:"data"`
 }
 
 // ------

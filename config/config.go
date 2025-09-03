@@ -42,6 +42,7 @@ type (
 	}
 	COINGECKO_API struct {
 		TOKENS_INFO string `env:"COINGECKO_API_TOKENS_INFO,required"`
+		POOL_INFO   string `env:"COINGECKO_API_POOL_INFO,required"`
 		KEY         string `env:"COINGECKO_API_KEY,required"`
 	}
 
