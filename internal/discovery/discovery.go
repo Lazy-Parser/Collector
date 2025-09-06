@@ -14,7 +14,7 @@ type Discovery struct {
 	// only new mode
 	onlyNewMode bool
 	tokenRepo   market.TokenRepo
-	pairRepo    market.PairRepo // TODO: rename to the PoolRepo
+	poolRepo    market.PoolRepo
 
 	decimalsMode bool
 }

@@ -5,11 +5,11 @@ import "github.com/Lazy-Parser/Collector/market"
 type Option func(*Discovery)
 
 // Option that checkes in method [Meta] if discovered pools are unique in database
-func (d *Discovery) WithOnlyNew(enable bool, tokenRepo market.TokenRepo, pairRepo market.PairRepo) Option {
+func (d *Discovery) WithOnlyNew(enable bool, tokenRepo market.TokenRepo, poolRepo market.PoolRepo) Option {
 	return func(d *Discovery) {
 		d.onlyNewMode = enable
 		d.tokenRepo = tokenRepo
-		d.pairRepo = pairRepo
+		d.poolRepo = poolRepo
 	}
 }
 

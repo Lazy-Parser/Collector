@@ -30,6 +30,13 @@ type TokenDB struct {
 	Network     string
 }
 
+func (PoolDB) TableName() string {
+	return "pools"
+}
+func (TokenDB) TableName() string {
+	return "tokens"
+}
+
 func ToPoolDB(p market.Pool) PoolDB {
 	return PoolDB{
 		BaseToken:  ToTokenDB(p.Pair.BaseToken),
@@ -49,30 +56,32 @@ func ToPool(m PoolDB) market.Pool {
 			BaseToken:  ToToken(m.BaseToken),
 			QuoteToken: ToToken(m.QuoteToken),
 		},
-		Address:    m.Address,
-		Network:    m.Network,
-		Pool:       m.Pool,
-		Label:      m.Label,
-		URL:        m.URL,
-		Type:       m.Type,
+		Address: m.Address,
+		Network: m.Network,
+		Pool:    m.Pool,
+		Label:   m.Label,
+		URL:     m.URL,
+		Type:    m.Type,
 	}
 }
 
 func ToTokenDB(t market.Token) TokenDB {
 	return TokenDB{
-		Name:    t.Name,
-		Network: t.Network,
-		Address: t.Address,
-		Decimal: t.Decimal,
+		Name:       t.Name,
+		Network:    t.Network,
+		Address:    t.Address,
+		Decimal:    t.Decimal,
+		CreateTime: t.CreateTime,
 		// TODO: add more fields
 	}
 }
 
 func ToToken(t TokenDB) market.Token {
 	return market.Token{
-		Name:    t.Name,
-		Network: t.Network,
-		Address: t.Address,
-		Decimal: t.Decimal,
+		Name:       t.Name,
+		Network:    t.Network,
+		Address:    t.Address,
+		Decimal:    t.Decimal,
+		CreateTime: t.CreateTime,
 	}
 }

@@ -46,8 +46,7 @@ func (r *tokenRepo) Get(ctx context.Context, addr string) (market.Token, error) 
 func (r *tokenRepo) FindOrCreate(ctx context.Context, token market.Token) (uint, error) {
 	t := ToTokenDB(token)
 
-	// res := r.db.WithContext(ctx).FirstOrCreate(&t, TokenDB{Address: t.Address})
-	res := r.db.WithContext(ctx).Create(&t)
+	res := r.db.WithContext(ctx).FirstOrCreate(&t, TokenDB{Address: t.Address})
 	if res.Error != nil {
 		return 0, res.Error
 	}
@@ -56,5 +55,5 @@ func (r *tokenRepo) FindOrCreate(ctx context.Context, token market.Token) (uint,
 }
 
 func (r *tokenRepo) RemoveAll() error {
-	return r.db.Exec("DELETE FROM token_dbs").Error
+	return r.db.Exec("DELETE FROM tokens").Error
 }

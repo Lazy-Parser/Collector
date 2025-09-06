@@ -50,7 +50,7 @@ func Start(dbPath string, opts ...Option) (*gorm.DB, error) {
 }
 
 func NewTokenRepo(db *gorm.DB) market.TokenRepo { return sqlite_custom.NewTokenRepo(db) }
-func NewPairRepo(db *gorm.DB) market.PairRepo   { return sqlite_custom.NewPairRepo(db) }
+func NewPoolRepo(db *gorm.DB) market.PoolRepo   { return sqlite_custom.NewPoolRepo(db) }
 
 func checkIfFileExists(path string) bool {
 	info, err := os.Stat(path)

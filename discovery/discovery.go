@@ -20,7 +20,7 @@ type Discovery interface {
 	// DO NOT USE IT!!!
 	Fetch(exchange exchange.Exchange) []market.Token
 	// Options
-	WithOnlyNew(enable bool, tokenRepo market.TokenRepo, pairRepo market.PairRepo) Option
+	WithOnlyNew(enable bool, tokenRepo market.TokenRepo, pairRepo market.PoolRepo) Option
 	WithDecimals(enable bool) Option
 	ApplyOptions(opts ...Option)
 }

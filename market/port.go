@@ -10,9 +10,10 @@ type TokenRepo interface {
 	RemoveAll() error
 }
 
-type PairRepo interface {
+type PoolRepo interface {
 	Get(ctx context.Context, addr string) (Pool, error)
 	GetAll(ctx context.Context) ([]Pool, error)
-	FindOrCreate(ctx context.Context, pair Pool, baseId, quoteId uint) (uint, error)
+	FindOrCreate(ctx context.Context, pool Pool, baseId, quoteId uint) (uint, error)
 	RemoveAll() error
+	GetAllRepos() ([]string, error)
 }
