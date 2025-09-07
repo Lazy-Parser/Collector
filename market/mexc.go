@@ -22,3 +22,23 @@ type MexcContractDetail struct {
 	CreateTime int64  `json:"createTime"`
 	ImageUrl   string `json:"baseCoinIconUrl"`
 }
+
+// 24h ticker stats
+type MexcTickerStats struct {
+	Symbol   string `json:"symbol"`
+	BidPrice string `json:"bidPrice"`
+	AskPrice string `json:"askPrice"`
+	Volume   string `json:"volume"`
+}
+
+type MexcSpotTick struct {
+	Symbol   string `json:"symbol"`
+	BidPrice string `json:"bidPrice"`
+	AskPrice string `json:"askPrice"`
+}
+
+type MexcFutureTick struct {
+	Symbol   string `json:"symbol"`
+	BidPrice string `json:"bidPrice"`
+	AskPrice string `json:"askPrice"`
+}

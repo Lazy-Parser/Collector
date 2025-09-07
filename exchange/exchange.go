@@ -8,10 +8,17 @@ import (
 	"github.com/Lazy-Parser/Collector/market"
 )
 
+// Every Exchange will have its own Buffer. Buffer - its just a storage for frequently changed data (volume, deposit / withdraw, ...).
+//
+// Element for Buffer is [BufferTick].
 type Exchange interface {
 	Name() string
-	Spots(ctx context.Context, filter bool, limit int) ([]market.Token, error)
-	Futures(ctx context.Context) ([]market.Token, error)
+	Fetch24hTickerStats(ctx context.Context) ([]market.MexcTickerStats, error)
+	FetchConfigAll(ctx context.Context) ([]market.MexcAsset, error)
+	FetchContractsDetails(ctx context.Context) ([]market.MexcContractDetail, error)
+	UpdateBuffer(update market.BufferTickUpdate)
+	ListenSpot(ch chan market.MexcSpotTick)
+	ListenFutures(ch chan market.MexcFutureTick)
 }
 
 func NewMexc(api api.MexcAPI) Exchange {

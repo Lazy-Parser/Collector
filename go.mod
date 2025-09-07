@@ -5,8 +5,10 @@ go 1.24.2
 require (
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/go-resty/resty/v2 v2.16.5
+	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
 	golang.org/x/time v0.12.0
+	google.golang.org/protobuf v1.36.8
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.30.1
 )

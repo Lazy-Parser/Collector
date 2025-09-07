@@ -28,6 +28,7 @@ type (
 	MEXC_API struct {
 		CONFIG_GETALL    string `env:"MEXC_API_CONFIG_GETALL,required"`
 		CONTRACTS_DETAIL string `env:"MEXC_API_CONTRACTS_DETAIL,required"`
+		TICKER_24HR      string `env:"MEXC_API_TICKER_24HR,required"`
 	}
 
 	DEXSCREENER struct {

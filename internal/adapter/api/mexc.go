@@ -22,6 +22,7 @@ func NewMexcApi(cfg *config.Config) *MexcApi {
 	return &MexcApi{cfg: cfg}
 }
 
+// Returns a list of all spot tokens with their info
 func (api *MexcApi) FetchCurrencyInformation(ctx context.Context) ([]market.MexcAsset, error) {
 	qs := url.Values{"timestamp": {fmt.Sprint(time.Now().UnixMilli())}}
 	mac := hmac.New(sha256.New, []byte(api.cfg.Mexc.PRIVATE_TOKEN))
@@ -39,6 +40,7 @@ func (api *MexcApi) FetchCurrencyInformation(ctx context.Context) ([]market.Mexc
 	return res, err
 }
 
+// Returns a list of futures contracts
 func (api *MexcApi) FetchContractInformation(ctx context.Context) ([]market.MexcContractDetail, error) {
 	var res market.MexcContracts
 	_, err := resty.New().
@@ -47,4 +49,14 @@ func (api *MexcApi) FetchContractInformation(ctx context.Context) ([]market.Mexc
 		SetResult(&res).
 		Get(api.cfg.Mexc.API.CONTRACTS_DETAIL)
 	return res.Data, err
+}
+
+func (api *MexcApi) Fetch24hTickerStats(ctx context.Context) ([]market.MexcTickerStats, error) {
+	var res []market.MexcTickerStats
+	_, err := resty.New().
+		R().
+		SetContext(ctx).
+		SetResult(&res).
+		Get(api.cfg.Mexc.API.TICKER_24HR)
+	return res, err
 }
