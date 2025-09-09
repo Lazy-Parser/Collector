@@ -13,15 +13,13 @@ import (
 // Element for Buffer is [BufferTick].
 type Exchange interface {
 	Name() string
-	Fetch24hTickerStats(ctx context.Context) ([]market.MexcTickerStats, error)
-	FetchConfigAll(ctx context.Context) ([]market.MexcAsset, error)
-	FetchContractsDetails(ctx context.Context) ([]market.MexcContractDetail, error)
-	UpdateBuffer(update market.BufferTickUpdate)
-	ListenSpot(ch chan market.MexcSpotTick)
+	BufferLoop(ctx context.Context) error
+	GetBuffer() *map[string]*market.MexcTokenMeta
+	ListenSpot(ch chan market.MexcSpotTick) error
 	ListenFutures(ch chan market.MexcFutureTick)
 }
 
-func NewMexc(api api.MexcAPI) Exchange {
+func NewMexc(api api.MexcAPI) (Exchange, error) {
 	return exchange_internal.NewMexc(api)
 }
 

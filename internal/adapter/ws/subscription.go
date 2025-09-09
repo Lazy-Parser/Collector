@@ -1,7 +1,5 @@
 package wsclient
 
-import "fmt"
-
 type Subscription struct {
 	max      int                 // 30
 	channels map[string]struct{} // only unique
@@ -32,13 +30,28 @@ func (s *Subscription) Contains(channel string) bool { _, ok := s.channels[chann
 
 func (s *Subscription) Size() int    { return len(s.channels) }
 func (s *Subscription) IsFull() bool { return len(s.channels) == s.max }
+func (s *Subscription) GetChannelsList() []string {
+	list := make([]string, len(s.channels))
+	i := 0
+	for key := range s.channels { 
+		list[i] = key
+		i++
+	}
+	
+	return list
+}
+func (s *Subscription) ClearChannels() {
+	for key := range s.channels {
+		delete(s.channels, key)
+	}
+}
 
 func (s *Subscription) ToString() string {
 	var str string
 
 	i := 0
 	for channel := range s.channels {
-		str += fmt.Sprintf("\"%s\"", channel)
+		str += wrapInQuotes(channel)
 		if i != len(s.channels)-1 {
 			str += ", "
 		}

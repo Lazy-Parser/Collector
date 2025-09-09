@@ -1,6 +1,7 @@
 package market
 
 type MexcNetwork struct {
+	Coin           string `json:"coin"`
 	Network        string `json:"netWork"`
 	Contract       string `json:"contract"` // 0x…
 	DepositEnable  bool   `json:"depositEnable"`
@@ -32,13 +33,22 @@ type MexcTickerStats struct {
 }
 
 type MexcSpotTick struct {
-	Symbol   string `json:"symbol"`
-	BidPrice string `json:"bidPrice"`
-	AskPrice string `json:"askPrice"`
+	Symbol   string
+	BidPrice string
+	BidQty   string
+	AskPrice string
+	AskQty   string
 }
 
 type MexcFutureTick struct {
 	Symbol   string `json:"symbol"`
 	BidPrice string `json:"bidPrice"`
 	AskPrice string `json:"askPrice"`
+}
+
+type MexcTokenMeta struct {
+	Volume      string
+	Deposit     bool
+	WithdrawFee string
+	Withdraw    bool
 }

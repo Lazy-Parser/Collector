@@ -22,6 +22,8 @@ type Config struct {
 	SubTemplate             string
 	UnsubTamplate           string
 	SubscriptionMaxChannels int
+	ReconnectAttempts       int
+	ReconnectionBackoff     time.Duration // how long to wait between disconnection and recconection
 }
 
 func NewClientConfig() Config {
@@ -30,8 +32,19 @@ func NewClientConfig() Config {
 		SubTemplate:             `{"method": "SUBSCRIBE", "params": ["%s"]}`,
 		UnsubTamplate:           `{"method": "UNSUBSCRIBE", "params": ["%s"]}`,
 		SubscriptionMaxChannels: 25,
+		ReconnectAttempts:       5,
+		ReconnectionBackoff:     time.Second * 5,
 	}
 }
+
+type State int
+
+const (
+	Running State = iota
+	Disconnected
+	Reconnection
+	None
+)
 
 type Client struct {
 	mu     sync.Mutex
@@ -41,21 +54,33 @@ type Client struct {
 
 	msgCh  chan *pb.PushDataV3ApiWrapper
 	doneCh chan struct{}
+
+	// state
+	state State
+
+	reconnectionCounter int
 }
 
-func NewClient(config Config) (*Client, error) {
-	conn, _, err := websocket.DefaultDialer.Dial(config.UrlConnection, nil)
-	if err != nil {
-		return nil, err
-	}
-
+func NewClient(config Config) *Client {
 	return &Client{
-		conn:   conn,
-		config: config,
-		subs:   []Subscription{NewSubscription(config.SubscriptionMaxChannels)},
-		doneCh: make(chan struct{}),
-		msgCh:  make(chan *pb.PushDataV3ApiWrapper, 1024),
-	}, nil
+		conn:                nil,
+		config:              config,
+		subs:                []Subscription{NewSubscription(config.SubscriptionMaxChannels)},
+		doneCh:              make(chan struct{}),
+		msgCh:               make(chan *pb.PushDataV3ApiWrapper, 1024),
+		state:               None,
+		reconnectionCounter: 0,
+	}
+}
+
+func (c *Client) Connect() error {
+	conn, _, err := websocket.DefaultDialer.Dial(c.config.UrlConnection, nil)
+	if err != nil {
+		return err
+	}
+	c.conn = conn
+
+	return nil
 }
 
 func (c *Client) Close() error {
@@ -103,14 +128,14 @@ channLoop:
 	for idx := range updatedSubs {
 		// unsubscribe first. It also will add new channels to the payload, but it's ok, there should not be error
 		sub := c.subs[idx]
-		payload := []byte(c.getUnsubPayload(sub.ToString()))
-		if err := c.conn.WriteMessage(websocket.TextMessage, payload); err != nil {
+		payload := []byte(c.getUnsubPayload(sub.GetChannelsList()))
+		if err := c.saveWriteMessage(websocket.TextMessage, payload); err != nil {
 			return err
 		}
 
 		// resubscribe with new channels
-		payload = []byte(c.getSubPayload(sub.ToString()))
-		if err := c.conn.WriteMessage(websocket.TextMessage, payload); err != nil {
+		payload = []byte(c.getSubPayload(sub.GetChannelsList()))
+		if err := c.saveWriteMessage(websocket.TextMessage, payload); err != nil {
 			return err
 		}
 	}
@@ -123,8 +148,8 @@ func (c *Client) Unsubscribe(channel string) error {
 		// try to remove from the local list
 		if ok := sub.TryRemove(channel); ok {
 			// if found in local list, unsubscribe from the connection
-			payload := []byte(c.getUnsubPayload(channel))
-			return c.conn.WriteMessage(websocket.TextMessage, payload)
+			payload := []byte(c.getUnsubPayload([]string{channel}))
+			return c.saveWriteMessage(websocket.TextMessage, payload)
 		}
 	}
 
@@ -132,17 +157,21 @@ func (c *Client) Unsubscribe(channel string) error {
 	return errors.New("failed to unsubscribe: channel not found in list: " + channel)
 }
 
-func (c *Client) Run() {
+func (c *Client) Run() error {
 	defer close(c.msgCh)
 	for {
 		select {
 		case <-c.doneCh:
-			return
+			return nil
 
 		default:
 			msgType, msg, err := c.conn.ReadMessage()
 			if err != nil {
 				log.Println(err)
+				// try to reconnect
+				if err := c.tryReconnect(); err != nil {
+					return fmt.Errorf("reconnection failed: %v", err)
+				}
 				continue
 			}
 
@@ -169,8 +198,6 @@ func (c *Client) ListenTicks() <-chan *pb.PushDataV3ApiWrapper {
 //
 // Importnant! Do not start this func in goroutine
 func (c *Client) PingLoop(msg string, interval time.Duration) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 
 	if interval <= 0 {
 		return fmt.Errorf("provided interval is <= 0")
@@ -184,7 +211,7 @@ func (c *Client) PingLoop(msg string, interval time.Duration) error {
 			select {
 			case <-ticker.C:
 				// todo: check if connection is closed
-				if err := c.conn.WriteMessage(websocket.TextMessage, payload); err != nil {
+				if err := c.saveWriteMessage(websocket.TextMessage, payload); err != nil {
 					log.Println(err)
 				}
 
@@ -197,23 +224,112 @@ func (c *Client) PingLoop(msg string, interval time.Duration) error {
 	return nil
 }
 
+func (c *Client) IsRunning() bool {
+	return c.state == Running
+}
+
 func (c *Client) GetSubs() int {
 	return len(c.subs)
 }
 
-// private
-func (c *Client) getSubPayload(channels string) string {
-	return fmt.Sprintf(c.config.SubTemplate, channels)
+func (c *Client) SubsToString() string {
+	var str string
+
+	for i, sub := range c.subs {
+		str += fmt.Sprintf("SUBSCRIPTION #%d. Channels: %s\n", i+1, sub.ToString())
+	}
+
+	return str
 }
 
-func (c *Client) getUnsubPayload(channels string) string {
-	return fmt.Sprintf(c.config.UnsubTamplate, channels)
+// private
+
+// on error - try to reconnect
+func (c *Client) saveWriteMessage(messageType int, data []byte) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.state == Disconnected || c.conn == nil {
+		return errors.New("failed to write msg to conn when disconnected or nil")
+	}
+	if c.state == Reconnection {
+		return nil
+	}
+
+	if err := c.conn.WriteMessage(messageType, data); err != nil {
+		// try to reconnect
+		if err := c.tryReconnect(); err != nil {
+			return fmt.Errorf("failed to reconnect: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func (c *Client) tryReconnect() error {
+	c.mu.Lock()
+	if c.reconnectionCounter >= c.config.ReconnectAttempts {
+		return errors.New("failed to reconnect: all attempts are spend (" + fmt.Sprintf("%d", c.config.ReconnectAttempts) + ")")
+	}
+
+	c.reconnectionCounter++
+	c.state = Reconnection
+	log.Println("Try to reconnect!")
+
+	if c.conn != nil {
+		c.conn.Close()
+	}
+
+	var err error
+	c.conn, _, err = websocket.DefaultDialer.Dial(c.config.UrlConnection, nil)
+	c.mu.Unlock()
+	if err != nil {
+		c.state = Disconnected
+		return err
+	}
+
+	// resubscribe
+	time.Sleep(c.config.ReconnectionBackoff)
+	for i := range c.subs {
+		channelsCopy := c.subs[i].GetChannelsList()
+		c.subs[i].ClearChannels() // do not forget to clear subscription's channels
+		if err := c.Subscribe(channelsCopy); err != nil {
+			c.state = Disconnected
+			return err
+		}
+	}
+
+	c.state = Running
+	return nil
+}
+
+func (c *Client) getSubPayload(channels []string) string {
+	// create
+
+	return fmt.Sprintf(c.config.SubTemplate, c.channelsToString(channels))
+}
+
+func (c *Client) getUnsubPayload(channels []string) string {
+	return fmt.Sprintf(c.config.UnsubTamplate, c.channelsToString(channels))
+}
+
+func (c *Client) channelsToString(channels []string) string {
+	var str string
+
+	for i, channel := range channels {
+		str += wrapInQuotes(channel)
+		if i != len(channels)-1 {
+			str += ", "
+		}
+	}
+
+	return str
 }
 
 func (c *Client) unsubscribeAll() error {
 	for _, sub := range c.subs {
-		payload := []byte(c.getUnsubPayload(sub.ToString()))
-		if err := c.conn.WriteMessage(websocket.TextMessage, payload); err != nil {
+		payload := []byte(c.getUnsubPayload(sub.GetChannelsList()))
+		if err := c.saveWriteMessage(websocket.TextMessage, payload); err != nil {
 			return err
 		}
 	}
@@ -221,5 +337,8 @@ func (c *Client) unsubscribeAll() error {
 	return nil
 }
 
-// TODO: make reconnection
-// make pings in 30 secs
+// TODO: remove
+func (c *Client) MockDisconnect() {
+	c.conn.Close()
+	c.conn = nil
+}

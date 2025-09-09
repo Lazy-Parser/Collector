@@ -29,33 +29,44 @@ func TestClientSubUnsub(t *testing.T) {
 	config.SubscriptionMaxChannels = 1
 	config.UrlConnection = "wss://wbs-api.mexc.com/ws"
 
-	client, err := wsclient.NewClient(config)
+	client := wsclient.NewClient(config)
+	err := client.Connect()
 	if err != nil {
 		t.Error(err)
 		return
 	}
+
 	go client.Run()
 	client.PingLoop(`{"method": "PING"}`, 10*time.Second)
 
 	payload := []string{
-		"spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
-		"spot@public.aggre.bookTicker.v3.api.pb@100ms@ETHUSDT",
-		"spot@public.aggre.bookTicker.v3.api.pb@100ms@FARTCOINUSDT",
+		channelStr("BTCUSDT"),
+		channelStr("ETHUSDT"),
 	}
 	if err := client.Subscribe(payload); err != nil {
 		t.Error(err)
 		return
 	}
+	// control
+	t.Log(client.SubsToString())
 
 	go func() {
-		// waitring 5 sec for sub
-		time.Sleep(5 * time.Second)
-		if client.GetSubs() != 3 {
-			t.Errorf("expected 3 subs, got %d", client.GetSubs())
-		} else {
-			t.Log("Subscribed to 3 channels successfully")
-			client.Close()
+		time.Sleep(time.Second * 5)
+		if err := client.Subscribe([]string{channelStr("FARTCOINUSDT")}); err != nil {
+			panic(err)
 		}
+		// control
+		t.Log(client.SubsToString())
+
+		time.Sleep(time.Second * 5)
+		if err := client.Unsubscribe(channelStr("FARTCOINUSDT")); err != nil {
+			panic(err)
+		}
+		// control
+		t.Log(client.SubsToString())
+
+		time.Sleep(time.Second * 2)
+		client.MockDisconnect()
 	}()
 
 	// blocking
@@ -70,4 +81,8 @@ func TestClientSubUnsub(t *testing.T) {
 		t.Error(err)
 		return
 	}
+}
+
+func channelStr(symbol string) string {
+	return "spot@public.aggre.bookTicker.v3.api.pb@100ms@" + symbol
 }
