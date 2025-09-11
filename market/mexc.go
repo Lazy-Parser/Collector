@@ -33,7 +33,14 @@ type MexcTickerStats struct {
 }
 
 type MexcSpotTick struct {
-	Symbol   string
+	Symbol string
+
+	Volume   string
+	Deposit  bool
+	Withdraw bool
+	// always empty
+	Contract string // maybe???
+
 	BidPrice string
 	BidQty   string
 	AskPrice string
@@ -47,8 +54,29 @@ type MexcFutureTick struct {
 }
 
 type MexcTokenMeta struct {
-	Volume      string
+	Volume string
+
 	Deposit     bool
 	WithdrawFee string
 	Withdraw    bool
+	Contract    string
+}
+
+type MexcTokenMetaUpdate struct {
+	Volume *string
+
+	Deposit     *bool
+	WithdrawFee *string
+	Withdraw    *bool
+	Contract    *string
+}
+
+type MexcExchangeInfoRes struct {
+	Symbols []MexcExchangeInfo `json:"symbols"`
+}
+
+type MexcExchangeInfo struct {
+	Symbol     string `json:"symbol"`
+	BaseAsset  string `json:"baseAsset"`
+	QuoteAsset string `json:"quoteAsset"`
 }

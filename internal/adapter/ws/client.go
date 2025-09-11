@@ -67,7 +67,7 @@ func NewClient(config Config) *Client {
 		config:              config,
 		subs:                []Subscription{NewSubscription(config.SubscriptionMaxChannels)},
 		doneCh:              make(chan struct{}),
-		msgCh:               make(chan *pb.PushDataV3ApiWrapper, 1024),
+		msgCh:               make(chan *pb.PushDataV3ApiWrapper, 2048),
 		state:               None,
 		reconnectionCounter: 0,
 	}
@@ -143,18 +143,23 @@ channLoop:
 	return nil
 }
 
-func (c *Client) Unsubscribe(channel string) error {
-	for _, sub := range c.subs {
-		// try to remove from the local list
-		if ok := sub.TryRemove(channel); ok {
-			// if found in local list, unsubscribe from the connection
-			payload := []byte(c.getUnsubPayload([]string{channel}))
-			return c.saveWriteMessage(websocket.TextMessage, payload)
+func (c *Client) Unsubscribe(channels []string) error {
+	var toRemove []string
+	for _, channel := range channels {
+		if exists := c.channelExist(channel); !exists {
+			return errors.New("failed to unsubscribe: channel not found in list: " + channel)
 		}
+
+		toRemove = append(toRemove, channel)
 	}
 
-	// if not found
-	return errors.New("failed to unsubscribe: channel not found in list: " + channel)
+	// remove from the local list
+	for _, channel := range toRemove {
+		c.channelRemove(channel)
+	}
+	
+	payload := []byte(c.getUnsubPayload(toRemove))
+	return c.saveWriteMessage(websocket.TextMessage, payload)
 }
 
 func (c *Client) Run() error {
@@ -198,7 +203,6 @@ func (c *Client) ListenTicks() <-chan *pb.PushDataV3ApiWrapper {
 //
 // Importnant! Do not start this func in goroutine
 func (c *Client) PingLoop(msg string, interval time.Duration) error {
-
 	if interval <= 0 {
 		return fmt.Errorf("provided interval is <= 0")
 	}
@@ -336,6 +340,22 @@ func (c *Client) unsubscribeAll() error {
 
 	return nil
 }
+
+func (c *Client) channelExist(channel string) bool {
+	for _, sub := range c.subs {
+		if sub.Exists(channel) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (c *Client) channelRemove(channel string) {
+	for _, sub := range c.subs {
+		sub.TryRemove(channel)
+	}
+}  
 
 // TODO: remove
 func (c *Client) MockDisconnect() {

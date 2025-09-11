@@ -60,3 +60,13 @@ func (api *MexcApi) Fetch24hTickerStats(ctx context.Context) ([]market.MexcTicke
 		Get(api.cfg.Mexc.API.TICKER_24HR)
 	return res, err
 }
+
+func (api *MexcApi) FetchExchangeInfo(ctx context.Context) ([]market.MexcExchangeInfo, error) {
+	var res market.MexcExchangeInfoRes
+	_, err := resty.New().
+		R().
+		SetContext(ctx).
+		SetResult(&res).
+		Get(api.cfg.Mexc.API.EXCHANGE_INFO)
+	return res.Symbols, err
+}

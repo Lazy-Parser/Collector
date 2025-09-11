@@ -87,47 +87,62 @@ func (m *Mexc) BufferLoop(ctx context.Context) error {
 	// initial update end
 
 	go func() {
-		stats, err := m.api.Fetch24hTickerStats(ctx)
-		if err != nil {
-			// do smth
-		}
+		ticker := time.NewTicker(time.Minute * 5)
+		defer ticker.Stop()
 
-		for _, stat := range stats {
-			// update buffer
-			oper := m.updateBufferVolume(normalizeSymbol(stat.Symbol), stat.Volume)
-			// add / remove channel in the ws
-			if err := m.updateSubscription(stat.Symbol, oper); err != nil {
-				log.Printf("Failed to update subscription: %v", err)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				stats, err := m.api.Fetch24hTickerStats(ctx)
+				if err != nil {
+					// do smth
+				}
+
+				for _, stat := range stats {
+					// update buffer
+					oper := m.updateBufferVolume(normalizeSymbol(stat.Symbol), stat.Volume)
+					// add / remove channel in the ws
+					if err := m.updateSubscription(stat.Symbol, oper); err != nil {
+						log.Printf("Failed to update subscription: %v", err)
+					}
+				}
 			}
 		}
-
-		time.Sleep(time.Minute * 5)
 	}()
 
 	go func() {
-		confs, err := m.api.FetchCurrencyInformation(ctx)
-		if err != nil {
-			// do smth
-		}
+		ticker := time.NewTicker(time.Minute * 10)
+		defer ticker.Stop()
 
-		for _, c := range confs {
-			n := c.NetworkList[0]
-			m.updateBufferDepositWithdraw(
-				c.Coin,
-				n.WithdrawFee,
-				c.NetworkList[0].DepositEnable,
-				c.NetworkList[0].WithdrawEnable,
-			)
-		}
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				confs, err := m.api.FetchCurrencyInformation(ctx)
+				if err != nil {
+					// do smth
+				}
 
-		time.Sleep(time.Minute * 30)
+				for _, c := range confs {
+					n := c.NetworkList[0]
+					m.updateBufferDepositWithdraw(
+						c.Coin,
+						n.WithdrawFee,
+						c.NetworkList[0].DepositEnable,
+						c.NetworkList[0].WithdrawEnable,
+					)
+				}
+			}
+		}
 	}()
 
 	return nil
 }
 
 func (m *Mexc) BufferToSubscription() {
-	
 }
 
 // do not normalize symbol
@@ -137,6 +152,7 @@ func (m *Mexc) updateSubscription(symbol string, operation Operation) error {
 	}
 
 	// make only for futures
+	// TODO: also update on futures
 	if m.conn.IsRunning() {
 		if operation == Delete {
 			if err := m.conn.Unsubscribe(symbol); err != nil {
@@ -198,7 +214,10 @@ func (m *Mexc) updateBufferVolume(symbol, volume string) Operation {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	volumeInt, _ := strconv.ParseFloat(volume, 32)
+	volumeInt, err := strconv.ParseFloat(volume, 32)
+	if err != nil {
+		return Pass
+	}
 	if m.existsInBuffer(symbol) {
 		if volumeInt < volumeMin {
 			// if less then minimum - delete
@@ -242,12 +261,6 @@ func (m *Mexc) updateBufferDepositWithdraw(symbol, withdrawFee string, deposit, 
 	m.buffer[symbol].WithdrawFee = withdrawFee
 }
 
-// private
-func (m *Mexc) existsInBuffer(symbol string) bool {
-	_, ok := m.buffer[symbol]
-	return ok
-}
-
 func (m *Mexc) ListenSpot(ch chan market.MexcSpotTick) error {
 	err := m.conn.Connect()
 	if err != nil {
@@ -266,7 +279,23 @@ func (m *Mexc) ListenSpot(ch chan market.MexcSpotTick) error {
 	return nil
 }
 
+func (m *Mexc) Stop() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if m.conn != nil {
+		return m.conn.Close()
+	}
+	return nil
+}
+
 // TODO: not finished yet
 func (m *Mexc) ListenFutures(ch chan market.MexcFutureTick) {
+}
 
+
+// private
+func (m *Mexc) existsInBuffer(symbol string) bool {
+	_, ok := m.buffer[symbol]
+	return ok
 }

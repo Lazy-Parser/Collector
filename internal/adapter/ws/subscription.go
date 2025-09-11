@@ -18,12 +18,16 @@ func (s *Subscription) Push(channel string) bool {
 	return false
 }
 
-func (s *Subscription) TryRemove(channel string) bool {
-	if _, ok := s.channels[channel]; ok {
+func (s *Subscription) Exists(channel string) bool {
+	_, ok := s.channels[channel]
+	return ok
+}
+
+// if not found, do nothing
+func (s *Subscription) TryRemove(channel string) {
+	if ok := s.Exists(channel); ok {
 		delete(s.channels, channel)
-		return true
 	}
-	return false
 }
 
 func (s *Subscription) Contains(channel string) bool { _, ok := s.channels[channel]; return ok }
