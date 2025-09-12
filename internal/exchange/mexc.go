@@ -2,7 +2,7 @@ package exchange_internal
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"log"
 	"strconv"
 	"sync"
@@ -11,6 +11,7 @@ import (
 	"github.com/Lazy-Parser/Collector/api"
 	wsclient "github.com/Lazy-Parser/Collector/internal/adapter/ws"
 	"github.com/Lazy-Parser/Collector/market"
+	"github.com/Lazy-Parser/Collector/pb"
 )
 
 var (
@@ -26,65 +27,138 @@ var (
 	volumeMin = 50_000.0
 )
 
-type Operation int
+type operation int
 
 const (
-	Update Operation = iota
-	Create
-	Delete
-	Pass
+	Subscribe operation = iota
+	Unsubscribe
 )
 
+// m.BufferLoop()
+// m.ListenSpot()
 type Mexc struct {
-	mu     sync.RWMutex
-	api    api.MexcAPI
-	buffer map[string]*market.MexcTokenMeta
-	conn   *wsclient.Client
+	conn *wsclient.Client
+	api  api.MexcAPI
+
+	symbols map[string]struct{}
+	quotes  map[string]struct{}
+
+	// xIndex are used for the work with both short and full symbols efficiently
+	buffer  map[string]*market.MexcTokenMeta // key - full symbol ('BTCUSDT')
+	queue   map[string]operation             // key - full symbol
+	queueMu sync.RWMutex
 }
 
 func NewMexc(api api.MexcAPI) (*Mexc, error) {
 	config := wsclient.NewClientConfig()
 	config.SubTemplate = sub
 	config.UnsubTamplate = unsub
-	config.SubscriptionMaxChannels = 25
+	config.SubscriptionMaxChannels = 15
 	config.UrlConnection = "wss://wbs-api.mexc.com/ws"
+	config.ChannelTemplate = "spot@public.aggre.bookTicker.v3.api.pb@100ms@%s"
+
+	// fetch all symbols here or not here (maybe in BufferLoop)
+	symbols, quotes, err := fetchAllSymbols(api)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Mexc{
-		api:    api,
-		conn:   wsclient.NewClient(config),
-		buffer: make(map[string]*market.MexcTokenMeta),
+		api:     api,
+		conn:    wsclient.NewClient(config),
+		symbols: symbols,
+		quotes:  quotes,
+		buffer:  make(map[string]*market.MexcTokenMeta),
+		queue:   make(map[string]operation),
 	}, nil
+}
+
+// Fetches all symbols and quote coins from mexc.
+//
+// Returns two maps: symbols and quotes
+func fetchAllSymbols(api api.MexcAPI) (map[string]struct{}, map[string]struct{}, error) {
+	symbolsRes, err := api.FetchExchangeInfo(context.Background())
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to created mexc exchange: %v", err)
+	}
+	symbols := make(map[string]struct{})
+	quotes := make(map[string]struct{})
+	for _, s := range symbolsRes {
+		symbols[s.Symbol] = struct{}{}
+		quotes[s.QuoteAsset] = struct{}{}
+	}
+
+	return symbols, quotes, nil
 }
 
 func (m *Mexc) Name() string {
 	return "Mexc"
 }
 
-// this is a loop, that periodically make requests to mexc api to update info in buffer (like volume, withdraw / deposit)
+// general
+// symbol must be normalized for Volume!
+// Done
+func (m *Mexc) update(symbol string, update market.MexcTokenMetaUpdate) {
+	// find token in buffer
+	tokenMeta, exist := m.bufferFind(symbol)
+
+	if update.Volume != nil {
+		// parse volume
+		volume, err := strconv.ParseFloat(*update.Volume, 64)
+		if err != nil {
+			return
+		}
+		volumeBiggerMin := volume > volumeMin
+
+		if exist {
+			if volumeBiggerMin {
+				// update
+				m.bufferUpdate(tokenMeta, update)
+			} else {
+				// delete. TODO: Do not forger to push msg to the queue
+				m.bufferDelete(symbol)
+				m.queuePush(symbol, Unsubscribe)
+			}
+		} else {
+			if volumeBiggerMin {
+				// create. TODO: Do not forger to push msg to the queue
+				m.bufferCreate(symbol, update)
+				m.queuePush(symbol, Subscribe)
+			} else {
+				// nothing
+			}
+		}
+	}
+
+	if update.Deposit != nil || update.Withdraw != nil {
+		if exist {
+			m.bufferUpdate(tokenMeta, update)
+		}
+		return
+	}
+}
+
+// close all internal processes and call ctx.Done()
+func (m *Mexc) StopAll(ctx context.Context) {
+	ctx.Done()
+	m.conn.Close()
+}
+
+// general
+
+// buffer. TODO: make init buffer fetch
+// Start in the main goroutine
 func (m *Mexc) BufferLoop(ctx context.Context) error {
-	// volume - every 5 min
-	// deposit / withdraw - every 30 min
-
-	// initial update start
-	confs, stats, err := m.fetchForBuffer(ctx)
+	// init requests
+	err := m.fetchVolumeAndUpdate(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("buffer loop error: %v", err)
 	}
-
-	// update volume first (because it creates new TokenMeta)
-	for _, stat := range *stats {
-		m.updateBufferVolume(normalizeSymbol(stat.Symbol), stat.Volume)
+	err = m.fetchDepositWithdrawAndUpdate(ctx)
+	if err != nil {
+		return fmt.Errorf("buffer loop error: %v", err)
 	}
-	for _, c := range *confs {
-		n := c.NetworkList[0]
-		m.updateBufferDepositWithdraw(
-			c.Coin,
-			n.WithdrawFee,
-			c.NetworkList[0].DepositEnable,
-			c.NetworkList[0].WithdrawEnable,
-		)
-	}
-	// initial update end
+	m.queueBurst()
 
 	go func() {
 		ticker := time.NewTicker(time.Minute * 5)
@@ -95,19 +169,9 @@ func (m *Mexc) BufferLoop(ctx context.Context) error {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				stats, err := m.api.Fetch24hTickerStats(ctx)
-				if err != nil {
-					// do smth
-				}
-
-				for _, stat := range stats {
-					// update buffer
-					oper := m.updateBufferVolume(normalizeSymbol(stat.Symbol), stat.Volume)
-					// add / remove channel in the ws
-					if err := m.updateSubscription(stat.Symbol, oper); err != nil {
-						log.Printf("Failed to update subscription: %v", err)
-					}
-				}
+				m.fetchVolumeAndUpdate(ctx)
+				// don't forget to run the burst method for the changes (update/delete/create) to take effect.
+				m.queueBurst()
 			}
 		}
 	}()
@@ -121,20 +185,8 @@ func (m *Mexc) BufferLoop(ctx context.Context) error {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				confs, err := m.api.FetchCurrencyInformation(ctx)
-				if err != nil {
-					// do smth
-				}
-
-				for _, c := range confs {
-					n := c.NetworkList[0]
-					m.updateBufferDepositWithdraw(
-						c.Coin,
-						n.WithdrawFee,
-						c.NetworkList[0].DepositEnable,
-						c.NetworkList[0].WithdrawEnable,
-					)
-				}
+				m.fetchDepositWithdrawAndUpdate(ctx)
+				// do not call m.queueBurst() here, because only volume fetch addes commands to the queue
 			}
 		}
 	}()
@@ -142,160 +194,230 @@ func (m *Mexc) BufferLoop(ctx context.Context) error {
 	return nil
 }
 
-func (m *Mexc) BufferToSubscription() {
-}
-
-// do not normalize symbol
-func (m *Mexc) updateSubscription(symbol string, operation Operation) error {
-	if symbol == "" {
-		return nil
-	}
-
-	// make only for futures
-	// TODO: also update on futures
-	if m.conn.IsRunning() {
-		if operation == Delete {
-			if err := m.conn.Unsubscribe(symbol); err != nil {
-				return err
-			}
-		}
-		if operation == Create {
-			if err := m.conn.Subscribe([]string{symbol}); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (m *Mexc) GetBuffer() *map[string]*market.MexcTokenMeta {
-	return &m.buffer
-}
-
-func (m *Mexc) fetchForBuffer(ctx context.Context) (*[]market.MexcAsset, *[]market.MexcTickerStats, error) {
-	var wg sync.WaitGroup
-	errs := make([]error, 2)
-	var tokensConf []market.MexcAsset
-	var tokensStats []market.MexcTickerStats
-
-	// make requests in parallel
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-
-		var err error
-		tokensConf, err = m.api.FetchCurrencyInformation(ctx)
-		if err != nil {
-			errs[0] = err
-		}
-	}()
-	go func() {
-		defer wg.Done()
-
-		var err error
-		tokensStats, err = m.api.Fetch24hTickerStats(ctx)
-		if err != nil {
-			errs[1] = err
-		}
-	}()
-
-	wg.Wait()
-
-	if errs[0] != nil || errs[1] != nil {
-		return nil, nil, errors.Join(errs[0], errs[1])
-	}
-
-	return &tokensConf, &tokensStats, nil
-}
-
-// Do not forget to normalize symbol here!
-func (m *Mexc) updateBufferVolume(symbol, volume string) Operation {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	volumeInt, err := strconv.ParseFloat(volume, 32)
+// TODO: Make buffer Fetch for provided symbol (token) name
+func (m *Mexc) BufferUpdate(ctx context.Context) error {
+	// init requests
+	err := m.fetchVolumeAndUpdate(ctx)
 	if err != nil {
-		return Pass
+		return fmt.Errorf("buffer loop error: %v", err)
 	}
-	if m.existsInBuffer(symbol) {
-		if volumeInt < volumeMin {
-			// if less then minimum - delete
-			delete(m.buffer, symbol)
-			return Delete
-		} else {
-			// if bigger then minimum - update
-			m.buffer[symbol].Volume = volume
-			return Update
+	err = m.fetchDepositWithdrawAndUpdate(ctx)
+	if err != nil {
+		return fmt.Errorf("buffer loop error: %v", err)
+	}
+	m.queueBurst()
+
+	return nil
+}
+
+func (m *Mexc) fetchVolumeAndUpdate(ctx context.Context) error {
+	stats, err := m.api.Fetch24hTickerStats(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, stat := range stats {
+		// update buffer. From this request we get full symbol (BTCUSDT)
+		m.update(stat.Symbol, market.MexcTokenMetaUpdate{Volume: &stat.Volume})
+	}
+
+	return nil
+}
+
+func (m *Mexc) fetchDepositWithdrawAndUpdate(ctx context.Context) error {
+	confs, err := m.api.FetchCurrencyInformation(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, c := range confs {
+		n := c.NetworkList[0]
+		changes := market.MexcTokenMetaUpdate{
+			Deposit:     &n.DepositEnable,
+			Withdraw:    &n.WithdrawEnable,
+			WithdrawFee: &n.WithdrawFee,
+			Contract:    &n.Contract,
 		}
-	} else {
-		if volumeInt > volumeMin {
-			// if does not exists and bigger then minimum - create
-			m.buffer[symbol] = &market.MexcTokenMeta{Volume: volume}
-			return Create
-		} else {
-			return Pass
+
+		// Update buffer. From this request we get short symbol (BTC)
+		// That means, that we need to update all full symbols, where first coin is a received short symbol. Example:
+		// Get: <- 'BTC'
+		// To update in buffer:
+		//  - 'BTCUSDT'
+		//  - 'BTCUSDC'
+		//  - 'BTCEUR'
+		//  - 'BTC...'
+		for _, symbolToUpdate := range m.coinToSymbols(c.Coin) {
+			m.update(symbolToUpdate, changes)
 		}
+	}
+
+	return nil
+}
+
+// accept only short symbol
+func (m *Mexc) bufferFind(symbol string) (*market.MexcTokenMeta, bool) {
+	res, ok := m.buffer[symbol]
+	return res, ok
+}
+
+func (m *Mexc) bufferUpdate(bufferElem *market.MexcTokenMeta, update market.MexcTokenMetaUpdate) {
+	if update.Volume != nil {
+		bufferElem.Volume = *update.Volume
+	}
+	if update.Deposit != nil {
+		bufferElem.Deposit = *update.Deposit
+	}
+	if update.Withdraw != nil {
+		bufferElem.Withdraw = *update.Withdraw
+	}
+	if update.WithdrawFee != nil {
+		bufferElem.WithdrawFee = *update.WithdrawFee
+	}
+	if update.Contract != nil {
+		bufferElem.Contract = *update.Contract
 	}
 }
 
-// remove quote 'usdt' prefix
-func normalizeSymbol(symbol string) string {
-	if len(symbol) < 5 {
-		return symbol
-	}
-	return symbol[:len(symbol)-4]
+// Accept full symbol
+func (m *Mexc) bufferDelete(symbol string) {
+	delete(m.buffer, symbol)
 }
 
-func (m *Mexc) updateBufferDepositWithdraw(symbol, withdrawFee string, deposit, withdraw bool) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	// this func do not create new TokenMeta! Only updateBufferVolume can
-	if !m.existsInBuffer(symbol) {
+// Accept only full symbol
+func (m *Mexc) bufferCreate(symbol string, update market.MexcTokenMetaUpdate) {
+	if symbol == "" {
 		return
 	}
 
-	m.buffer[symbol].Deposit = deposit
-	m.buffer[symbol].Withdraw = withdraw
-	m.buffer[symbol].WithdrawFee = withdrawFee
+	m.buffer[symbol] = &market.MexcTokenMeta{Volume: *update.Volume}
 }
 
-func (m *Mexc) ListenSpot(ch chan market.MexcSpotTick) error {
+// take short symbol ('BTC', 'ETH', ...) and returns symbols, where provided coin contains as base token
+//
+// Example: BTC -> BTCUSDT, BTCUSDC, BTCEUR, BTC...
+func (m *Mexc) coinToSymbols(coin string) []string {
+	var res []string
+
+	for quote := range m.quotes {
+		if _, exists := m.symbols[coin+quote]; exists {
+			res = append(res, coin+quote)
+		}
+	}
+
+	return res
+}
+
+// buffer
+
+// queue
+// accept onlu full symbol
+func (m *Mexc) queuePush(symbol string, oper operation) {
+	m.queueMu.Lock()
+	defer m.queueMu.Unlock()
+
+	m.queue[symbol] = oper
+}
+
+// Subscribe / unsubscribe symbols based on the queue
+func (m *Mexc) queueBurst() {
+	m.queueMu.Lock()
+	defer m.queueMu.Unlock()
+
+	var subList []string
+	var unsubList []string
+	for symbol, oper := range m.queue {
+		switch oper {
+		case Subscribe:
+			// TODO: decide for spot or futures connection
+			subList = append(subList, symbol)
+		case Unsubscribe:
+			unsubList = append(unsubList, symbol)
+		}
+	}
+
+	if !m.conn.IsRunning() {
+		log.Println("failed to burst all tasks in mexc queue, because the connection is not active")
+		return
+	}
+
+	m.conn.Unsubscribe(unsubList)
+	m.conn.Subscribe(subList)
+
+	// empty queue
+	for key := range m.queue {
+		delete(m.queue, key)
+	}
+}
+
+// queue
+
+// listeners
+
+// blocking
+func (m *Mexc) ListenSpot(ctx context.Context, ch chan *market.MexcSpotTick) error {
+	// start all staff
+
 	err := m.conn.Connect()
 	if err != nil {
 		return err
 	}
 
-	m.conn.PingLoop(ping, time.Second*30)
+	// non-blocking
+	if err := m.conn.PingLoop(ping, time.Second*30); err != nil {
+		return err
+	}
+
+	// non-blocking
+	go func() {
+		listenCh := m.conn.ListenTicks()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case wsData := <-listenCh:
+				if wsData == nil {
+					continue
+				}
+
+				bufferData, ok := m.bufferFind(*wsData.Symbol)
+				if !ok {
+					continue
+				}
+
+				ch <- m.createSpotTick(wsData, bufferData)
+			}
+		}
+	}()
+
+	// blocking
 	if err := m.conn.Run(); err != nil {
 		return err
 	}
 
-	if err := m.conn.Subscribe([]string{}); err != nil {
-		return err
-	}
-
 	return nil
 }
 
-func (m *Mexc) Stop() error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+func (m *Mexc) createSpotTick(wsData *pb.PushDataV3ApiWrapper, bufferData *market.MexcTokenMeta) *market.MexcSpotTick {
+	wsTick := wsData.GetPublicAggreBookTicker()
 
-	if m.conn != nil {
-		return m.conn.Close()
+	return &market.MexcSpotTick{
+		Symbol: *wsData.Symbol,
+
+		Volume:   bufferData.Volume,
+		Deposit:  bufferData.Deposit,
+		Withdraw: bufferData.Withdraw,
+		Contract: bufferData.Contract,
+
+		BidPrice: wsTick.BidPrice,
+		BidQty:   wsTick.BidQuantity,
+		AskPrice: wsTick.AskPrice,
+		AskQty:   wsTick.AskQuantity,
 	}
+}
+
+func (m *Mexc) ListenFutures(ctx context.Context, ch chan *market.MexcFutureTick) error {
 	return nil
 }
 
-// TODO: not finished yet
-func (m *Mexc) ListenFutures(ch chan market.MexcFutureTick) {
-}
-
-
-// private
-func (m *Mexc) existsInBuffer(symbol string) bool {
-	_, ok := m.buffer[symbol]
-	return ok
-}
+// listeners

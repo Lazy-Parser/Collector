@@ -13,10 +13,11 @@ import (
 // Element for Buffer is [BufferTick].
 type Exchange interface {
 	Name() string
+	StopAll(ctx context.Context)
 	BufferLoop(ctx context.Context) error
-	GetBuffer() *map[string]*market.MexcTokenMeta
-	ListenSpot(ch chan market.MexcSpotTick) error
-	ListenFutures(ch chan market.MexcFutureTick)
+	BufferUpdate(ctx context.Context) error
+	ListenSpot(ctx context.Context, ch chan *market.MexcSpotTick) error
+	ListenFutures(ctx context.Context, ch chan *market.MexcFutureTick) error
 }
 
 func NewMexc(api api.MexcAPI) (Exchange, error) {

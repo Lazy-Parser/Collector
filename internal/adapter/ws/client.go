@@ -21,6 +21,7 @@ type Config struct {
 	UrlConnection           string
 	SubTemplate             string
 	UnsubTamplate           string
+	ChannelTemplate         string
 	SubscriptionMaxChannels int
 	ReconnectAttempts       int
 	ReconnectionBackoff     time.Duration // how long to wait between disconnection and recconection
@@ -31,6 +32,7 @@ func NewClientConfig() Config {
 		UrlConnection:           "wss://wbs-api.mexc.com/ws",
 		SubTemplate:             `{"method": "SUBSCRIBE", "params": ["%s"]}`,
 		UnsubTamplate:           `{"method": "UNSUBSCRIBE", "params": ["%s"]}`,
+		ChannelTemplate:         "spot@public.aggre.bookTicker.v3.api.pb@100ms%s",
 		SubscriptionMaxChannels: 25,
 		ReconnectAttempts:       5,
 		ReconnectionBackoff:     time.Second * 5,
@@ -79,6 +81,7 @@ func (c *Client) Connect() error {
 		return err
 	}
 	c.conn = conn
+	c.state = Running
 
 	return nil
 }
@@ -97,6 +100,7 @@ func (c *Client) Subscribe(channels []string) error {
 
 channLoop:
 	for _, channel := range channels {
+		channel = fmt.Sprintf(c.config.ChannelTemplate, channel)
 		// check if already contains
 		for _, sub := range c.subs {
 			if sub.Contains(channel) {
@@ -146,6 +150,7 @@ channLoop:
 func (c *Client) Unsubscribe(channels []string) error {
 	var toRemove []string
 	for _, channel := range channels {
+		channel = fmt.Sprintf(c.config.ChannelTemplate, channel)
 		if exists := c.channelExist(channel); !exists {
 			return errors.New("failed to unsubscribe: channel not found in list: " + channel)
 		}
@@ -157,7 +162,7 @@ func (c *Client) Unsubscribe(channels []string) error {
 	for _, channel := range toRemove {
 		c.channelRemove(channel)
 	}
-	
+
 	payload := []byte(c.getUnsubPayload(toRemove))
 	return c.saveWriteMessage(websocket.TextMessage, payload)
 }
@@ -355,7 +360,7 @@ func (c *Client) channelRemove(channel string) {
 	for _, sub := range c.subs {
 		sub.TryRemove(channel)
 	}
-}  
+}
 
 // TODO: remove
 func (c *Client) MockDisconnect() {

@@ -59,7 +59,7 @@ func TestClientSubUnsub(t *testing.T) {
 		t.Log(client.SubsToString())
 
 		time.Sleep(time.Second * 5)
-		if err := client.Unsubscribe(channelStr("FARTCOINUSDT")); err != nil {
+		if err := client.Unsubscribe([]string{channelStr("FARTCOINUSDT")}); err != nil {
 			panic(err)
 		}
 		// control
