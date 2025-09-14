@@ -1,4 +1,4 @@
-// package wsclient
+package wsclient
 
 // import (
 // 	"errors"

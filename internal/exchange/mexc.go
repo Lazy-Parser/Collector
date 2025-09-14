@@ -37,8 +37,8 @@ const (
 // m.BufferLoop()
 // m.ListenSpot()
 type Mexc struct {
-	conn *wsclient.Client
-	api  api.MexcAPI
+	client *wsclient.Client
+	api    api.MexcAPI
 
 	symbols map[string]struct{}
 	quotes  map[string]struct{}
@@ -50,12 +50,17 @@ type Mexc struct {
 }
 
 func NewMexc(api api.MexcAPI) (*Mexc, error) {
-	config := wsclient.NewClientConfig()
-	config.SubTemplate = sub
-	config.UnsubTamplate = unsub
-	config.SubscriptionMaxChannels = 10
-	config.UrlConnection = "wss://wbs-api.mexc.com/ws"
-	config.ChannelTemplate = "spot@public.aggre.bookTicker.v3.api.pb@100ms@%s"
+	client, err := wsclient.NewClientBuilder().
+		SetConnectionString("wss://wbs-api.mexc.com/ws").
+		SetSubTemplate(sub).
+		SetUnsubTemplate(unsub).
+		SetConnectionMaxChannels(30).
+		SetSubscriptionMaxChannels(15).
+		SetChannel("spot@public.aggre.bookTicker.v3.api.pb@100ms@%s").
+		Build()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a client: %v", err)
+	}
 
 	// fetch all symbols here or not here (maybe in BufferLoop)
 	symbols, quotes, err := fetchAllSymbols(api)
@@ -65,7 +70,7 @@ func NewMexc(api api.MexcAPI) (*Mexc, error) {
 
 	return &Mexc{
 		api:     api,
-		conn:    wsclient.NewClient(config),
+		client:  client,
 		symbols: symbols,
 		quotes:  quotes,
 		buffer:  make(map[string]*market.MexcTokenMeta),
@@ -121,9 +126,9 @@ func (m *Mexc) update(symbol string, update market.MexcTokenMetaUpdate) {
 			}
 		} else {
 			if volumeBiggerMin {
-				if len(m.buffer) >= 40 {
-					return
-				}
+				// if len(m.buffer) >= 300 { // limit for tests
+				// 	return
+				// }
 				// create. TODO: Do not forger to push msg to the queue
 				m.bufferCreate(symbol, update)
 				m.queuePush(symbol, Subscribe)
@@ -144,7 +149,7 @@ func (m *Mexc) update(symbol string, update market.MexcTokenMetaUpdate) {
 // close all internal processes and call ctx.Done()
 func (m *Mexc) StopAll(ctx context.Context) {
 	ctx.Done()
-	m.conn.Close()
+	m.client.Disconnect()
 }
 
 // general
@@ -161,7 +166,10 @@ func (m *Mexc) BufferLoop(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("buffer loop error: %v", err)
 	}
+
+	log.Println("Fetched first requests for buffer")
 	m.queueBurst()
+	log.Println("Trying to burst all queuec")
 
 	go func() {
 		ticker := time.NewTicker(time.Minute * 5)
@@ -341,13 +349,13 @@ func (m *Mexc) queueBurst() {
 		}
 	}
 
-	if !m.conn.IsRunning() {
-		log.Println("failed to burst all tasks in mexc queue, because the connection is not active")
-		return
-	}
+	// if !m.client. {
+	// 	log.Println("failed to burst all tasks in mexc queue, because the connection is not active")
+	// 	return
+	// }
 
-	m.conn.Unsubscribe(unsubList)
-	m.conn.Subscribe(subList)
+	m.client.Unsubscribe(unsubList)
+	m.client.Subscribe(subList)
 
 	// empty queue
 	for key := range m.queue {
@@ -363,44 +371,29 @@ func (m *Mexc) queueBurst() {
 func (m *Mexc) ListenSpot(ctx context.Context, ch chan *market.MexcSpotTick) error {
 	// start all staff
 
-	err := m.conn.Connect()
-	if err != nil {
-		return err
-	}
-
 	// non-blocking
-	if err := m.conn.PingLoop(ping, time.Second*30); err != nil {
-		return err
-	}
-
-	// non-blocking
-	go func() {
-		listenCh := m.conn.ListenTicks()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case wsData := <-listenCh:
-				if wsData == nil {
-					continue
-				}
-
-				bufferData, ok := m.bufferFind(*wsData.Symbol)
-				if !ok {
-					continue
-				}
-
-				ch <- m.createSpotTick(wsData, bufferData)
+	listenCh := m.client.Listen()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case wsData, ok := <-listenCh:
+			if !ok {
+				return nil
 			}
+
+			if wsData == nil {
+				continue
+			}
+
+			bufferData, ok := m.bufferFind(*wsData.Symbol)
+			if !ok {
+				continue
+			}
+
+			ch <- m.createSpotTick(wsData, bufferData)
 		}
-	}()
-
-	// blocking
-	if err := m.conn.Run(); err != nil {
-		return err
 	}
-
-	return nil
 }
 
 func (m *Mexc) createSpotTick(wsData *pb.PushDataV3ApiWrapper, bufferData *market.MexcTokenMeta) *market.MexcSpotTick {

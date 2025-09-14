@@ -2,9 +2,11 @@ package mexc_test
 
 import (
 	"context"
+	"log"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/Lazy-Parser/Collector/api"
 	"github.com/Lazy-Parser/Collector/config"
@@ -12,6 +14,7 @@ import (
 	"github.com/Lazy-Parser/Collector/market"
 )
 
+// TODO: add metrics to the ws client
 func TestMexc(t *testing.T) {
 	// first create buffer
 	wd, _ := os.Getwd()
@@ -44,17 +47,19 @@ func TestMexc(t *testing.T) {
 	}
 	t.Log("Buffer Loop started success")
 
+	coins := map[string]struct{}{}
+	ticker := time.NewTicker(time.Second)
 	// listen ticks
 	for {
 		select {
 		case <-ctx.Done():
 			return
 
+		case <-ticker.C:
+			log.Printf("COINS: %d", len(coins))
+
 		case tick := <-ch:
-			t.Logf(
-				"%s: ASK %s | BID %s | Withdraw %t | Deposit %t",
-				tick.Symbol, tick.AskPrice, tick.BidPrice, tick.Withdraw, tick.Deposit,
-			)
+			coins[tick.Symbol] = struct{}{}
 		}
 	}
 

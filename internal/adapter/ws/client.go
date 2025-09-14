@@ -1,6 +1,14 @@
 package wsclient
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"log"
+	"sync"
+	"time"
+
+	"github.com/Lazy-Parser/Collector/pb"
+)
 
 type Client struct {
 	connectionString        string
@@ -10,12 +18,19 @@ type Client struct {
 	connectionMaxChannels   int
 	subscriptionMaxChannels int
 
-	conns []*Connection
+	conns    []*Connection
+	listenCh chan *pb.PushDataV3ApiWrapper
+	mu       sync.RWMutex
+	errorCh  chan error
+	wg       sync.WaitGroup
 }
 
 // do not create NewClient(), because already have builder in other filer
 
 func (c *Client) Subscribe(symbols []string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 symbolLoop:
 	for _, symbol := range symbols {
 		channel := c.symbolToChannel(symbol)
@@ -28,14 +43,16 @@ symbolLoop:
 
 		// if no one from existing connection couldnot subscribe provided channel, then create new connection
 		if err := c.addConnection(); err != nil {
-			return err
+			return fmt.Errorf("failed to create new connection: %v", err)
 		}
-		c.conns[len(c.conns)-1].TrySubscribe(channel)
+		if ok := c.conns[len(c.conns)-1].TrySubscribe(channel); !ok {
+			return errors.New(fmt.Sprintf("failed to subscribe to %s in a new connection", channel))
+		}
 	}
 
 	for i := range c.conns {
 		if err := c.conns[i].FlushSub(); err != nil {
-			return err
+			return fmt.Errorf("failed to flush subscriptions on connection %d: %w", i, err)
 		}
 	}
 
@@ -43,17 +60,17 @@ symbolLoop:
 }
 
 func (c *Client) Unsubscribe(symbols []string) error {
-symbolLoop:
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	for _, symbol := range symbols {
 		channel := c.symbolToChannel(symbol)
 
 		for i := range c.conns {
 			if ok := c.conns[i].TryUnsubscribe(channel); ok {
-				continue symbolLoop
+				break
 			}
 		}
-
-		// do smth here if provided symbol was not subscribed (wasnot found in list)
 	}
 
 	for i := range c.conns {
@@ -62,31 +79,108 @@ symbolLoop:
 		}
 	}
 
+	// for i := len(c.conns) - 1; i >= 0; i-- {
+	// 	if c.conns[i].GetChannelsAmount() == 0 {
+	// 		if err := c.deleteConnection(i); err != nil {
+	// 			return errors.New(fmt.Sprintf("Failed to delete empty connection %d: %v", i, err))
+	// 		}
+	// 	}
+	// }
+
 	return nil
 }
 
-func (c *Client) Listen() {
-	// write some code to combine all listeners from all connections and return just one
+func (c *Client) Listen() <-chan *pb.PushDataV3ApiWrapper {
+	return c.listenCh
 }
 
 func (c *Client) Disconnect() error {
-	// implement sooner
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	for i := range c.conns {
+		if err := c.conns[i].Close(); err != nil {
+			return errors.New(fmt.Sprintf("Failed to close connection %d: %v", i, err))
+		}
+	}
+
+	c.wg.Wait()
+
+	if c.listenCh != nil {
+		close(c.listenCh)
+	}
+
 	return nil
 }
 
 // private
+func (c *Client) deleteConnection(i int) error {
+	if i < 0 || i >= len(c.conns) {
+		return nil
+	}
+
+	if err := c.conns[i].Close(); err != nil {
+		return fmt.Errorf("failed to close connection: %v", err)
+	}
+
+	copy(c.conns[i:], c.conns[i+1:])
+	c.conns[len(c.conns)-1] = nil // avoid memory leak
+	c.conns = c.conns[:len(c.conns)-1]
+
+	return nil
+}
+
 func (c *Client) symbolToChannel(symbol string) string {
 	return fmt.Sprintf(c.channel, symbol)
 }
 
 func (c *Client) addConnection() error {
-	newConn, err := NewConnection(c.connectionString, c.connectionMaxChannels, c.subscriptionMaxChannels, c.subTemplate, c.unsubTemplate, )
+	newConn, err := NewConnection(c.connectionString, c.connectionMaxChannels, c.subscriptionMaxChannels, c.subTemplate, c.unsubTemplate)
 	if err != nil {
 		return err
 	}
 
-	go newConn.Run()
+	c.startConnection(newConn)
 
 	c.conns = append(c.conns, newConn)
 	return nil
+}
+
+func (c *Client) startConnection(conn *Connection) {
+	pingmsg := "{\"method\": \"PING\"}"
+
+	// c.wg.Add(1)
+	// go func() {
+	// 	defer c.wg.Done()
+	// }()
+
+	c.wg.Add(1)
+	go func() {
+		defer c.wg.Done()
+		if err := conn.Run(); err != nil {
+			log.Println(err)
+			return
+		}
+	}()
+
+	c.wg.Add(1)
+	go func() {
+		defer c.wg.Done()
+		for {
+			select {
+			case msg, ok := <-conn.Listen():
+				if !ok {
+					log.Println("connection channel closed")
+					return
+				}
+
+				c.listenCh <- msg
+			}
+		}
+	}()
+
+	if err := conn.HeartBeat(pingmsg, time.Second*30); err != nil {
+		log.Println(err)
+		return
+	}
 }

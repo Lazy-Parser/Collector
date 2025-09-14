@@ -1,6 +1,10 @@
 package wsclient
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/Lazy-Parser/Collector/pb"
+)
 
 type ClientBuidler struct {
 	connectionString        string
@@ -9,6 +13,10 @@ type ClientBuidler struct {
 	channel                 string
 	connectionMaxChannels   int
 	subscriptionMaxChannels int
+}
+
+func NewClientBuilder() *ClientBuidler {
+	return &ClientBuidler{}
 }
 
 func (b *ClientBuidler) SetConnectionString(str string) *ClientBuidler {
@@ -51,11 +59,6 @@ func (b *ClientBuidler) Build() (*Client, error) {
 		return nil, errors.New("connectionMaxChannels must be divisible by subscriptionMaxChannels. The number of subscriptions should fit perfectly into the connection")
 	}
 
-	conn, err := NewConnection(b.connectionString, b.connectionMaxChannels, b.subscriptionMaxChannels, b.subTemplate, b.unsubTemplate)
-	if err != nil {
-		return nil, errors.New("failed to create connection: " + err.Error())
-	}
-
 	return &Client{
 		connectionString:        b.connectionString,
 		subTemplate:             b.subTemplate,
@@ -63,6 +66,8 @@ func (b *ClientBuidler) Build() (*Client, error) {
 		channel:                 b.channel,
 		connectionMaxChannels:   b.connectionMaxChannels,
 		subscriptionMaxChannels: b.subscriptionMaxChannels,
-		conns:                   []*Connection{conn},
+		conns:                   []*Connection{},
+		listenCh:                make(chan *pb.PushDataV3ApiWrapper, 10000),
+		errorCh:                 make(chan error, 1),
 	}, nil
 }
