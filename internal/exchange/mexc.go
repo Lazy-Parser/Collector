@@ -53,7 +53,7 @@ func NewMexc(api api.MexcAPI) (*Mexc, error) {
 	config := wsclient.NewClientConfig()
 	config.SubTemplate = sub
 	config.UnsubTamplate = unsub
-	config.SubscriptionMaxChannels = 15
+	config.SubscriptionMaxChannels = 10
 	config.UrlConnection = "wss://wbs-api.mexc.com/ws"
 	config.ChannelTemplate = "spot@public.aggre.bookTicker.v3.api.pb@100ms@%s"
 
@@ -121,6 +121,9 @@ func (m *Mexc) update(symbol string, update market.MexcTokenMetaUpdate) {
 			}
 		} else {
 			if volumeBiggerMin {
+				if len(m.buffer) >= 40 {
+					return
+				}
 				// create. TODO: Do not forger to push msg to the queue
 				m.bufferCreate(symbol, update)
 				m.queuePush(symbol, Subscribe)
@@ -293,7 +296,7 @@ func (m *Mexc) bufferCreate(symbol string, update market.MexcTokenMetaUpdate) {
 	m.buffer[symbol] = &market.MexcTokenMeta{Volume: *update.Volume}
 }
 
-// take short symbol ('BTC', 'ETH', ...) and returns symbols, where provided coin contains as base token
+// take short symbol ('BTC', 'ETH', ...) and returns a list of symbols with all pairs variations, where base token is a provided one
 //
 // Example: BTC -> BTCUSDT, BTCUSDC, BTCEUR, BTC...
 func (m *Mexc) coinToSymbols(coin string) []string {
@@ -307,6 +310,8 @@ func (m *Mexc) coinToSymbols(coin string) []string {
 
 	return res
 }
+
+// BTC|USDT -> if symbol.Contains(quotes.ForEach()) -> return (symbol - quote[i]) + "_" + quote[i]
 
 // buffer
 
