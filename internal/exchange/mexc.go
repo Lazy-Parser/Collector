@@ -456,7 +456,7 @@ func (m *Mexc) ListenFutures(ctx context.Context, ch chan *market.MexcFutureTick
 				continue
 			}
 
-			bufferData, ok := m.bufferFind(wrapper.Channel)
+			// bufferData, ok := m.bufferFind(wrapper.Channel)
 			if !ok {
 				continue
 			}
@@ -467,7 +467,7 @@ func (m *Mexc) ListenFutures(ctx context.Context, ch chan *market.MexcFutureTick
 }
 
 func (m *Mexc) createFutureTick(data *market.MexcFutureTickWS) *market.MexcFutureTick {
-	res := 
+	return nil
 }
 
 // listeners
