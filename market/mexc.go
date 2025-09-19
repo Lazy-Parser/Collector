@@ -47,10 +47,20 @@ type MexcSpotTick struct {
 	AskQty   string
 }
 
+// Only for internal exchange work
+type MexcFutureTickWS struct {
+	Channel string `json:"channel"`
+	Data    struct {
+		Asks []float32 `json:"asks"`
+		Bids []float32 `json:"bids"`
+	} `json:"data"`
+	Symbol string `json:"symbol"`
+}
+
 type MexcFutureTick struct {
-	Symbol   string `json:"symbol"`
-	BidPrice string `json:"bidPrice"`
-	AskPrice string `json:"askPrice"`
+	Symbol string    `json:"symbol"`
+	Bids   []float32 `json:"bidPrice"`
+	Asks   []float32 `json:"askPrice"`
 }
 
 type MexcTokenMeta struct {

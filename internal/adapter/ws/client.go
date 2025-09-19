@@ -6,8 +6,6 @@ import (
 	"log"
 	"sync"
 	"time"
-
-	"github.com/Lazy-Parser/Collector/pb"
 )
 
 type Client struct {
@@ -15,11 +13,12 @@ type Client struct {
 	subTemplate             string
 	unsubTemplate           string
 	channel                 string
+	pingMsg                 string
 	connectionMaxChannels   int
 	subscriptionMaxChannels int
 
 	conns    []*Connection
-	listenCh chan *pb.PushDataV3ApiWrapper
+	listenCh chan *[]byte
 	mu       sync.RWMutex
 	errorCh  chan error
 	wg       sync.WaitGroup
@@ -90,7 +89,7 @@ func (c *Client) Unsubscribe(symbols []string) error {
 	return nil
 }
 
-func (c *Client) Listen() <-chan *pb.PushDataV3ApiWrapper {
+func (c *Client) Listen() <-chan *[]byte {
 	return c.listenCh
 }
 
@@ -135,7 +134,7 @@ func (c *Client) symbolToChannel(symbol string) string {
 }
 
 func (c *Client) addConnection() error {
-	newConn, err := NewConnection(c.connectionString, c.connectionMaxChannels, c.subscriptionMaxChannels, c.subTemplate, c.unsubTemplate)
+	newConn, err := NewConnection(c.connectionString, c.connectionMaxChannels, c.subscriptionMaxChannels, c.subTemplate, c.unsubTemplate, c.pingMsg)
 	if err != nil {
 		return err
 	}
@@ -147,13 +146,6 @@ func (c *Client) addConnection() error {
 }
 
 func (c *Client) startConnection(conn *Connection) {
-	pingmsg := "{\"method\": \"PING\"}"
-
-	// c.wg.Add(1)
-	// go func() {
-	// 	defer c.wg.Done()
-	// }()
-
 	c.wg.Add(1)
 	go func() {
 		defer c.wg.Done()
@@ -179,7 +171,7 @@ func (c *Client) startConnection(conn *Connection) {
 		}
 	}()
 
-	if err := conn.HeartBeat(pingmsg, time.Second*30); err != nil {
+	if err := conn.HeartBeat(time.Second * 30); err != nil {
 		log.Println(err)
 		return
 	}

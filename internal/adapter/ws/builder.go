@@ -2,8 +2,6 @@ package wsclient
 
 import (
 	"errors"
-
-	"github.com/Lazy-Parser/Collector/pb"
 )
 
 type ClientBuidler struct {
@@ -11,6 +9,7 @@ type ClientBuidler struct {
 	subTemplate             string
 	unsubTemplate           string
 	channel                 string
+	pingMsg                 string
 	connectionMaxChannels   int
 	subscriptionMaxChannels int
 }
@@ -31,6 +30,11 @@ func (b *ClientBuidler) SetSubTemplate(str string) *ClientBuidler {
 
 func (b *ClientBuidler) SetUnsubTemplate(str string) *ClientBuidler {
 	b.unsubTemplate = str
+	return b
+}
+
+func (b *ClientBuidler) SetPintMsgString(msg string) *ClientBuidler {
+	b.pingMsg = msg
 	return b
 }
 
@@ -64,10 +68,11 @@ func (b *ClientBuidler) Build() (*Client, error) {
 		subTemplate:             b.subTemplate,
 		unsubTemplate:           b.unsubTemplate,
 		channel:                 b.channel,
+		pingMsg:                 b.pingMsg,
 		connectionMaxChannels:   b.connectionMaxChannels,
 		subscriptionMaxChannels: b.subscriptionMaxChannels,
 		conns:                   []*Connection{},
-		listenCh:                make(chan *pb.PushDataV3ApiWrapper, 10000),
+		listenCh:                make(chan *[]byte, 10000),
 		errorCh:                 make(chan error, 1),
 	}, nil
 }

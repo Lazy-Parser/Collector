@@ -2,6 +2,7 @@ package exchange_internal
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	wsclient "github.com/Lazy-Parser/Collector/internal/adapter/ws"
 	"github.com/Lazy-Parser/Collector/market"
 	"github.com/Lazy-Parser/Collector/pb"
+	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -23,8 +25,8 @@ var (
     "method": "UNSUBSCRIPTION",
     "params": [%s]
 }`
-	ping      = `{"method": "PING"}`
-	volumeMin = 50_000.0
+	pingMsg   = `{"method": "PING"}`
+	volumeMin = 500_000.0
 )
 
 type operation int
@@ -37,8 +39,9 @@ const (
 // m.BufferLoop()
 // m.ListenSpot()
 type Mexc struct {
-	client *wsclient.Client
-	api    api.MexcAPI
+	clientSpot    *wsclient.Client
+	clientFutures *wsclient.Client
+	api           api.MexcAPI
 
 	symbols map[string]struct{}
 	quotes  map[string]struct{}
@@ -50,16 +53,30 @@ type Mexc struct {
 }
 
 func NewMexc(api api.MexcAPI) (*Mexc, error) {
-	client, err := wsclient.NewClientBuilder().
+	clientSpot, err := wsclient.NewClientBuilder().
 		SetConnectionString("wss://wbs-api.mexc.com/ws").
 		SetSubTemplate(sub).
 		SetUnsubTemplate(unsub).
 		SetConnectionMaxChannels(30).
 		SetSubscriptionMaxChannels(15).
+		SetPintMsgString(pingMsg).
 		SetChannel("spot@public.aggre.bookTicker.v3.api.pb@100ms@%s").
 		Build()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create a client: %v", err)
+		return nil, fmt.Errorf("failed to create a mexc spot lient: %v", err)
+	}
+
+	clientFutures, err := wsclient.NewClientBuilder().
+		SetConnectionString("wss://contract.mexc.com/edge").
+		SetSubTemplate(futures_sub).
+		SetUnsubTemplate(futures_unsub).
+		SetChannel("%s").
+		SetPintMsgString(futuresPingMsg).
+		SetConnectionMaxChannels(30).
+		SetSubscriptionMaxChannels(1).
+		Build()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a mexc futures lient: %v", err)
 	}
 
 	// fetch all symbols here or not here (maybe in BufferLoop)
@@ -69,12 +86,13 @@ func NewMexc(api api.MexcAPI) (*Mexc, error) {
 	}
 
 	return &Mexc{
-		api:     api,
-		client:  client,
-		symbols: symbols,
-		quotes:  quotes,
-		buffer:  make(map[string]*market.MexcTokenMeta),
-		queue:   make(map[string]operation),
+		api:           api,
+		clientSpot:    clientSpot,
+		clientFutures: clientFutures,
+		symbols:       symbols,
+		quotes:        quotes,
+		buffer:        make(map[string]*market.MexcTokenMeta),
+		queue:         make(map[string]operation),
 	}, nil
 }
 
@@ -126,9 +144,9 @@ func (m *Mexc) update(symbol string, update market.MexcTokenMetaUpdate) {
 			}
 		} else {
 			if volumeBiggerMin {
-				// if len(m.buffer) >= 300 { // limit for tests
-				// 	return
-				// }
+				if len(m.buffer) >= 300 { // limit for tests
+					return
+				}
 				// create. TODO: Do not forger to push msg to the queue
 				m.bufferCreate(symbol, update)
 				m.queuePush(symbol, Subscribe)
@@ -149,7 +167,8 @@ func (m *Mexc) update(symbol string, update market.MexcTokenMetaUpdate) {
 // close all internal processes and call ctx.Done()
 func (m *Mexc) StopAll(ctx context.Context) {
 	ctx.Done()
-	m.client.Disconnect()
+	m.clientSpot.Disconnect()
+	m.clientFutures.Disconnect()
 }
 
 // general
@@ -354,8 +373,8 @@ func (m *Mexc) queueBurst() {
 	// 	return
 	// }
 
-	m.client.Unsubscribe(unsubList)
-	m.client.Subscribe(subList)
+	m.clientSpot.Unsubscribe(unsubList)
+	m.clientSpot.Subscribe(subList)
 
 	// empty queue
 	for key := range m.queue {
@@ -369,29 +388,32 @@ func (m *Mexc) queueBurst() {
 
 // blocking
 func (m *Mexc) ListenSpot(ctx context.Context, ch chan *market.MexcSpotTick) error {
-	// start all staff
-
 	// non-blocking
-	listenCh := m.client.Listen()
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-		case wsData, ok := <-listenCh:
+		case raw, ok := <-m.clientSpot.Listen():
 			if !ok {
 				return nil
 			}
-
-			if wsData == nil {
+			if raw == nil {
 				continue
 			}
 
-			bufferData, ok := m.bufferFind(*wsData.Symbol)
+			// unmarshall
+			wrapper := &pb.PushDataV3ApiWrapper{}
+			if err := proto.Unmarshal(*raw, wrapper); err != nil {
+				log.Println(string(*raw))
+				continue
+			}
+
+			bufferData, ok := m.bufferFind(wrapper.Channel)
 			if !ok {
 				continue
 			}
 
-			ch <- m.createSpotTick(wsData, bufferData)
+			ch <- m.createSpotTick(wrapper, bufferData)
 		}
 	}
 }
@@ -415,7 +437,37 @@ func (m *Mexc) createSpotTick(wsData *pb.PushDataV3ApiWrapper, bufferData *marke
 }
 
 func (m *Mexc) ListenFutures(ctx context.Context, ch chan *market.MexcFutureTick) error {
-	return nil
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case raw, ok := <-m.clientFutures.Listen():
+			if !ok {
+				return nil
+			}
+			if raw == nil {
+				continue
+			}
+
+			// unmarshall
+			res := &market.MexcFutureTickWS{}
+			if err := json.Unmarshal(*raw, res); err != nil {
+				log.Println(string(*raw))
+				continue
+			}
+
+			bufferData, ok := m.bufferFind(wrapper.Channel)
+			if !ok {
+				continue
+			}
+
+			ch <- m.createFutureTick(res)
+		}
+	}
+}
+
+func (m *Mexc) createFutureTick(data *market.MexcFutureTickWS) *market.MexcFutureTick {
+	res := 
 }
 
 // listeners

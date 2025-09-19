@@ -6,9 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Lazy-Parser/Collector/pb"
 	"github.com/gorilla/websocket"
-	"google.golang.org/protobuf/proto"
 )
 
 type State int
@@ -23,7 +21,7 @@ const (
 type Connection struct {
 	conn     *websocket.Conn
 	subs     []*Subscription
-	listenCh chan *pb.PushDataV3ApiWrapper
+	listenCh chan *[]byte
 	closeCh  chan struct{}
 	state    State
 	mu       sync.RWMutex
@@ -36,18 +34,23 @@ type Connection struct {
 	subscriptionMaxChannels int
 	subTemplate             string
 	unsubTemplate           string
+	pingMsg                 string
 }
 
 // create new websocket connection
-func NewConnection(connectionString string, connectionMaxChannels int, subscriptionMaxChannels int, subTemplate, unsubTemplate string) (*Connection, error) {
-	conn, _, err := websocket.DefaultDialer.Dial(connectionString, nil)
+func NewConnection(connectionString string, connectionMaxChannels int, subscriptionMaxChannels int, subTemplate, unsubTemplate string, pingMsg string) (*Connection, error) {
+	d := websocket.Dialer{
+		EnableCompression: true, // включаем permessage-deflate
+	}
+
+	conn, _, err := d.Dial(connectionString, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial connection: %v", err)
 	}
 
 	return &Connection{
 		conn:                    conn,
-		listenCh:                make(chan *pb.PushDataV3ApiWrapper, 1024),
+		listenCh:                make(chan *[]byte, 1024),
 		subs:                    []*Subscription{NewSubscription(subscriptionMaxChannels)},
 		closeCh:                 make(chan struct{}),
 		state:                   Connected,
@@ -61,12 +64,12 @@ func NewConnection(connectionString string, connectionMaxChannels int, subscript
 }
 
 // a ping loop
-func (c *Connection) HeartBeat(msg string, interval time.Duration) error {
+func (c *Connection) HeartBeat(interval time.Duration) error {
 	if c.conn == nil {
 		return nil
 	}
 
-	payload := []byte(msg)
+	payload := []byte(c.pingMsg)
 	ticker := time.NewTicker(interval)
 	go func() {
 		defer ticker.Stop()
@@ -110,19 +113,12 @@ func (c *Connection) Run() error {
 			if msgType == websocket.PongMessage {
 				continue
 			}
-
-			wrapper := &pb.PushDataV3ApiWrapper{}
-			if err := proto.Unmarshal(msg, wrapper); err != nil {
-				log.Println(string(msg))
-				continue
-			}
-
-			c.listenCh <- wrapper
+			c.listenCh <- &msg
 		}
 	}
 }
 
-func (c *Connection) Listen() <-chan *pb.PushDataV3ApiWrapper {
+func (c *Connection) Listen() <-chan *[]byte {
 	return c.listenCh
 }
 
