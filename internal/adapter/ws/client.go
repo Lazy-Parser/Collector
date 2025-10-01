@@ -1,7 +1,6 @@
 package wsclient
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -45,7 +44,7 @@ symbolLoop:
 			return fmt.Errorf("failed to create new connection: %v", err)
 		}
 		if ok := c.conns[len(c.conns)-1].TrySubscribe(channel); !ok {
-			return errors.New(fmt.Sprintf("failed to subscribe to %s in a new connection", channel))
+			return fmt.Errorf("failed to subscribe to %s in a new connection", channel)
 		}
 	}
 
@@ -99,7 +98,7 @@ func (c *Client) Disconnect() error {
 
 	for i := range c.conns {
 		if err := c.conns[i].Close(); err != nil {
-			return errors.New(fmt.Sprintf("Failed to close connection %d: %v", i, err))
+			return fmt.Errorf("Failed to close connection %d: %v", i, err)
 		}
 	}
 

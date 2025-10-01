@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,28 +17,14 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var (
-	sub = `{
-    "method": "SUBSCRIPTION",
-    "params": [%s]
-}`
-	unsub = `{
-    "method": "UNSUBSCRIPTION",
-    "params": [%s]
-}`
-	pingMsg   = `{"method": "PING"}`
-	volumeMin = 500_000.0
-)
-
 type operation int
 
 const (
 	Subscribe operation = iota
+
 	Unsubscribe
 )
 
-// m.BufferLoop()
-// m.ListenSpot()
 type Mexc struct {
 	clientSpot    *wsclient.Client
 	clientFutures *wsclient.Client
@@ -45,6 +32,7 @@ type Mexc struct {
 
 	symbols map[string]struct{}
 	quotes  map[string]struct{}
+	futures *[]market.MexcContractDetail
 
 	// xIndex are used for the work with both short and full symbols efficiently
 	buffer  map[string]*market.MexcTokenMeta // key - full symbol ('BTCUSDT')
@@ -55,8 +43,8 @@ type Mexc struct {
 func NewMexc(api api.MexcAPI) (*Mexc, error) {
 	clientSpot, err := wsclient.NewClientBuilder().
 		SetConnectionString("wss://wbs-api.mexc.com/ws").
-		SetSubTemplate(sub).
-		SetUnsubTemplate(unsub).
+		SetSubTemplate(spot_sub).
+		SetUnsubTemplate(spot_unsub).
 		SetConnectionMaxChannels(30).
 		SetSubscriptionMaxChannels(15).
 		SetPintMsgString(pingMsg).
@@ -85,12 +73,18 @@ func NewMexc(api api.MexcAPI) (*Mexc, error) {
 		return nil, err
 	}
 
+	futures, err := fetchFuturesList(api)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch futures list in NewMexc(): %v", err)
+	}
+
 	return &Mexc{
 		api:           api,
 		clientSpot:    clientSpot,
 		clientFutures: clientFutures,
 		symbols:       symbols,
 		quotes:        quotes,
+		futures:       futures,
 		buffer:        make(map[string]*market.MexcTokenMeta),
 		queue:         make(map[string]operation),
 	}, nil
@@ -112,6 +106,15 @@ func fetchAllSymbols(api api.MexcAPI) (map[string]struct{}, map[string]struct{},
 	}
 
 	return symbols, quotes, nil
+}
+
+func fetchFuturesList(api api.MexcAPI) (*[]market.MexcContractDetail, error) {
+	contracts, err := api.FetchContractInformation(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return &contracts, nil
 }
 
 func (m *Mexc) Name() string {
@@ -144,9 +147,9 @@ func (m *Mexc) update(symbol string, update market.MexcTokenMetaUpdate) {
 			}
 		} else {
 			if volumeBiggerMin {
-				if len(m.buffer) >= 300 { // limit for tests
-					return
-				}
+				// if len(m.buffer) >= 30 { // limit for tests
+				// 	return
+				// }
 				// create. TODO: Do not forger to push msg to the queue
 				m.bufferCreate(symbol, update)
 				m.queuePush(symbol, Subscribe)
@@ -186,9 +189,8 @@ func (m *Mexc) BufferLoop(ctx context.Context) error {
 		return fmt.Errorf("buffer loop error: %v", err)
 	}
 
-	log.Println("Fetched first requests for buffer")
+	log.Println("First queue burst!")
 	m.queueBurst()
-	log.Println("Trying to burst all queuec")
 
 	go func() {
 		ticker := time.NewTicker(time.Minute * 5)
@@ -200,7 +202,7 @@ func (m *Mexc) BufferLoop(ctx context.Context) error {
 				return
 			case <-ticker.C:
 				m.fetchVolumeAndUpdate(ctx)
-				// don't forget to run the burst method for the changes (update/delete/create) to take effect.
+				// don't forget to run the burst method for the changes (update/delete/create sub) to take effect.
 				m.queueBurst()
 			}
 		}
@@ -216,7 +218,7 @@ func (m *Mexc) BufferLoop(ctx context.Context) error {
 				return
 			case <-ticker.C:
 				m.fetchDepositWithdrawAndUpdate(ctx)
-				// do not call m.queueBurst() here, because only volume fetch addes commands to the queue
+				// do not call m.queueBurst() here, because only volume fetch append commands to the queue
 			}
 		}
 	}()
@@ -225,20 +227,20 @@ func (m *Mexc) BufferLoop(ctx context.Context) error {
 }
 
 // TODO: Make buffer Fetch for provided symbol (token) name
-func (m *Mexc) BufferUpdate(ctx context.Context) error {
-	// init requests
-	err := m.fetchVolumeAndUpdate(ctx)
-	if err != nil {
-		return fmt.Errorf("buffer loop error: %v", err)
-	}
-	err = m.fetchDepositWithdrawAndUpdate(ctx)
-	if err != nil {
-		return fmt.Errorf("buffer loop error: %v", err)
-	}
-	m.queueBurst()
+// func (m *Mexc) BufferUpdate(ctx context.Context) error {
+// 	// init requests
+// 	err := m.fetchVolumeAndUpdate(ctx)
+// 	if err != nil {
+// 		return fmt.Errorf("buffer loop error: %v", err)
+// 	}
+// 	err = m.fetchDepositWithdrawAndUpdate(ctx)
+// 	if err != nil {
+// 		return fmt.Errorf("buffer loop error: %v", err)
+// 	}
+// 	m.queueBurst()
 
-	return nil
-}
+// 	return nil
+// }
 
 func (m *Mexc) fetchVolumeAndUpdate(ctx context.Context) error {
 	stats, err := m.api.Fetch24hTickerStats(ctx)
@@ -356,30 +358,69 @@ func (m *Mexc) queueBurst() {
 	m.queueMu.Lock()
 	defer m.queueMu.Unlock()
 
-	var subList []string
-	var unsubList []string
+	var wg sync.WaitGroup
+	var spotSubList []string
+	var spotUnsubList []string
+	var futuresSubList []string
+	var futuresUnsubList []string
 	for symbol, oper := range m.queue {
 		switch oper {
 		case Subscribe:
 			// TODO: decide for spot or futures connection
-			subList = append(subList, symbol)
+
+			// spot
+			spotSubList = append(spotSubList, symbol)
+
+			// futures
+			// check if coin exists on futures
+			// [isFutures] function also returns changed symbol specificly for futures like this "BTCUSDT" -> "BTC_USDT"
+			if symbol_f, exist := m.isFutures(symbol); exist {
+				futuresSubList = append(futuresSubList, symbol_f)
+			}
 		case Unsubscribe:
-			unsubList = append(unsubList, symbol)
+			spotUnsubList = append(spotUnsubList, symbol)
+
+			// also check coin on futures
+			if symbol_f, exist := m.isFutures(symbol); exist {
+				futuresUnsubList = append(futuresUnsubList, symbol_f)
+			}
 		}
 	}
 
-	// if !m.client. {
-	// 	log.Println("failed to burst all tasks in mexc queue, because the connection is not active")
-	// 	return
-	// }
+	// sub/unsub parallel on both clients
+	// maybe its better to leave them in the goroutines, but i it will be saver to wait untill done
+	// !!!!! DO NOT FORGET TO WRITE wg.Done() !!!!!!!!!!!!!!
+	wg.Add(2)
+	// spot
+	go func() {
+		m.clientSpot.Unsubscribe(spotUnsubList)
+		m.clientSpot.Subscribe(spotSubList)
+		wg.Done()
+	}()
+	// futures
+	go func() {
+		m.clientFutures.Unsubscribe(futuresUnsubList)
+		m.clientFutures.Subscribe(futuresSubList)
+		wg.Done()
+	}()
 
-	m.clientSpot.Unsubscribe(unsubList)
-	m.clientSpot.Subscribe(subList)
+	wg.Wait()
 
 	// empty queue
 	for key := range m.queue {
 		delete(m.queue, key)
 	}
+}
+
+// [isFunction] is a fucntion that checks if symbol exists on futures and returns changed symbol for futures subscription
+func (m *Mexc) isFutures(symbol string) (string, bool) {
+	for _, contract := range *m.futures {
+		if symbol == contract.BaseCoin+contract.QuoteCoin {
+			return (contract.BaseCoin + "_" + contract.QuoteCoin), true
+		}
+	}
+
+	return "", false
 }
 
 // queue
@@ -395,6 +436,7 @@ func (m *Mexc) ListenSpot(ctx context.Context, ch chan *market.MexcSpotTick) err
 			return nil
 		case raw, ok := <-m.clientSpot.Listen():
 			if !ok {
+				log.Println("Something went wrong with mexc spot listener")
 				return nil
 			}
 			if raw == nil {
@@ -408,7 +450,7 @@ func (m *Mexc) ListenSpot(ctx context.Context, ch chan *market.MexcSpotTick) err
 				continue
 			}
 
-			bufferData, ok := m.bufferFind(wrapper.Channel)
+			bufferData, ok := m.bufferFind(*wrapper.Symbol)
 			if !ok {
 				continue
 			}
@@ -452,22 +494,38 @@ func (m *Mexc) ListenFutures(ctx context.Context, ch chan *market.MexcFutureTick
 			// unmarshall
 			res := &market.MexcFutureTickWS{}
 			if err := json.Unmarshal(*raw, res); err != nil {
+				// ignore messages about success subscription
+				if strings.Contains(string(*raw), "success") {
+					continue
+				}
+				log.Println("Error unmarshalling future tick: ", err)
 				log.Println(string(*raw))
 				continue
 			}
 
-			// bufferData, ok := m.bufferFind(wrapper.Channel)
+			// futures api returns symbol in form "BTC_USDT", for the buffer need to cast to the "BTCUSDT"
+			bufferData, ok := m.bufferFind(strings.ReplaceAll(res.Symbol, "_", ""))
 			if !ok {
 				continue
 			}
 
-			ch <- m.createFutureTick(res)
+			ch <- m.createFutureTick(res, bufferData)
 		}
 	}
 }
 
-func (m *Mexc) createFutureTick(data *market.MexcFutureTickWS) *market.MexcFutureTick {
-	return nil
+func (m *Mexc) createFutureTick(data *market.MexcFutureTickWS, buffer *market.MexcTokenMeta) *market.MexcFutureTick {
+	return &market.MexcFutureTick{
+		Symbol: data.Symbol,
+		Bids:   data.Data.Bids,
+		Asks:   data.Data.Asks,
+
+		Volume:      buffer.Volume,
+		Deposit:     buffer.Deposit,
+		WithdrawFee: buffer.WithdrawFee,
+		Withdraw:    buffer.Withdraw,
+		Contract:    buffer.Contract, // can be empty
+	}
 }
 
 // listeners

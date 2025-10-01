@@ -15,7 +15,6 @@ type Exchange interface {
 	Name() string
 	StopAll(ctx context.Context)
 	BufferLoop(ctx context.Context) error
-	BufferUpdate(ctx context.Context) error
 	ListenSpot(ctx context.Context, ch chan *market.MexcSpotTick) error
 	ListenFutures(ctx context.Context, ch chan *market.MexcFutureTick) error
 }

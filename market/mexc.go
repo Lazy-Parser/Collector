@@ -19,6 +19,7 @@ type MexcContracts struct {
 }
 type MexcContractDetail struct {
 	BaseCoin   string `json:"baseCoin"`
+	QuoteCoin  string `json:"quoteCoin"`
 	Symbol     string `json:"symbol"` // "BTC_USDT"
 	CreateTime int64  `json:"createTime"`
 	ImageUrl   string `json:"baseCoinIconUrl"`
@@ -47,20 +48,27 @@ type MexcSpotTick struct {
 	AskQty   string
 }
 
-// Only for internal exchange work
+// Only for internal exchange work, use [MexcFutureTick] instead
 type MexcFutureTickWS struct {
 	Channel string `json:"channel"`
 	Data    struct {
-		Asks []float32 `json:"asks"`
-		Bids []float32 `json:"bids"`
+		Asks [][]float32 `json:"asks"`
+		Bids [][]float32 `json:"bids"`
 	} `json:"data"`
 	Symbol string `json:"symbol"`
 }
 
 type MexcFutureTick struct {
 	Symbol string    `json:"symbol"`
-	Bids   []float32 `json:"bidPrice"`
-	Asks   []float32 `json:"askPrice"`
+	Bids   [][]float32 `json:"bidPrice"`
+	Asks   [][]float32 `json:"askPrice"`
+
+	Volume string
+
+	Deposit     bool
+	WithdrawFee string
+	Withdraw    bool
+	Contract    string
 }
 
 type MexcTokenMeta struct {
