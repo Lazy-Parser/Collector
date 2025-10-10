@@ -7,12 +7,13 @@ import (
 	"golang.org/x/time/rate"
 )
 
+// TODO: make queue with every request ip weight for mexc
 type Client struct {
 	client  *http.Client
 	limiter *rate.Limiter
 }
 
-// Creates new Client instanse.
+// New Creates new Client instanse.
 //
 // Params:
 //   - rpm: how many request per minute (maximum requests limit per minute).
@@ -27,7 +28,7 @@ func New(rpm int, burst int, timeout time.Duration) *Client {
 	}
 }
 
-// IMPORTANT: create request with context, do not pass context to this function
+// Do IMPORTANT: create request with context, do not pass context to this function
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	// Wait
 	if err := c.limiter.Wait(req.Context()); err != nil {

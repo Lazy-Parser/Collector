@@ -18,6 +18,8 @@ type MexcAPI interface {
 	Fetch24hTickerStats(ctx context.Context) ([]market.MexcTickerStats, error)
 	// /exchangeInfo  (symbols / base / quote)
 	FetchExchangeInfo(ctx context.Context) ([]market.MexcExchangeInfo, error)
+	// /api/v3/ticker/bookTicker
+	FetchOrderBookTicker(ctx context.Context) ([]market.MexcOrderBookTick, error)
 }
 
 func NewMexcApi(cfg *config.Config) MexcAPI {

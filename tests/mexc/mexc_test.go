@@ -46,38 +46,70 @@ func (s *TestSuite) SetupSuite() {
 	s.Require().NoError(err, "failed to create mexc exchange")
 }
 
-// TODO: does not stream futures. Find if token exists on futures
-func (s *TestSuite) TestMexcFutures() {
+func (s *TestSuite) TestMexcSpot() {
 	s.T().Log("Booting mexc up...")
 
 	ctx := context.Background()
 
-	// fetch buffer first and subscribe
+	// buffer updates
 	s.mexcE.BufferLoop(ctx)
 
 	// blocking
-	ch := make(chan *market.MexcFutureTick, 1024)
+	ch := make(chan *market.MexcSpotTick, 1024)
 	go func() {
-		if err := s.mexcE.ListenFutures(ctx, ch); err != nil {
+		if err := s.mexcE.ListenSpot(ctx, ch); err != nil {
 			s.T().Errorf("listen spot error: %v", err)
 		}
 	}()
 	s.T().Log("Done!")
 
 	// listen ticks
-	ticker := time.NewTicker(time.Second)
-	symbols := map[string]struct{}{}
+	ticker := time.NewTicker(time.Second * 2)
+	symbols := map[string]*market.MexcSpotTick{}
 	for {
 		select {
 		case <-ticker.C:
-			s.T().Logf("Symbols: %d", len(symbols))
+			s.T().Logf("FARTCOIN: %+v", symbols["FARTCOINUSDT"])
 		case <-ctx.Done():
 			return
 		case tick := <-ch:
-			symbols[tick.Symbol] = struct{}{}
+			symbols[tick.Symbol] = tick
 		}
 	}
 }
+
+// TODO: does not stream futures. Find if token exists on futures
+//func (s *TestSuite) TestMexcFutures() {
+//	s.T().Log("Booting mexc up...")
+//
+//	ctx := context.Background()
+//
+//	// fetch buffer first and subscribe
+//	s.mexcE.BufferLoop(ctx)
+//
+//	// blocking
+//	ch := make(chan *market.MexcFutureTick, 1024)
+//	go func() {
+//		if err := s.mexcE.ListenFutures(ctx, ch); err != nil {
+//			s.T().Errorf("listen spot error: %v", err)
+//		}
+//	}()
+//	s.T().Log("Done!")
+//
+//	// listen ticks
+//	ticker := time.NewTicker(time.Second)
+//	symbols := map[string]struct{}{}
+//	for {
+//		select {
+//		case <-ticker.C:
+//			s.T().Logf("Symbols: %d", len(symbols))
+//		case <-ctx.Done():
+//			return
+//		case tick := <-ch:
+//			symbols[tick.Symbol] = struct{}{}
+//		}
+//	}
+//}
 
 // TODO: add metrics to the ws client
 // func TestMexc(t *testing.T) {

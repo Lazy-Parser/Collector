@@ -33,6 +33,14 @@ type MexcTickerStats struct {
 	Volume   string `json:"volume"`
 }
 
+type MexcOrderBookTick struct {
+	Symbol   string `json:"symbol"` // "BTCUSDT"
+	BidPrice string `json:"bidPrice"`
+	BidQty   string `json:"bidQty"`
+	AskPrice string `json:"askPrice"`
+	AskQty   string `json:"askQty"`
+}
+
 type MexcSpotTick struct {
 	Symbol string
 
@@ -59,7 +67,7 @@ type MexcFutureTickWS struct {
 }
 
 type MexcFutureTick struct {
-	Symbol string    `json:"symbol"`
+	Symbol string      `json:"symbol"`
 	Bids   [][]float32 `json:"bidPrice"`
 	Asks   [][]float32 `json:"askPrice"`
 
