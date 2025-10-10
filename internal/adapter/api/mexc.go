@@ -51,6 +51,18 @@ func (api *MexcApi) FetchContractInformation(ctx context.Context) ([]market.Mexc
 	return res.Data, err
 }
 
+// FetchContractTicker - futures ticker. Maximum limit - 20 req / 2 sec
+func (api *MexcApi) FetchContractTicker(ctx context.Context) (*market.MexcContractTicksRes, error) {
+	// https://contract.mexc.com/api/v1/contract/ticker
+	var res market.MexcContractTicksRes
+	_, err := resty.New().
+		R().
+		SetContext(ctx).
+		SetResult(&res).
+		Get(api.cfg.Mexc.API.CONTRACTS_TICKERS)
+	return &res, err
+}
+
 func (api *MexcApi) Fetch24hTickerStats(ctx context.Context) ([]market.MexcTickerStats, error) {
 	var res []market.MexcTickerStats
 	_, err := resty.New().
@@ -67,7 +79,7 @@ func (api *MexcApi) FetchOrderBookTicker(ctx context.Context) ([]market.MexcOrde
 		R().
 		SetContext(ctx).
 		SetResult(&res).
-		Get(api.cfg.Mexc.API.TICKER_24HR)
+		Get(api.cfg.Mexc.API.ORDER_BOOK_TICKER)
 	return res, err
 }
 

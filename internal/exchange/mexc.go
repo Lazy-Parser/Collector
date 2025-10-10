@@ -8,6 +8,7 @@ import (
 	"github.com/Lazy-Parser/Collector/market"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -308,7 +309,52 @@ func (m *Mexc) createSpotTick(tick *market.MexcOrderBookTick, bufferData *market
 // ----
 
 func (m *Mexc) ListenFutures(ctx context.Context, ch chan *market.MexcFutureTick) error {
-	return nil
+	// request limit is 20 req / 2 sec, but it will be okay 1 req / 1 sec
+	ticker := time.NewTicker(time.Second)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+
+		case <-ticker.C:
+			tickers, err := m.api.FetchContractTicker(ctx)
+			if err != nil {
+				return err
+			}
+			if !tickers.Success {
+				return fmt.Errorf("fetch future ticker fail, error code: %d", tickers.Code)
+			}
+
+			for _, ticker := range tickers.Data {
+				// find in buffer
+				// from contract tick got symbol "BTC_USDT". Remove "_" to find in the buffer
+				symbolCommon := strings.ReplaceAll(ticker.Symbol, "_", "")
+				bufferTicker, ok := m.bufferFind(symbolCommon)
+				if !ok {
+					continue
+				}
+
+				ticker.Symbol = symbolCommon
+				ch <- m.createFutureTick(&ticker, bufferTicker)
+			}
+		}
+	}
+}
+
+func (m *Mexc) createFutureTick(data *market.MexcContractTick, buffer *market.MexcTokenMeta) *market.MexcFutureTick {
+	return &market.MexcFutureTick{
+		Symbol:      data.Symbol,
+		Bid1:        data.Bid1,
+		Ask1:        data.Ask1,
+		MaxBidPrice: data.MaxBidPrice,
+		MinAskPrice: data.MinAskPrice,
+
+		Volume:      buffer.Volume, // TODO: decide to pass volume from the futures Volume or Buffer Volume
+		Deposit:     buffer.Deposit,
+		WithdrawFee: buffer.WithdrawFee,
+		Withdraw:    buffer.Withdraw,
+		Contract:    buffer.Contract, // can be empty
+	}
 }
 
 // ---- END LISTENERS ----

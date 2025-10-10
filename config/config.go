@@ -31,6 +31,7 @@ type (
 		TICKER_24HR       string `env:"MEXC_API_TICKER_24HR,required"`
 		ORDER_BOOK_TICKER string `env:"MEXC_API_ORDER_BOOK_TICKER,required"`
 		EXCHANGE_INFO     string `env:"MEXC_API_EXCHANGE_INFO,required"`
+		CONTRACTS_TICKERS string `env:"MEXC_API_CONTRACTS_TICKERS,required"`
 	}
 
 	DEXSCREENER struct {

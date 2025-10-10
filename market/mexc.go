@@ -25,6 +25,21 @@ type MexcContractDetail struct {
 	ImageUrl   string `json:"baseCoinIconUrl"`
 }
 
+type MexcContractTicksRes struct {
+	Success bool               `json:"success"`
+	Code    int                `json:"code"`
+	Data    []MexcContractTick `json:"data"`
+}
+
+type MexcContractTick struct {
+	Symbol      string  `json:"symbol"`
+	Bid1        float64 `json:"bid1"`
+	Ask1        float64 `json:"ask1"`
+	Volume24H   float64 `json:"volume24"`
+	MaxBidPrice float64 `json:"maxBidPrice"`
+	MinAskPrice float64 `json:"minAskPrice"`
+}
+
 // 24h ticker stats
 type MexcTickerStats struct {
 	Symbol   string `json:"symbol"`
@@ -67,12 +82,13 @@ type MexcFutureTickWS struct {
 }
 
 type MexcFutureTick struct {
-	Symbol string      `json:"symbol"`
-	Bids   [][]float32 `json:"bidPrice"`
-	Asks   [][]float32 `json:"askPrice"`
+	Symbol      string  `json:"symbol"`
+	Bid1        float64 `json:"bidPrice"`
+	Ask1        float64 `json:"askPrice"`
+	MaxBidPrice float64 `json:"maxBidPrice"`
+	MinAskPrice float64 `json:"minAskPrice"`
 
-	Volume string
-
+	Volume      string
 	Deposit     bool
 	WithdrawFee string
 	Withdraw    bool
